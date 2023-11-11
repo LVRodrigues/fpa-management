@@ -1,4 +1,4 @@
-# fpa-management
+# FPA Management
 
 Project Management using Function Points Analysis.
 

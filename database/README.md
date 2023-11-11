@@ -2,7 +2,7 @@
 
 PostgreSQL database for the **FPA Management** application.
 
-The creation of a database for development and how to access it is described here.
+[![Static Badge](https://img.shields.io/badge/Entity_Relationship_Diagram-blue)](./diagram.md)
 
 ## Docker
 
