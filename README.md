@@ -11,7 +11,8 @@ Project Management using Function Points Analysis.
 ![Static Badge](https://img.shields.io/badge/keycloak-22.0.5-blue?logo=sso)
 ![Static Badge](https://img.shields.io/badge/SSO-yellow)
 ![Static Badge](https://img.shields.io/badge/OAuth_2.0-yellow)
-
+![Static Badge](https://img.shields.io/badge/OpenID_Connect-yellow)
+![Static Badge](https://img.shields.io/badge/Multi_Tennant-yellow)
 
 ![Static Badge](https://img.shields.io/badge/rust-1.73-blue?logo=rust)
 ![Static Badge](https://img.shields.io/badge/REST_API-yellow)
