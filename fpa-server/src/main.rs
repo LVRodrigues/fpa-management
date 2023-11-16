@@ -1,5 +1,10 @@
-fn main() {
-    println!("Hello from an example!");
-    let size = fpa::add(10, 5);
-    println!("Size: {}", size);
+use std::error::Error;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn Error>> {
+    fpa::start()
+        .await
+        .unwrap();
+
+    Ok(())
 }
