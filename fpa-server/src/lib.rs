@@ -10,7 +10,7 @@ use axum::{
 mod handlers;
 
 pub async fn start() -> Result<(), Box<dyn Error>> {
-    let address = SocketAddr::from(([0, 0, 0, 0], 8000));
+    let address = SocketAddr::from(([0, 0, 0, 0], 5000));
 
 	let router = Router::new().route(
         "/", get(handlers::hello)
