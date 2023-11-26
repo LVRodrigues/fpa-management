@@ -1,5 +1,7 @@
-use axum::{http::StatusCode, response::IntoResponse, Router, routing::get};
+use axum::{http::StatusCode, response::IntoResponse, Router, routing::get, middleware};
 use utoipa::OpenApi;
+
+use crate::auth;
 
 #[derive(OpenApi)]
 #[openapi(paths(hello))]
@@ -9,6 +11,7 @@ pub fn router() -> Router {
     Router::new()
         .nest("/api", Router::new().to_owned()
             .route("/hello", get(hello))
+            .route_layer(middleware::from_fn(auth::require))
     )
 }
 
