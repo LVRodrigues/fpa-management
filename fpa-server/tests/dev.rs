@@ -4,9 +4,13 @@ use anyhow::Result;
 
 #[tokio::test]
 async fn dev() -> Result<()> {
-    let client = httpc_test::new_client("http://localhost:5000")?;
+    let response = reqwest::Client::new()
+        .get("http://localhost:5000/api/hello")
+        .bearer_auth("FAILED")
+        .send()
+        .await?;
 
-    client.do_get("/api/hello").await?.print().await?;
+    println!("{:?}", response);
 
     Ok(())
 }

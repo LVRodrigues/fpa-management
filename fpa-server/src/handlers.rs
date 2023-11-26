@@ -23,6 +23,6 @@ pub fn router() -> Router {
     )
 )]
 pub async fn hello() -> impl IntoResponse {
-    println!("==> {:12} [/hello]", "HANDLER");
+    println!("==> {:<12} [/hello]", "HANDLER");
     (StatusCode::OK, "Hello, APF Management!")
 }
