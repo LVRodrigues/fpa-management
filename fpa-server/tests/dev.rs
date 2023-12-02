@@ -22,8 +22,7 @@ struct AccessTokenResponse {
     scope: String,
 }
 
-#[tokio::test]
-async fn dev() -> Result<()> {
+async fn request_token() -> Result<String> {
     let mut params = HashMap::new();
     params.insert("grant_type", "password");
     params.insert("client_id", "fpa-management");
@@ -42,17 +41,23 @@ async fn dev() -> Result<()> {
         .json()
         .await?;
 
-    let token = response.access_token;
+    Ok(response.access_token)
+}
+
+#[tokio::test]
+async fn dev() -> Result<()> {
+    let token = request_token()
+        .await?;
 
     println!("Access Token: {:?}", token);
 
-    // let response = reqwest::Client::new()
-    //     .get("http://localhost:5000/api/hello")
-    //     .bearer_auth(token)
-    //     .send()
-    //     .await?;
+    let response = reqwest::Client::new()
+        .get("http://localhost:5000/api/hello")
+        .bearer_auth(token)
+        .send()
+        .await?;
 
-    // println!("{:?}", response);
+    println!("{:?}", response);
 
     Ok(())
 }
