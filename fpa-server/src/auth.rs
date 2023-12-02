@@ -19,5 +19,6 @@ pub async fn require<B>(request: Request<B>, next: Next<B>) -> Result<Response> 
         Some(v) => v,
         None => return Err(Error::Unauthorized),
     };
+    
     Ok(next.run(request).await)
 }
