@@ -49,8 +49,6 @@ async fn dev() -> Result<()> {
     let token = request_token()
         .await?;
 
-    println!("Access Token: {:?}", token);
-
     let response = reqwest::Client::new()
         .get("http://localhost:5000/api/hello")
         .bearer_auth(token)
