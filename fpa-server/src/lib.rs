@@ -7,8 +7,12 @@ use utoipa_swagger_ui::SwaggerUi;
 mod error;
 mod auth;
 mod handlers;
+mod configuration;
 
 pub async fn start() -> Result<(), Box<dyn Error>> {
+    let conf = configuration::prepare();
+    println!("Config: {:?}", conf);
+
     let address = SocketAddr::from(([0, 0, 0, 0], 5000));
 
     let router = Router::new()

@@ -32,3 +32,9 @@ impl IntoResponse for Error {
 		response
 	}
 }
+
+impl From<reqwest::Error> for Error {
+    fn from(value: reqwest::Error) -> Self {
+        Error::ParamInvalid
+    }
+}

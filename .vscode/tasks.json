@@ -14,6 +14,18 @@
             "problemMatcher": [
                 "$eslint-stylish"
             ]
-        }
+        },
+        {
+            "label": "fpa-server tests watch",
+            "type": "shell",
+            "command": "cargo watch -q -c -w tests/ -x \"test -q dev -- --nocapture\"",
+            "options": {
+                "cwd": "${workspaceFolder}/fpa-server"
+            },
+            "isBackground": true,
+            "problemMatcher": [
+                "$eslint-stylish"
+            ]
+        },
     ]
 }
