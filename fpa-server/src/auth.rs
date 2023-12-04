@@ -31,11 +31,12 @@ pub async fn require<B>(request: Request<B>, next: Next<B>) -> Result<Response> 
     let header = decode_header(&token)?;
 
     let key = jwks::key(header.kid.unwrap().clone())?;
+    let key = DecodingKey::from_jwk(&key.to_jwk()).unwrap();
 
     let mut validation = Validation::new(header.alg);
     validation.set_audience(&["account"]);
 
-    let claims  = decode::<Claims>(&token, &DecodingKey::from_jwk(&key.to_jwk()).unwrap(), &validation)?.claims;
+    let claims  = decode::<Claims>(&token, &key, &validation)?.claims;
     println!("{:?}", claims);
     
     Ok(next.run(request).await)
