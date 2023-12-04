@@ -7,16 +7,14 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Cargo launch",
-            "cargo": {
-                "args": [
-                    "build",
-                    "--manifest-path", 
-                    "${fileDirname}/../fpa-server/Cargo.toml"
-                ],
-            },
+            "name": "FPA Server",
+            "program": "${workspaceFolder}/fpa-server/target/debug/fpa",
             "args": [],
+            "cwd": "${workspaceFolder}/fpa-server",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            }
         }
-        
+
     ]
 }

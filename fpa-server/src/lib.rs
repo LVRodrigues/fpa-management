@@ -8,10 +8,11 @@ mod error;
 mod auth;
 mod handlers;
 mod configuration;
+mod jwks;
 
 pub async fn start() -> Result<(), Box<dyn Error>> {
-    let conf = configuration::prepare();
-    println!("Config: {:?}", conf);
+    let config = configuration::prepare();
+    jwks::prepare(config).await?;
 
     let address = SocketAddr::from(([0, 0, 0, 0], 5000));
 

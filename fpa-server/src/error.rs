@@ -8,7 +8,9 @@ pub enum Error {
     Unauthorized,
     Forbidden,
     ParamInvalid,
-    NotFounded,
+    NotFound,
+    KeyNotFound,
+    TokenInvalid
 }
 
 impl std::fmt::Display for Error {
@@ -35,6 +37,14 @@ impl IntoResponse for Error {
 
 impl From<reqwest::Error> for Error {
     fn from(value: reqwest::Error) -> Self {
+        println!("==> {:<12} - {value:?}", "ERROR ");
         Error::ParamInvalid
+    }
+}
+
+impl From<jsonwebtoken::errors::Error> for Error {
+    fn from(value: jsonwebtoken::errors::Error) -> Self {
+        println!("==> {:<12} - {value:?}", "ERROR ");
+        Error::TokenInvalid
     }
 }

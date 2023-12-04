@@ -27,5 +27,21 @@
                 "$eslint-stylish"
             ]
         },
+        {
+            "label": "fpa-server build",
+            "type": "shell",
+            "command": "cargo build",
+            "options": {
+                "cwd": "${workspaceFolder}/fpa-server"
+            },
+            "isBackground": true,
+            "problemMatcher": [
+                "$eslint-stylish"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
     ]
 }
