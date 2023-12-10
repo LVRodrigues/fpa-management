@@ -53,6 +53,8 @@ async fn dev() -> Result<()> {
         .get("http://localhost:5000/api/hello")
         .bearer_auth(token)
         .send()
+        .await?
+        .text()
         .await?;
 
     println!("{:?}", response);

@@ -10,7 +10,8 @@ pub enum Error {
     ParamInvalid,
     NotFound,
     KeyNotFound,
-    TokenInvalid
+    TokenInvalid,
+    Offline,
 }
 
 impl std::fmt::Display for Error {
@@ -38,7 +39,7 @@ impl IntoResponse for Error {
 impl From<reqwest::Error> for Error {
     fn from(value: reqwest::Error) -> Self {
         println!("==> {:<12} - {value:?}", "ERROR ");
-        Error::ParamInvalid
+        Error::Offline
     }
 }
 

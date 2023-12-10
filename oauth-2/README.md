@@ -78,7 +78,7 @@ curl -X POST \
   --header 'Content-Type: application/x-www-form-urlencoded' \
   --data-urlencode 'grant_type=password' \
   --data-urlencode 'client_id=fpa-management' \
-  --data-urlencode 'client_secret=jKQO0Pxb1gFrSz64iUgqlgsoANs86d31'
+  --data-urlencode 'client_secret=jKQO0Pxb1gFrSz64iUgqlgsoANs86d31' \
   --data-urlencode 'username=******' \
   --data-urlencode 'password=******' \  
 ```
