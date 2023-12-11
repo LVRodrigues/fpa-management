@@ -29,12 +29,13 @@ impl<S: Send + Sync> FromRequestParts<S> for Context {
 	async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self> {
 		println!("==> {:<12} - Context", "EXTRACTOR");
 
-		let claims = parts
+		let context = parts
 			.extensions
 			.get::<Context>()
+            .ok_or(Error::ContextInvalid)
             .unwrap()
             .clone();
 
-        Ok(claims)
+        Ok(context)
 	}
 }

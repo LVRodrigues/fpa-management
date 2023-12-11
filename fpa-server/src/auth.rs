@@ -5,9 +5,9 @@ use crate::{
 
 use axum::{
     body::Body,
-    http::{header, Request, request::Parts},
+    http::{header, Request},
     middleware::Next,
-    response::Response, async_trait, extract::FromRequestParts,
+    response::Response,
 };
 use jsonwebtoken::{decode, decode_header, DecodingKey, Validation};
 use serde::{Deserialize, Serialize};
