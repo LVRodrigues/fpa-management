@@ -11,6 +11,7 @@ pub enum Error {
     NotFound,
     KeyNotFound,
     TokenInvalid,
+    ContextInvalid,
     Offline,
 }
 

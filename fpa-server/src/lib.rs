@@ -7,7 +7,6 @@ use utoipa_swagger_ui::SwaggerUi;
 
 mod configuration;
 mod error;
-mod context;
 mod jwks;
 mod auth;
 mod handlers;

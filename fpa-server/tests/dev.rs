@@ -2,6 +2,7 @@
 
 use std::{collections::HashMap, error::Error};
 use axum::Json;
+use reqwest::StatusCode;
 use url::form_urlencoded;
 
 use anyhow::Result;
@@ -53,11 +54,10 @@ async fn dev() -> Result<()> {
         .get("http://localhost:5000/api/hello")
         .bearer_auth(token)
         .send()
-        .await?
-        .text()
         .await?;
+    assert!(response.status() == StatusCode::OK);
 
-    println!("{:?}", response);
+    println!("{:?}", response.text().await?);
 
     Ok(())
 }

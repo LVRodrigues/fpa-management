@@ -1,8 +1,16 @@
-use crate::{error::{Error, Result}, jwks, context::Context};
+use crate::{
+    error::{Error, Result},
+    jwks,
+};
 
-use axum::{http::{Request, header}, middleware::Next, response::Response, body::Body};
-use jsonwebtoken::{decode_header, Validation, decode, DecodingKey};
-use serde::{Serialize, Deserialize};
+use axum::{
+    body::Body,
+    http::{header, Request, request::Parts},
+    middleware::Next,
+    response::Response, async_trait, extract::FromRequestParts,
+};
+use jsonwebtoken::{decode, decode_header, DecodingKey, Validation};
+use serde::{Deserialize, Serialize};
 
 const BEARER: &str = "Bearer ";
 const AUDIENCE: &str = "account";
@@ -10,14 +18,17 @@ const AUDIENCE: &str = "account";
 /**
  * Claims is used to extract information from the Token.
  */
-#[derive(Debug, Serialize, Deserialize)]
-struct Claims {
-   sub: String,
-   name: String
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Claims {
+    pub sub: String,
+    pub name: String,
 }
 
 pub async fn require(mut request: Request<Body>, next: Next) -> Result<Response> {
-    let token = request.headers()
+    println!("==> {:<12} - require", "AUTH");
+
+    let token = request
+        .headers()
         .get(header::AUTHORIZATION)
         .and_then(|header| header.to_str().ok())
         .and_then(|value| {
@@ -40,10 +51,25 @@ pub async fn require(mut request: Request<Body>, next: Next) -> Result<Response>
     let mut validation = Validation::new(header.alg);
     validation.set_audience(&[AUDIENCE]);
 
-    let claims  = decode::<Claims>(&token, &key, &validation)?.claims;
-    let context = Context::new(claims.sub, claims.name);
+    let claims = decode::<Claims>(&token, &key, &validation)?.claims;
+    request.extensions_mut().insert(claims);
 
-    request.extensions_mut().insert(context);
-    
     Ok(next.run(request).await)
+}
+
+#[async_trait]
+impl<S: Send + Sync> FromRequestParts<S> for Claims {
+	type Rejection = Error;
+
+	async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self> {
+		println!("->> {:<12} - Claims", "EXTRACTOR");
+
+		let claims = parts
+			.extensions
+			.get::<Claims>()
+            .unwrap()
+            .clone();
+
+        Ok(claims)
+	}
 }
