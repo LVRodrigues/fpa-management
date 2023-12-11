@@ -67,3 +67,18 @@ docker cp fpa-management-oauth2:/opt/keycloak/data/export/tenant-02-realm.json .
 ```
 
 Rerun the container rebuild to persist the changes.
+
+## Authentication
+
+Start the container and execute:
+
+```bash
+curl -X POST \
+  'http://localhost:8080/realms/tenant-01/protocol/openid-connect/token' \
+  --header 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'grant_type=password' \
+  --data-urlencode 'client_id=fpa-management' \
+  --data-urlencode 'client_secret=jKQO0Pxb1gFrSz64iUgqlgsoANs86d31' \
+  --data-urlencode 'username=******' \
+  --data-urlencode 'password=******' \  
+```

@@ -1,0 +1,47 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "fpa-server watch",
+            "type": "shell",
+            "command": "cargo watch -x run",
+            "options": {
+                "cwd": "${workspaceFolder}/fpa-server"
+            },
+            "isBackground": true,
+            "problemMatcher": [
+                "$eslint-stylish"
+            ]
+        },
+        {
+            "label": "fpa-server tests watch",
+            "type": "shell",
+            "command": "cargo watch -q -c -w tests/ -x \"test -q dev -- --nocapture\"",
+            "options": {
+                "cwd": "${workspaceFolder}/fpa-server"
+            },
+            "isBackground": true,
+            "problemMatcher": [
+                "$eslint-stylish"
+            ]
+        },
+        {
+            "label": "fpa-server build",
+            "type": "shell",
+            "command": "cargo build",
+            "options": {
+                "cwd": "${workspaceFolder}/fpa-server"
+            },
+            "isBackground": true,
+            "problemMatcher": [
+                "$eslint-stylish"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ]
+}
