@@ -1,8 +1,7 @@
 use axum::{http::StatusCode, response::IntoResponse, Router, routing::get, middleware};
 use utoipa::OpenApi;
 
-use crate::error::{Error, Result};
-use crate::auth::{self, Claims};
+use crate::{ctx::Context, auth};
 
 #[derive(OpenApi)]
 #[openapi(paths(hello))]
@@ -23,8 +22,8 @@ pub fn router() -> Router {
         (status = 200, description = "Send a salute from FPA Management.")
     )
 )]
-pub async fn hello(claims: Claims) -> impl IntoResponse {
-    println!("==> {:<12} [/hello]", "HANDLER");
-    println!("{:?}", claims);
+pub async fn hello(context: Context) -> impl IntoResponse {
+    println!("==> {:<12} - /hello", "HANDLER");
+    println!("{:?}", context);
     (StatusCode::OK, "Hello, APF Management!")
 }

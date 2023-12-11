@@ -1,6 +1,6 @@
 use axum::Router;
 use tokio::net::TcpListener;
-use std::{error::Error, net::{SocketAddr}};
+use std::{error::Error, net::SocketAddr};
 use utoipa::OpenApi;
 use utoipa_rapidoc::RapiDoc;
 use utoipa_swagger_ui::SwaggerUi;
@@ -9,6 +9,7 @@ mod configuration;
 mod error;
 mod jwks;
 mod auth;
+mod ctx;
 mod handlers;
 
 pub async fn start() -> Result<(), Box<dyn Error>> {

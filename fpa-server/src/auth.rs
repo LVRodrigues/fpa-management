@@ -1,6 +1,6 @@
 use crate::{
     error::{Error, Result},
-    jwks,
+    jwks, ctx::Context,
 };
 
 use axum::{
@@ -19,9 +19,9 @@ const AUDIENCE: &str = "account";
  * Claims is used to extract information from the Token.
  */
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Claims {
-    pub sub: String,
-    pub name: String,
+struct Claims {
+    sub: String,
+    name: String,
 }
 
 pub async fn require(mut request: Request<Body>, next: Next) -> Result<Response> {
@@ -52,24 +52,8 @@ pub async fn require(mut request: Request<Body>, next: Next) -> Result<Response>
     validation.set_audience(&[AUDIENCE]);
 
     let claims = decode::<Claims>(&token, &key, &validation)?.claims;
-    request.extensions_mut().insert(claims);
+    let context = Context::new(claims.sub, claims.name);
+    request.extensions_mut().insert(context);
 
     Ok(next.run(request).await)
-}
-
-#[async_trait]
-impl<S: Send + Sync> FromRequestParts<S> for Claims {
-	type Rejection = Error;
-
-	async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self> {
-		println!("->> {:<12} - Claims", "EXTRACTOR");
-
-		let claims = parts
-			.extensions
-			.get::<Claims>()
-            .unwrap()
-            .clone();
-
-        Ok(claims)
-	}
 }
