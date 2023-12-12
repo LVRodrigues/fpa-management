@@ -80,5 +80,23 @@ curl -X POST \
   --data-urlencode 'client_id=fpa-management' \
   --data-urlencode 'client_secret=jKQO0Pxb1gFrSz64iUgqlgsoANs86d31' \
   --data-urlencode 'username=******' \
-  --data-urlencode 'password=******' \  
+  --data-urlencode 'password=******' 
+```
+
+### Decompose de Token
+
+Using de tools **jq**, **tr** and **jwt-cli**.
+
+```bash
+curl -X POST \
+  'http://localhost:8080/realms/tenant-01/protocol/openid-connect/token' \
+  --header 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'grant_type=password' \
+  --data-urlencode 'client_id=fpa-management' \
+  --data-urlencode 'client_secret=jKQO0Pxb1gFrSz64iUgqlgsoANs86d31' \
+  --data-urlencode 'username=******' \
+  --data-urlencode 'password=******' \
+  | jq ".access_token" \
+  | tr -d '"' \
+  | jwt decode -
 ```
