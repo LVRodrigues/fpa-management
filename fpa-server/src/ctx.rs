@@ -1,20 +1,26 @@
 use axum::{async_trait, extract::FromRequestParts, http::request::Parts};
+use uuid::Uuid;
 
 use crate::error::{Error, Result};
 
 #[derive(Clone, Debug)]
 pub struct Context {
-    id: String,
+    id: Uuid,
+    tenant: Uuid,
     name: String,
 }
 
 impl Context {
-    pub fn new(id: String, name: String) -> Self {
-        Self { id, name }
+    pub fn new(id: Uuid, tenant: Uuid, name: String) -> Self {
+        Self { id, tenant, name }
     }
 
-    pub fn id(&self) -> &str {
-        &self.id.as_str()
+    pub fn id(&self) -> &Uuid {
+        &self.id
+    }
+
+    pub fn tenant(&self) -> &Uuid {
+        &self.tenant
     }
 
     pub fn name(&self) -> &str {

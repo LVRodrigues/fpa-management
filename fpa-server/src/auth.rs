@@ -11,6 +11,7 @@ use axum::{
 };
 use jsonwebtoken::{decode, decode_header, DecodingKey, Validation};
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 const BEARER: &str = "Bearer ";
 const AUDIENCE: &str = "account";
@@ -20,8 +21,15 @@ const AUDIENCE: &str = "account";
  */
 #[derive(Clone, Debug, Serialize, Deserialize)]
 struct Claims {
-    sub: String,
+    sub: Uuid,
+    tenant: Uuid,
     name: String,
+}
+
+impl Claims {
+    fn to_context(&self) -> Context {
+        Context::new(self.sub, self.tenant, self.name.to_owned())
+    }
 }
 
 pub async fn require(mut request: Request<Body>, next: Next) -> Result<Response> {
@@ -52,8 +60,7 @@ pub async fn require(mut request: Request<Body>, next: Next) -> Result<Response>
     validation.set_audience(&[AUDIENCE]);
 
     let claims = decode::<Claims>(&token, &key, &validation)?.claims;
-    let context = Context::new(claims.sub, claims.name);
-    request.extensions_mut().insert(context);
+    request.extensions_mut().insert(claims.to_context());
 
     Ok(next.run(request).await)
 }
