@@ -26,10 +26,25 @@ ALTER TABLE tests ENABLE ROW LEVEL SECURITY;
 CREATE POLICY tests_policy ON tests
 USING (tenant = current_setting('app.current_tenant')::UUID);
 
+INSERT INTO tenants (tenant, name, date, status, tier) 
+values ('00000000-0000-0000-0000-000000000001'::UUID, 'Tenant 01', CURRENT_TIMESTAMP, 1, 1);
+
 DO $$
 BEGIN
     FOR index IN 1..100 LOOP
         INSERT INTO tests(test, tenant, name) 
-        VALUES (uuid_generate_v4(), uuid_nil(), 'Test ' || LPAD(CAST(index AS VARCHAR), 3, '0'));
+        VALUES (uuid_generate_v4(), '00000000-0000-0000-0000-000000000001'::UUID, '[Tenant 01] Test ' || LPAD(CAST(index AS VARCHAR), 3, '0'));
     END LOOP;
 END; $$
+
+INSERT INTO tenants (tenant, name, date, status, tier) 
+values ('00000000-0000-0000-0000-000000000002'::UUID, 'Tenant 02', CURRENT_TIMESTAMP, 1, 1);
+
+DO $$
+BEGIN
+    FOR index IN 1..100 LOOP
+        INSERT INTO tests(test, tenant, name) 
+        VALUES (uuid_generate_v4(), '00000000-0000-0000-0000-000000000002'::UUID, '[Tenant 02] Test ' || LPAD(CAST(index AS VARCHAR), 3, '0'));
+    END LOOP;
+END; $$
+
