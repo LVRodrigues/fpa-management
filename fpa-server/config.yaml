@@ -1,0 +1,10 @@
+jwks: 
+  - http://localhost:8080/realms/tenant-01/protocol/openid-connect/certs
+  - http://localhost:8080/realms/tenant-02/protocol/openid-connect/certs
+  
+database:
+  engine: postgres
+  server: localhost
+  port: 5432
+  username: fpa-user
+  password: fpa-pass

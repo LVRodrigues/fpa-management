@@ -1,34 +1,36 @@
-use std::{path::Path, collections::HashMap};
+use std::path::Path;
 
 use config::{Config, File};
-use serde::Deserialize;
 
-#[derive(Debug, Deserialize)]
-pub struct Configuration {
-    pub jwks_tenant_01: String,
-    pub jwks_tenant_02: String,
+#[derive(Debug)]
+pub struct ConfigurationDatabase {
+    pub engine: String,
+    pub server: String,
+    pub port: u16,
+    pub username: String,
+    pub password: String,
 }
 
-impl From<HashMap<std::string::String, std::string::String>> for Configuration {
-    fn from(value: HashMap<std::string::String, std::string::String>) -> Self {
-        Configuration { 
-            jwks_tenant_01: value.get("jwks_tenant_01").unwrap().clone(), 
-            jwks_tenant_02: value.get("jwks_tenant_02").unwrap().clone(),
-        }
-    }
+#[derive(Debug)]
+pub struct Configuration {
+    pub jwks: Vec<String>,
+    pub database: ConfigurationDatabase,
 }
 
 pub fn prepare() -> Configuration {
     let settings = Config::builder()
-        .add_source(File::from(Path::new("config.ini")))
+        .add_source(File::from(Path::new("config.yaml")))
         .build()
         .unwrap();
 
-    let config_map: HashMap<String, String> = settings
-        .try_deserialize::<HashMap<String, String>>()
-        .unwrap();
-
-    let configuration: Configuration = config_map.try_into().unwrap();
-    
-    configuration
+    Configuration {
+        jwks: settings.get("jwks").unwrap(),
+        database: ConfigurationDatabase {
+            engine: settings.get("database.engine").unwrap(),
+            server: settings.get("database.server").unwrap(),
+            port: settings.get("database.port").unwrap(),
+            username: settings.get("database.username").unwrap(),
+            password: settings.get("database.password").unwrap(),
+        },
+    }
 }
