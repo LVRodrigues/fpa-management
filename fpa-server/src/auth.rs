@@ -1,5 +1,5 @@
 use crate::{
-    error::{Error, Result},
+    error::Error,
     jwks, ctx::Context,
 };
 
@@ -32,7 +32,7 @@ impl Claims {
     }
 }
 
-pub async fn require(mut request: Request<Body>, next: Next) -> Result<Response> {
+pub async fn require(mut request: Request<Body>, next: Next) -> Result<Response, Error> {
     println!("==> {:<12} - require", "AUTH");
 
     let token = request

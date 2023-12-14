@@ -1,17 +1,16 @@
 use axum::{http::StatusCode, response::{IntoResponse, Response}};
 use serde::Serialize;
 
-pub type Result<T> = core::result::Result<T, Error>;
-
 #[derive(Clone, Debug, Serialize)]
 pub enum Error {
     Unauthorized,
-    Forbidden,
-    ParamInvalid,
-    NotFound,
+    // Forbidden,
+    // ParamInvalid,
+    // NotFound,
     KeyNotFound,
     TokenInvalid,
     ContextInvalid,
+    DatabaseConnection,
     Offline,
 }
 

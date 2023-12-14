@@ -1,7 +1,7 @@
 use axum::{async_trait, extract::FromRequestParts, http::request::Parts};
 use uuid::Uuid;
 
-use crate::error::{Error, Result};
+use crate::error::Error;
 
 #[derive(Clone, Debug)]
 pub struct Context {
@@ -32,7 +32,7 @@ impl Context {
 impl<S: Send + Sync> FromRequestParts<S> for Context {
 	type Rejection = Error;
 
-	async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self> {
+	async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Error> {
 		println!("==> {:<12} - Context", "EXTRACTOR");
 
 		let context = parts
