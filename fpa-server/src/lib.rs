@@ -10,16 +10,18 @@ mod error;
 mod jwks;
 mod auth;
 mod ctx;
+mod state;
 mod handlers;
+mod model;
 
 pub async fn start() -> Result<(), Box<dyn Error>> {
     let config = configuration::prepare();
-    jwks::prepare(config).await?;
+    jwks::prepare(config.clone()).await?;
 
     let router = Router::new()
         .merge(SwaggerUi::new("/doc/swagger").url("/doc/openapi.json", handlers::ApiDoc::openapi()))
         .merge(RapiDoc::new("/doc/openapi.json").path("/"))
-        .merge(handlers::router());
+        .merge(handlers::router(config.clone()).await.unwrap());
 
     let address = SocketAddr::from(([0, 0, 0, 0], 5000));
     println!("APF Server listening on {}", address);

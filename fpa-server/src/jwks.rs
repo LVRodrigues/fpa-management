@@ -1,11 +1,9 @@
-use crate::error::{Error, Result};
-
 use std::collections::HashMap;
 
 use jsonwebtoken::jwk::Jwk;
 use serde::{Deserialize, Serialize};
 
-use crate::configuration::Configuration;
+use crate::{configuration::Configuration, error::Error};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Key {
@@ -37,7 +35,7 @@ struct Keys {
 
 static mut KEYS: Option<HashMap<String, Key>> = None;
 
-async fn request_jwks(tenant: String) -> Result<Keys> {
+async fn request_jwks(tenant: String) -> Result<Keys, Error> {
     let jwks: Keys = reqwest::Client::new()
         .get(tenant)
         .send()
@@ -48,23 +46,20 @@ async fn request_jwks(tenant: String) -> Result<Keys> {
     Ok(jwks)
 }
 
-pub async fn prepare(config: Configuration) -> Result<()> {
+pub async fn prepare(config: Configuration) -> Result<(), Error> {
     let keys = unsafe { KEYS.get_or_insert_with(|| HashMap::new()) };
 
-    let keys_01 = request_jwks(config.jwks_tenant_01.clone()).await?;
-    for key in keys_01.items {
-        keys.insert(key.kid.clone(), key);
-    }
-
-    let keys_02 = request_jwks(config.jwks_tenant_02.clone()).await?;
-    for key in keys_02.items {
-        keys.insert(key.kid.clone(), key);
+    for jwks in &config.jwks {
+        let ks = request_jwks(jwks.clone()).await?;
+        for key in ks.items {
+            keys.insert(key.kid.clone(), key);
+        }
     }
 
     Ok(())
 }
 
-pub fn key(kid: String) -> Result<Key> {
+pub fn key(kid: String) -> Result<Key, Error> {
     let keys = unsafe { KEYS.get_or_insert_with(|| HashMap::new()) };
 
     let key = keys.get(&kid).cloned();

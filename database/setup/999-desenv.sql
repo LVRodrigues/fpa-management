@@ -9,7 +9,7 @@ CREATE TABLE tests (
 );
 
 ALTER TABLE tests ADD 
-    CONSTRAINT pk_tentants_status
+    CONSTRAINT pk_tests
     PRIMARY KEY (test);
 
 ALTER TABLE tests ADD
