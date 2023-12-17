@@ -1,8 +1,6 @@
-use std::time::Duration;
+use sea_orm::{DatabaseConnection, ConnectionTrait};
+use uuid::Uuid;
 
-use sea_orm::{DatabaseConnection, ConnectionTrait, ConnectOptions, Database};
-
-use crate::{configuration::Configuration, error::Error};
 
 #[derive(Clone, Debug)]
 pub struct AppState {
@@ -14,7 +12,7 @@ impl AppState {
         Self {connection}
     }
 
-    pub async fn connection(&self, tenant: &str) -> Option<&DatabaseConnection> {
+    pub async fn connection(&self, tenant: &Uuid) -> Option<&DatabaseConnection> {
         let db = &self.connection;
         if db.ping().await.is_err() {
             return None
@@ -27,29 +25,4 @@ impl AppState {
 
         Some(db)
     }
-}
-
-async fn prepare_connection(config: Configuration) -> Result<DatabaseConnection, Error> {
-    let dburl = format!("{}://{}:{}@{}:{}/{}",
-        &config.database.engine,
-        &config.database.username,
-        &config.database.password,
-        &config.database.server,
-        &config.database.port,
-        &config.database.name,
-    );
-    let mut options = ConnectOptions::new(dburl);
-    options.max_connections(config.database.connections_max)
-        .min_connections(config.database.connections_min)
-        .connect_timeout(Duration::from_secs(config.database.timeout_connect))
-        .acquire_timeout(Duration::from_secs(config.database.timeout_acquire))
-        .idle_timeout(Duration::from_secs(config.database.timeout_idle))
-        .max_lifetime(Duration::from_secs(config.database.lifetime));
-    let conn = Database::connect(options.clone()).await;
-    let conn = match conn {
-        Ok(v) => v,
-        Err(_) => return Err(Error::DatabaseConnection)
-    };
-
-    Ok(conn)
 }

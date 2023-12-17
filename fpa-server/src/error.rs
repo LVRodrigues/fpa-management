@@ -6,7 +6,7 @@ pub enum Error {
     Unauthorized,
     // Forbidden,
     // ParamInvalid,
-    // NotFound,
+    NotFound,
     KeyNotFound,
     TokenInvalid,
     ContextInvalid,

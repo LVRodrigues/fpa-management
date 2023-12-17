@@ -1,9 +1,9 @@
 use std::{sync::Arc, time::Duration};
 
 use axum::{
-    extract::State, http::StatusCode, middleware, response::IntoResponse, routing::get, Router,
+    extract::State, http::StatusCode, middleware, response::IntoResponse, routing::get, Router, Json,
 };
-use sea_orm::{DatabaseConnection, ConnectOptions, Database};
+use sea_orm::{DatabaseConnection, ConnectOptions, Database, EntityTrait};
 use utoipa::OpenApi;
 
 use crate::{
@@ -11,7 +11,7 @@ use crate::{
     configuration::Configuration,
     ctx::Context,
     error::Error,
-    state::AppState,
+    state::AppState, model::prelude::Tests,
 };
 
 #[derive(OpenApi)]
@@ -52,6 +52,7 @@ pub async fn router(config: Configuration) -> Result<Router, Error> {
         Router::new()
             .to_owned()
             .route("/hello", get(hello))
+            .route("/tests", get(tests))
             .route_layer(middleware::from_fn(auth::require))
             .with_state(state)
     ))
@@ -69,4 +70,21 @@ pub async fn hello(context: Context, State(state): State<Arc<AppState>>) -> impl
     println!("{:?}", context);
     println!("{:?}", state);
     (StatusCode::OK, "Hello, APF Management!")
+}
+
+pub async fn tests(context: Context, State(state): State<Arc<AppState>>) -> impl IntoResponse {
+    println!("==> {:<12} - /tests", "HANDLER");
+    let db = state.connection(context.tenant())
+        .await
+        .ok_or(Error::DatabaseConnection)
+        .unwrap();
+
+    let items = match Tests::find()
+        .all(db)
+        .await {
+        Ok(v) => Json(v),
+        Err(_) => return Err(Error::NotFound),
+    };
+
+    Ok((StatusCode::OK, items))
 }

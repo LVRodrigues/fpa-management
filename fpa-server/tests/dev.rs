@@ -52,12 +52,17 @@ async fn dev() -> Result<()> {
 
     let response = reqwest::Client::new()
         .get("http://localhost:5000/api/hello")
-        .bearer_auth(token)
+        .bearer_auth(token.clone())
         .send()
         .await?;
     assert!(response.status() == StatusCode::OK);
 
-    println!("{:?}", response.text().await?);
+    let response = reqwest::Client::new()
+        .get("http://localhost:5000/api/tests")
+        .bearer_auth(token)
+        .send()
+        .await?;
+    assert!(response.status() == StatusCode::OK);
 
     Ok(())
 }
