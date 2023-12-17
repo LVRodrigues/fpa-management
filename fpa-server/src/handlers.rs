@@ -80,7 +80,7 @@ pub async fn tests(context: Context, State(state): State<Arc<AppState>>) -> impl
         .unwrap();
 
     let items = match Tests::find()
-        .all(db)
+        .all(&db)
         .await {
         Ok(v) => Json(v),
         Err(_) => return Err(Error::NotFound),
