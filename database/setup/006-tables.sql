@@ -12,7 +12,7 @@ CREATE TABLE versions (
     major   INTEGER NOT NULL DEFAULT 0,
     minor   INTEGER NOT NULL DEFAULT 0,
     build   INTEGER NOT NULL DEFAULT 0,
-    date    datetime
+    time    datetime
 );
 
 COMMENT ON TABLE versions           IS 'Application update records.';
@@ -21,7 +21,7 @@ COMMENT ON COLUMN versions.name     IS 'Updated module name.';
 COMMENT ON COLUMN versions.major    IS 'Major Version identification number.';
 COMMENT ON COLUMN versions.minor    IS 'Minor Version identification number.';
 COMMENT ON COLUMN versions.build    IS 'Build Version identification.';
-COMMENT ON COLUMN versions.date     IS 'Version record time.';
+COMMENT ON COLUMN versions.time     IS 'Version record time.';
 
 ALTER TABLE versions ADD 
     CONSTRAINT pk_versions
@@ -70,7 +70,7 @@ COMMENT ON INDEX pk_tenants_tier IS 'Primary key of the Tenant access level.';
 CREATE TABLE tenants (
     tenant  id,
     name    description,
-    date    datetime,
+    time    datetime,
     status  INTEGER NOT NULL,
     tier    INTEGER NOT NULL
 );
@@ -78,7 +78,7 @@ CREATE TABLE tenants (
 COMMENT ON TABLE tenants            IS 'Tenant of the system.';
 COMMENT ON COLUMN tenants.tenant    IS 'Unique Tenant identifier.';
 COMMENT ON COLUMN tenants.name      IS 'Tenant identification name.';
-COMMENT ON COLUMN tenants.date      IS 'Tenant registration time.';
+COMMENT ON COLUMN tenants.time      IS 'Tenant registration time.';
 COMMENT ON COLUMN tenants.status    IS 'Tenant status.';
 COMMENT ON COLUMN tenants.tier      IS 'Tenant access level.';
 
@@ -111,7 +111,7 @@ CREATE TABLE users (
     tenant      id,
     name        description,
     email       description,
-    date        datetime
+    time        datetime
 );
 
 COMMENT ON TABLE users          IS 'User of the system.';
@@ -119,7 +119,7 @@ COMMENT ON COLUMN users."user"  IS 'Unique User identifier.';
 COMMENT ON COLUMN users.tenant  IS 'Tenant owner of the User.';
 COMMENT ON COLUMN users.name    IS 'Name of the User.';
 COMMENT ON COLUMN users.email   IS 'E-Mail of the User.';
-COMMENT ON COLUMN users.date    IS 'User registration time.';
+COMMENT ON COLUMN users.time    IS 'User registration time.';
 
 ALTER TABLE users ADD
     CONSTRAINT pk_users
@@ -134,4 +134,41 @@ ALTER TABLE users ADD
 
 CREATE INDEX ix_users_tenant ON users (tenant);
 
-COMMENT ON INDEX ix_users_tenant IS 'Index to management acess on tenant scope.';
+COMMENT ON INDEX ix_users_tenant IS 'Index to management access on tenant scope.';
+
+CREATE TABLE projects (
+    project     id,
+    tenant      id,
+    name        description,
+    time        datetime,
+    "user"      id
+);
+
+COMMENT ON TABLE projects           IS 'Project information.';
+COMMENT ON COLUMN projects.project  IS 'Unique Project identificatier.';
+COMMENT ON COLUMN projects.tenant   IS 'Tenant owner of the Project.';
+COMMENT ON COLUMN projects.name     IS 'Name of the Project.';
+COMMENT ON COLUMN projects.time     IS 'Project registration time.';
+COMMENT ON COLUMN projects.user     IS 'User responsible for the Project.';
+
+ALTER TABLE projects ADD
+    CONSTRAINT pk_projects
+    PRIMARY KEY (project);
+
+ALTER TABLE projects ADD
+    CONSTRAINT fk_projects_tenant
+    FOREIGN KEY (tenant)
+    REFERENCES tenants (tenant);
+
+CREATE INDEX ix_projects_tenant ON projects (tenant);
+
+COMMENT ON INDEX ix_projects_tenant IS 'Index to management access on tenant scope.';
+
+ALTER TABLE projects ADD
+    CONSTRAINT fk_projects_user
+    FOREIGN KEY ("user")
+    REFERENCES users ("user");
+
+CREATE INDEX ix_projects_user ON projects ("user");
+
+COMMENT ON INDEX ix_projects_user IS 'Reference index for Users.';

@@ -3,15 +3,14 @@
 use sea_orm::entity::prelude::*;
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
-#[sea_orm(table_name = "versions")]
+#[sea_orm(table_name = "projects")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
-    pub version: Uuid,
+    pub project: Uuid,
+    pub tenant: Uuid,
     pub name: Option<String>,
-    pub major: i32,
-    pub minor: i32,
-    pub build: i32,
     pub time: Option<Time>,
+    pub user: Uuid,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

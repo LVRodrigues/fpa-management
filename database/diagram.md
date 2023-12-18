@@ -6,6 +6,9 @@ erDiagram
     tenants_tier ||--o{ tenants: fk_tenants_tier
     tenants ||--o{ users: fk_users_tenant
 
+    tenants ||--o{ projects: fk_projects_tenant
+    users ||--o{ projects: fk_projects_user
+
     tenants_status {
         status      integer
         description description
@@ -19,7 +22,7 @@ erDiagram
     tenants {
         tenant      id
         name        description
-        date        datetime
+        time        datetime
         status      integer
         tier        integer
     }
@@ -28,7 +31,7 @@ erDiagram
         user        id
         tenant      id
         name        description
-        date        datetime
+        time        datetime
         email       description
     }
 
@@ -38,6 +41,14 @@ erDiagram
         major       integer
         minor       integer
         builde      integer
-        date        datetime
+        time        datetime
+    }
+
+    projects {
+        project     id
+        tenant      id
+        name        description
+        time        datetime
+        user        id
     }
 ```

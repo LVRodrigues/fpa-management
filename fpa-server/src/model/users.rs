@@ -10,7 +10,7 @@ pub struct Model {
     pub tenant: Uuid,
     pub name: Option<String>,
     pub email: Option<String>,
-    pub date: Option<Time>,
+    pub time: Option<Time>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

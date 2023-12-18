@@ -2,9 +2,9 @@
 
 pub mod prelude;
 
+pub mod projects;
 pub mod tenants;
 pub mod tenants_status;
 pub mod tenants_tier;
-pub mod tests;
 pub mod users;
 pub mod versions;

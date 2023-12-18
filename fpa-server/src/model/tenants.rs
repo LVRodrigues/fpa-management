@@ -8,7 +8,7 @@ pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub tenant: Uuid,
     pub name: Option<String>,
-    pub date: Option<Time>,
+    pub time: Option<Time>,
     pub status: i32,
     pub tier: i32,
 }
@@ -31,8 +31,6 @@ pub enum Relation {
         on_delete = "NoAction"
     )]
     TenantsTier,
-    #[sea_orm(has_many = "super::tests::Entity")]
-    Tests,
     #[sea_orm(has_many = "super::users::Entity")]
     Users,
 }
@@ -46,12 +44,6 @@ impl Related<super::tenants_status::Entity> for Entity {
 impl Related<super::tenants_tier::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::TenantsTier.def()
-    }
-}
-
-impl Related<super::tests::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::Tests.def()
     }
 }
 
