@@ -1,9 +1,9 @@
 use std::{sync::Arc, time::Duration};
 
 use axum::{
-    extract::State, http::StatusCode, middleware, response::IntoResponse, routing::get, Router, Json,
+    extract::State, http::StatusCode, middleware, response::IntoResponse, routing::get, Router,
 };
-use sea_orm::{DatabaseConnection, ConnectOptions, Database, EntityTrait};
+use sea_orm::{DatabaseConnection, ConnectOptions, Database};
 use utoipa::OpenApi;
 
 use crate::{
@@ -11,11 +11,11 @@ use crate::{
     configuration::Configuration,
     ctx::Context,
     error::Error,
-    state::AppState, model::prelude::Tests,
+    state::AppState,
 };
 
 #[derive(OpenApi)]
-#[openapi(paths(hello))]
+#[openapi(paths(health))]
 pub struct ApiDoc;
 
 async fn prepare_connection(config: Configuration) -> Result<DatabaseConnection, Error> {
@@ -51,8 +51,7 @@ pub async fn router(config: Configuration) -> Result<Router, Error> {
         "/api",
         Router::new()
             .to_owned()
-            .route("/hello", get(hello))
-            .route("/tests", get(tests))
+            .route("/hello", get(health))
             .route_layer(middleware::from_fn(auth::require))
             .with_state(state)
     ))
@@ -60,31 +59,33 @@ pub async fn router(config: Configuration) -> Result<Router, Error> {
 
 #[utoipa::path(
     get,
-    path = "/api/hello",
+    path = "/api/heath",
     responses(
-        (status = 200, description = "Send a salute from FPA Management.")
+        (status = 204, description = "FPA Management is online.")
     )
 )]
-pub async fn hello(context: Context, State(state): State<Arc<AppState>>) -> impl IntoResponse {
-    println!("==> {:<12} - /hello", "HANDLER");
-    println!("{:?}", context);
-    println!("{:?}", state);
-    (StatusCode::OK, "Hello, APF Management!")
-}
-
-pub async fn tests(context: Context, State(state): State<Arc<AppState>>) -> impl IntoResponse {
-    println!("==> {:<12} - /tests", "HANDLER");
-    let db = state.connection(context.tenant())
+pub async fn health(context: Context, State(state): State<Arc<AppState>>) -> impl IntoResponse {
+    let _ = state.connection(context.tenant())
         .await
-        .ok_or(Error::DatabaseConnection)
+        .ok_or(Error::Offline)
         .unwrap();
 
-    let items = match Tests::find()
-        .all(&db)
-        .await {
-        Ok(v) => Json(v),
-        Err(_) => return Err(Error::NotFound),
-    };
-
-    Ok((StatusCode::OK, items))
+    StatusCode::NO_CONTENT
 }
+
+// pub async fn tests(context: Context, State(state): State<Arc<AppState>>) -> impl IntoResponse {
+//     println!("==> {:<12} - /tests", "HANDLER");
+//     let db = state.connection(context.tenant())
+//         .await
+//         .ok_or(Error::DatabaseConnection)
+//         .unwrap();
+
+//     let items = match Tests::find()
+//         .all(&db)
+//         .await {
+//         Ok(v) => Json(v),
+//         Err(_) => return Err(Error::NotFound),
+//     };
+
+//     Ok((StatusCode::OK, items))
+// }
