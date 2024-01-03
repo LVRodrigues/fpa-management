@@ -6,7 +6,7 @@
         {
             "label": "fpa-server watch",
             "type": "shell",
-            "command": "cargo watch -x run",
+            "command": "cargo watch -q -c -w src/ -x run",
             "options": {
                 "cwd": "${workspaceFolder}/fpa-server"
             },
@@ -18,7 +18,7 @@
         {
             "label": "fpa-server tests watch",
             "type": "shell",
-            "command": "cargo watch -q -c -w tests/ -x \"test -q dev -- --nocapture\"",
+            "command": "cargo watch -q -c -w tests/ -x \"run -q health -- --nocapture\"",
             "options": {
                 "cwd": "${workspaceFolder}/fpa-server"
             },

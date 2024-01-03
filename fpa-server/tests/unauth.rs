@@ -6,7 +6,7 @@ const TOKEN: &str = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJRVnpxaHJ
 #[tokio::test]
 async fn unauth() -> Result<()> {
     let response = reqwest::Client::new()
-        .get("http://localhost:5000/api/hello")
+        .get("http://localhost:5000/api/health")
         .bearer_auth(TOKEN)
         .send()
         .await?;

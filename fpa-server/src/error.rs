@@ -1,17 +1,17 @@
 use axum::{http::StatusCode, response::{IntoResponse, Response}};
 use serde::Serialize;
 
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Serialize, strum_macros::AsRefStr)]
 pub enum Error {
     Unauthorized,
-    // Forbidden,
-    // ParamInvalid,
+    Forbidden,
+    ParamInvalid,
     NotFound,
     KeyNotFound,
+    JWKSNotFound,
     TokenInvalid,
     ContextInvalid,
     DatabaseConnection,
-    Offline,
 }
 
 impl std::fmt::Display for Error {
@@ -39,7 +39,7 @@ impl IntoResponse for Error {
 impl From<reqwest::Error> for Error {
     fn from(value: reqwest::Error) -> Self {
         println!("==> {:<12} - {value:?}", "ERROR ");
-        Error::Offline
+        Error::JWKSNotFound
     }
 }
 
@@ -49,3 +49,40 @@ impl From<jsonwebtoken::errors::Error> for Error {
         Error::TokenInvalid
     }
 }
+
+impl Error {
+    pub fn client_status_and_error(&self) -> (StatusCode, ClientError) {
+        match self {
+            Error::TokenInvalid |
+            Error::ContextInvalid |
+            Error::KeyNotFound |
+            Error::Unauthorized => {
+                (StatusCode::UNAUTHORIZED, ClientError::AUTHENTICATION)
+            }
+            Error::Forbidden => {
+                (StatusCode::FORBIDDEN, ClientError::AUTHORIZATION)
+            }
+            Error::NotFound => {
+                (StatusCode::NOT_FOUND, ClientError::PARAMS_INVALID)
+            }
+            Error::JWKSNotFound |
+            Error::DatabaseConnection => {
+                (StatusCode::SERVICE_UNAVAILABLE, ClientError::SERVICE_ERROR)
+            }
+            _ => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                ClientError::SERVICE_ERROR
+            )
+        }
+    }
+}
+
+#[derive(Debug, strum_macros::AsRefStr)]
+#[allow(non_camel_case_types)]
+pub enum ClientError {
+    AUTHENTICATION,
+    AUTHORIZATION,
+    PARAMS_INVALID,
+    SERVICE_ERROR
+}
+

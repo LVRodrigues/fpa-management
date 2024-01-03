@@ -51,7 +51,7 @@ pub async fn router(config: Configuration) -> Result<Router, Error> {
         "/api",
         Router::new()
             .to_owned()
-            .route("/hello", get(health))
+            .route("/health", get(health))
             .route_layer(middleware::from_fn(auth::require))
             .with_state(state)
     ))
@@ -67,7 +67,7 @@ pub async fn router(config: Configuration) -> Result<Router, Error> {
 pub async fn health(context: Context, State(state): State<Arc<AppState>>) -> impl IntoResponse {
     let _ = state.connection(context.tenant())
         .await
-        .ok_or(Error::Offline)
+        .ok_or(Error::DatabaseConnection)
         .unwrap();
 
     StatusCode::NO_CONTENT
