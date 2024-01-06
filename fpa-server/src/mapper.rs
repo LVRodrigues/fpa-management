@@ -4,7 +4,7 @@ use uuid::Uuid;
 
 use crate::{error::Error, ctx::Context, log};
 
-pub async fn response_mapper(context: Context, uri: Uri, method: Method, response: Response) -> Response {
+pub async fn response_mapper(context: Option<Context>, uri: Uri, method: Method, response: Response) -> Response {
     println!("==> {:<12} - response_mapper", "MAPPER ");
 
     let service_error = response.extensions().get::<Error>();
@@ -26,7 +26,7 @@ pub async fn response_mapper(context: Context, uri: Uri, method: Method, respons
         Uuid::new_v4(),
         method,
         uri,
-        Some(context),
+        context,
         service_error,
         client_error
     ).await;

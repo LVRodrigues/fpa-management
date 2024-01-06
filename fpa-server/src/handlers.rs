@@ -65,8 +65,8 @@ pub async fn router(config: Configuration) -> Result<Router, Error> {
         (status = 204, description = "FPA Management is online.")
     )
 )]
-pub async fn health(context: Context, State(state): State<Arc<AppState>>) -> impl IntoResponse {
-    let _ = state.connection(context.tenant())
+pub async fn health(context: Option<Context>, State(state): State<Arc<AppState>>) -> impl IntoResponse {
+    let _ = state.connection(context.unwrap().tenant())
         .await
         .ok_or(Error::DatabaseConnection)
         .unwrap();
