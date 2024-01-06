@@ -5,8 +5,6 @@ use utoipa::OpenApi;
 use utoipa_rapidoc::RapiDoc;
 use utoipa_swagger_ui::SwaggerUi;
 
-use crate::respmapper::response_mapper;
-
 mod configuration;
 mod error;
 mod jwks;
@@ -25,9 +23,8 @@ pub async fn start() -> Result<(), Box<dyn Error>> {
     let router = Router::new()
         .merge(SwaggerUi::new("/doc/swagger").url("/doc/openapi.json", handlers::ApiDoc::openapi()))
         .merge(RapiDoc::new("/doc/openapi.json").path("/"))
-        .merge(handlers::router(config.clone()).await.unwrap())
-        .layer(middleware::map_response(response_mapper));
-
+        .merge(handlers::router(config.clone()).await.unwrap());
+    
     let address = SocketAddr::from(([0, 0, 0, 0], 5000));
     println!("APF Server listening on {}", address);
     let listener = TcpListener::bind(address)

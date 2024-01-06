@@ -11,7 +11,7 @@ use crate::{
     configuration::Configuration,
     ctx::Context,
     error::Error,
-    state::AppState,
+    state::AppState, respmapper::response_mapper,
 };
 
 #[derive(OpenApi)]
@@ -52,6 +52,7 @@ pub async fn router(config: Configuration) -> Result<Router, Error> {
         Router::new()
             .to_owned()
             .route("/health", get(health))
+            .layer(middleware::map_response(response_mapper))
             .route_layer(middleware::from_fn(auth::require))
             .with_state(state)
     ))
