@@ -1,4 +1,4 @@
-use axum::{response::{Response, IntoResponse}, Json, http::{Uri, Method, method}};
+use axum::{response::{Response, IntoResponse}, Json, http::{Uri, Method}};
 use serde_json::json;
 use uuid::Uuid;
 

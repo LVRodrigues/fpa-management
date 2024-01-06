@@ -11,7 +11,7 @@ use crate::{
     configuration::Configuration,
     ctx::Context,
     error::Error,
-    state::AppState, respmapper::response_mapper,
+    state::AppState, mapper::response_mapper,
 };
 
 #[derive(OpenApi)]
