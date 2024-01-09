@@ -66,6 +66,7 @@ pub async fn router(config: Configuration) -> Result<Router, Error> {
     )
 )]
 pub async fn health(context: Option<Context>, State(state): State<Arc<AppState>>) -> impl IntoResponse {
+    println!("==> {:<12} - /health", "HANDLER");
     let _ = state.connection(context.unwrap().tenant())
         .await
         .ok_or(Error::DatabaseConnection)
