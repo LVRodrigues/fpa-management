@@ -25,6 +25,7 @@ pub struct Configuration {
 }
 
 pub fn prepare() -> Configuration {
+    println!("==> {:<12} - prepare", "CONFIG");
     let settings = Config::builder()
         .add_source(File::from(Path::new("config.yaml")))
         .build()

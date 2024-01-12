@@ -47,6 +47,8 @@ async fn request_jwks(tenant: String) -> Result<Keys, Error> {
 }
 
 pub async fn prepare(config: Configuration) -> Result<(), Error> {
+    println!("==> {:<12} - prepare", "JWKS");
+    
     let keys = unsafe { KEYS.get_or_insert_with(|| HashMap::new()) };
 
     for jwks in &config.jwks {
