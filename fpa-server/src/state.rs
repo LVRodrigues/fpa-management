@@ -13,7 +13,7 @@ impl AppState {
     }
 
     pub async fn connection(&self, tenant: &Uuid) -> Option<DatabaseTransaction> {
-        println!("==> {:<12} - connection", "DATAASE");
+        println!("==> {:<12} - connection", "DATABASE");
         let db = &self.connection;
         if db.ping().await.is_err() {
             return None
