@@ -62,17 +62,16 @@ pub async fn router(config: Configuration) -> Result<Router, Error> {
     get,
     path = "/api/heath",
     responses(
-        (status = 204, description = "FPA Management is online.")
+        (status = 204, description = "FPA Management service available."),
+        (status = 503, description = "FPA Management service unavailable.")
     )
 )]
 pub async fn health(context: Option<Context>, State(state): State<Arc<AppState>>) -> impl IntoResponse {
     println!("==> {:<12} - /health", "HANDLER");
-    let _ = state.connection(context.unwrap().tenant())
-        .await
-        .ok_or(Error::DatabaseConnection)
-        .unwrap();
-
-    StatusCode::NO_CONTENT
+    let _ = match state.connection(context.unwrap().tenant()).await {
+        Ok(_) => return StatusCode::NO_CONTENT,
+        Err(_) => return StatusCode::SERVICE_UNAVAILABLE
+    };
 }
 
 // pub async fn tests(context: Context, State(state): State<Arc<AppState>>) -> impl IntoResponse {

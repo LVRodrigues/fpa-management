@@ -1,5 +1,10 @@
-use axum::{http::StatusCode, response::{IntoResponse, Response}};
+use std::time::{SystemTime, UNIX_EPOCH};
+
+use axum::{http::StatusCode, response::{IntoResponse, Response}, Json};
+use chrono::{DateTime, Utc};
 use serde::Serialize;
+use serde_json::json;
+use uuid::Uuid;
 
 #[derive(Clone, Debug, Serialize, strum_macros::AsRefStr)]
 pub enum Error {
@@ -24,65 +29,92 @@ impl std::error::Error for Error {}
 
 impl IntoResponse for Error {
 	fn into_response(self) -> Response {
-		println!("==> {:<12} - {self:?}", "INTO_RES");
+		println!("==> {:<12} - {self:?}", "ERROR");
 
-		// Create a placeholder Axum reponse.
-		let mut response = StatusCode::INTERNAL_SERVER_ERROR.into_response();
+        #[derive(Serialize)]
+        struct ErrorResponse<'a> {
+            id: Uuid,
+            time: DateTime<Utc>,
+            error: &'a str,
+            message: &'a str,
+        }
 
-		// Insert the Error into the reponse.
-		response.extensions_mut().insert(self);
+        let (code, message) = match self {
+            Error::TokenInvalid |
+            Error::ContextInvalid |
+            Error::KeyNotFound |
+            Error::Unauthorized => {
+                (   
+                    StatusCode::UNAUTHORIZED, 
+                    ErrorResponse {
+                        id: Uuid::new_v4(),
+                        time: Utc::now(),
+                        error: "AUTHENTICATION",
+                        message: "Erro de autenticação."
+                    }
+                )
+            }
+            Error::Forbidden => {
+                (
+                    StatusCode::FORBIDDEN,
+                        ErrorResponse {
+                        id: Uuid::new_v4(),
+                        time: Utc::now(),
+                        error: "AUTHORIZATION",
+                        message: "Não autorizado para esta operação."
+                    }
+                )
+            }
+            Error::NotFound => {
+                (
+                    StatusCode::NOT_FOUND,
+                    ErrorResponse {
+                        id: Uuid::new_v4(),
+                        time: Utc::now(),
+                        error: "PARAM_INVALID",
+                        message: "Recurso não localizado com os parâmetros informados."
+                    }
+                )
+            }
+            Error::JWKSNotFound |
+            Error::DatabaseConnection => {
+                (
+                    StatusCode::SERVICE_UNAVAILABLE,
+                    ErrorResponse {
+                        id: Uuid::new_v4(),
+                        time: Utc::now(),
+                        error: "SERVICE_ERROR",
+                        message: "Serviço temporariamente indisponível."
+                    }
+                )
+            }
+            _ => (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                        ErrorResponse {
+                        id: Uuid::new_v4(),
+                        time: Utc::now(),
+                        error: "SERVICE_ERROR",
+                        message: "Erro interno do serviço."
+                    }
+                )
+        };
 
-		response
+        println!("--->>> error: \n{}", json!(message));
+        println!();
+        (code, Json(json!(message))).into_response()
 	}
 }
 
 impl From<reqwest::Error> for Error {
     fn from(value: reqwest::Error) -> Self {
-        println!("==> {:<12} - {value:?}", "ERROR ");
+        println!("==> {:<12} - {value:?}", "ERROR");
         Error::JWKSNotFound
     }
 }
 
 impl From<jsonwebtoken::errors::Error> for Error {
     fn from(value: jsonwebtoken::errors::Error) -> Self {
-        println!("==> {:<12} - {value:?}", "ERROR ");
+        println!("==> {:<12} - {value:?}", "ERROR");
         Error::TokenInvalid
     }
 }
-
-impl Error {
-    pub fn client_status_and_error(&self) -> (StatusCode, ClientError) {
-        match self {
-            Error::TokenInvalid |
-            Error::ContextInvalid |
-            Error::KeyNotFound |
-            Error::Unauthorized => {
-                (StatusCode::UNAUTHORIZED, ClientError::AUTHENTICATION)
-            }
-            Error::Forbidden => {
-                (StatusCode::FORBIDDEN, ClientError::AUTHORIZATION)
-            }
-            Error::NotFound => {
-                (StatusCode::NOT_FOUND, ClientError::PARAMS_INVALID)
-            }
-            Error::JWKSNotFound |
-            Error::DatabaseConnection => {
-                (StatusCode::SERVICE_UNAVAILABLE, ClientError::SERVICE_ERROR)
-            }
-            _ => (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                ClientError::SERVICE_ERROR
-            )
-        }
-    }
-}
-
-#[derive(Debug, strum_macros::AsRefStr)]
-#[allow(non_camel_case_types)]
-pub enum ClientError {
-    AUTHENTICATION,
-    AUTHORIZATION,
-    PARAMS_INVALID,
-    SERVICE_ERROR
-}
-

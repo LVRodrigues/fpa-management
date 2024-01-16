@@ -12,6 +12,7 @@ async fn unauth() -> Result<()> {
         .bearer_auth(token)
         .send()
         .await?;
+    println!("Status: {:?}", response.status());
     assert!(response.status() == StatusCode::NO_CONTENT);
 
     Ok(())
