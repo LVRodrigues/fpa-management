@@ -1,5 +1,3 @@
-use std::time::{SystemTime, UNIX_EPOCH};
-
 use axum::http::{Method, Uri};
 use chrono::{DateTime, Utc};
 use serde::Serialize;

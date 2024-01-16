@@ -1,9 +1,4 @@
-use axum::{
-    Router,
-    body::Body,
-    http::{Request, Response, StatusCode},
-    error_handling::HandleError,
-};
+use axum::Router;
 use tokio::net::TcpListener;
 use std::{error::Error, net::SocketAddr};
 use utoipa::OpenApi;
