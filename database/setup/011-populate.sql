@@ -23,12 +23,12 @@ INSERT INTO tenants_tier (tier, description) VALUES
     (2, 'Silver'),
     (3, 'Bronze');
 
-INSERT INTO tenants (tenant, name, date, status, tier) VALUES 
+INSERT INTO tenants (tenant, name, time, status, tier) VALUES 
     (uuid_nil(), 'Default', CURRENT_TIMESTAMP, 1, 1);
 
 --===============================================================================
 -- Users
 --===============================================================================
 
-INSERT INTO users ("user", tenant, name, email, date) VALUES
+INSERT INTO users ("user", tenant, name, email, time) VALUES
     (uuid_nil(), uuid_nil(), 'Administrator', 'lvrodriguesline@gmail.com', CURRENT_TIMESTAMP);

@@ -25,7 +25,7 @@ pub async fn start() -> Result<(), Box<dyn Error>> {
         .merge(RapiDoc::new("/doc/openapi.json").path("/"))
         .merge(handlers::router(config.clone()).await.unwrap());
     
-    let address = SocketAddr::from(([0, 0, 0, 0], 5000));
+    let address = SocketAddr::from(([0, 0, 0, 0], config.port));
     println!("APF Server listening on {}", address);
     let listener = TcpListener::bind(address)
         .await

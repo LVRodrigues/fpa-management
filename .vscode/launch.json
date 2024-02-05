@@ -8,7 +8,7 @@
             "type": "lldb",
             "request": "launch",
             "name": "FPA Server",
-            "program": "${workspaceFolder}/fpa-server/target/debug/fpa",
+            "program": "${workspaceFolder}/fpa-server/target/debug/fpa-server",
             "args": [],
             "cwd": "${workspaceFolder}/fpa-server",
             "env": {

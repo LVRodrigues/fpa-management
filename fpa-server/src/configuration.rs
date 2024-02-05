@@ -20,6 +20,7 @@ pub struct ConfigurationDatabase {
 
 #[derive(Debug, Clone)]
 pub struct Configuration {
+    pub port: u16,
     pub jwks: Vec<String>,
     pub database: ConfigurationDatabase,
 }
@@ -32,6 +33,7 @@ pub fn prepare() -> Configuration {
         .unwrap();
 
     Configuration {
+        port: settings.get("port").unwrap(),
         jwks: settings.get("jwks").unwrap(),
         database: ConfigurationDatabase {
             engine: settings.get("database.engine").unwrap(),
