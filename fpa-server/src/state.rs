@@ -1,17 +1,18 @@
 use sea_orm::{DatabaseConnection, ConnectionTrait, DatabaseTransaction, TransactionTrait};
 use uuid::Uuid;
 
-use crate::error::Error;
+use crate::{configuration::Configuration, error::Error};
 
 
 #[derive(Clone, Debug)]
 pub struct AppState {
+    configuration: Configuration,
     connection: DatabaseConnection,
 }
 
 impl AppState {
-    pub fn new(connection: DatabaseConnection) -> Self {
-        Self {connection}
+    pub fn new(configuration: Configuration, connection: DatabaseConnection) -> Self {
+        Self {configuration, connection}
     }
 
     pub async fn connection(&self, tenant: &Uuid) -> Result<DatabaseTransaction, Error> {
@@ -29,5 +30,9 @@ impl AppState {
         }
 
         Ok(trx)
+    }
+
+    pub fn configuration(&self) -> &Configuration {
+        &self.configuration
     }
 }

@@ -46,7 +46,7 @@ async fn request_jwks(tenant: String) -> Result<Keys, Error> {
     Ok(jwks)
 }
 
-pub async fn prepare(config: Configuration) -> Result<(), Error> {
+pub async fn prepare(config: &Configuration) -> Result<(), Error> {
     println!("==> {:<12} - prepare", "JWKS");
     
     let keys = unsafe { KEYS.get_or_insert_with(|| HashMap::new()) };
@@ -71,4 +71,13 @@ pub fn key(kid: String) -> Result<Key, Error> {
     };
 
     Ok(key)
+}
+
+pub fn is_prepared() -> bool {
+    if unsafe { ! KEYS.is_none() } {
+        false
+    } else {
+        let keys = unsafe { KEYS.get_or_insert_with(|| HashMap::new()) };
+        ! keys.is_empty()
+    }
 }

@@ -1,13 +1,11 @@
+use std::sync::Arc;
+
 use crate::{
-    error::Error,
-    jwks, ctx::Context,
+    ctx::Context, error::Error, jwks, state::AppState
 };
 
 use axum::{
-    body::Body,
-    http::{header, Request},
-    middleware::Next,
-    response::Response,
+    body::Body, extract::State, http::{header, Request}, middleware::Next, response::Response
 };
 use jsonwebtoken::{decode, decode_header, DecodingKey, Validation};
 use serde::{Deserialize, Serialize};
@@ -32,8 +30,13 @@ impl Claims {
     }
 }
 
-pub async fn require(mut request: Request<Body>, next: Next) -> Result<Response, Error> {
+pub async fn require(State(state): State<Arc<AppState>>, mut request: Request<Body>, next: Next) -> Result<Response, Error> {
     println!("==> {:<12} - require", "AUTH");
+
+    if !jwks::is_prepared() {
+        let config = state.configuration();
+        jwks::prepare(config).await?;
+    }
 
     let token = request
         .headers()

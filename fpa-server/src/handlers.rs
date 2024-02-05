@@ -18,7 +18,7 @@ use crate::{
 #[openapi(paths(health))]
 pub struct ApiDoc;
 
-async fn prepare_connection(config: Configuration) -> Result<DatabaseConnection, Error> {
+async fn prepare_connection(config: &Configuration) -> Result<DatabaseConnection, Error> {
     let dburl = format!("{}://{}:{}@{}:{}/{}",
         &config.database.engine,
         &config.database.username,
@@ -44,8 +44,8 @@ async fn prepare_connection(config: Configuration) -> Result<DatabaseConnection,
 }
 
 pub async fn router(config: Configuration) -> Result<Router, Error> {
-    let connection = prepare_connection(config).await?;
-    let state = Arc::new(AppState::new(connection));
+    let connection = prepare_connection(&config).await?;
+    let state = Arc::new(AppState::new(config, connection));
 
     Ok(Router::new().nest(
         "/api",
@@ -53,7 +53,7 @@ pub async fn router(config: Configuration) -> Result<Router, Error> {
             .to_owned()
             .route("/health", get(health))
             .layer(middleware::map_response(response_mapper))
-            .route_layer(middleware::from_fn(auth::require))
+            .route_layer(middleware::from_fn_with_state(state.clone(), auth::require))
             .with_state(state)
     ))
 }

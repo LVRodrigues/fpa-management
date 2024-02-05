@@ -18,7 +18,7 @@ mod log;
 
 pub async fn start() -> Result<(), Box<dyn Error>> {
     let config = configuration::prepare();
-    jwks::prepare(config.clone()).await?;
+    //jwks::prepare(config.clone()).await?;
 
     let router = Router::new()
         .merge(SwaggerUi::new("/doc/swagger").url("/doc/openapi.json", handlers::ApiDoc::openapi()))
