@@ -2,7 +2,7 @@ use std::error::Error;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    fpa::start()
+    fpa_server::start()
         .await
         .unwrap();
 
