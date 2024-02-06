@@ -16,6 +16,8 @@ pub enum Error {
     TokenInvalid,
     ContextInvalid,
     DatabaseConnection,
+    DatabaseTransaction,
+    RegisterUser,
 }
 
 impl core::fmt::Display for Error {
@@ -76,7 +78,8 @@ impl IntoResponse for Error {
                 )
             }
             Error::JWKSNotFound |
-            Error::DatabaseConnection => {
+            Error::DatabaseConnection | 
+            Error::DatabaseTransaction => {
                 (
                     StatusCode::SERVICE_UNAVAILABLE,
                     ErrorResponse {

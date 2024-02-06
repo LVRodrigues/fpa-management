@@ -8,13 +8,15 @@ pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub tenant: Uuid,
     pub name: Option<String>,
-    pub time: Option<Time>,
+    pub time: Option<DateTimeWithTimeZone>,
     pub status: i32,
     pub tier: i32,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
+    #[sea_orm(has_many = "super::projects::Entity")]
+    Projects,
     #[sea_orm(
         belongs_to = "super::tenants_status::Entity",
         from = "Column::Status",
@@ -33,6 +35,12 @@ pub enum Relation {
     TenantsTier,
     #[sea_orm(has_many = "super::users::Entity")]
     Users,
+}
+
+impl Related<super::projects::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Projects.def()
+    }
 }
 
 impl Related<super::tenants_status::Entity> for Entity {

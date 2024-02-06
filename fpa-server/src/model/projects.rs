@@ -9,11 +9,40 @@ pub struct Model {
     pub project: Uuid,
     pub tenant: Uuid,
     pub name: Option<String>,
-    pub time: Option<Time>,
+    pub time: Option<DateTimeWithTimeZone>,
     pub user: Uuid,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
-pub enum Relation {}
+pub enum Relation {
+    #[sea_orm(
+        belongs_to = "super::tenants::Entity",
+        from = "Column::Tenant",
+        to = "super::tenants::Column::Tenant",
+        on_update = "NoAction",
+        on_delete = "NoAction"
+    )]
+    Tenants,
+    #[sea_orm(
+        belongs_to = "super::users::Entity",
+        from = "Column::User",
+        to = "super::users::Column::User",
+        on_update = "NoAction",
+        on_delete = "NoAction"
+    )]
+    Users,
+}
+
+impl Related<super::tenants::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Tenants.def()
+    }
+}
+
+impl Related<super::users::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Users.def()
+    }
+}
 
 impl ActiveModelBehavior for ActiveModel {}

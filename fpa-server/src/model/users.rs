@@ -10,11 +10,13 @@ pub struct Model {
     pub tenant: Uuid,
     pub name: Option<String>,
     pub email: Option<String>,
-    pub time: Option<Time>,
+    pub time: Option<DateTimeWithTimeZone>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
+    #[sea_orm(has_many = "super::projects::Entity")]
+    Projects,
     #[sea_orm(
         belongs_to = "super::tenants::Entity",
         from = "Column::Tenant",
@@ -23,6 +25,12 @@ pub enum Relation {
         on_delete = "NoAction"
     )]
     Tenants,
+}
+
+impl Related<super::projects::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Projects.def()
+    }
 }
 
 impl Related<super::tenants::Entity> for Entity {

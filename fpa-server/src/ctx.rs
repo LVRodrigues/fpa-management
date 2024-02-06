@@ -8,11 +8,12 @@ pub struct Context {
     id: Uuid,
     tenant: Uuid,
     name: String,
+    email: String
 }
 
 impl Context {
-    pub fn new(id: Uuid, tenant: Uuid, name: String) -> Self {
-        Self { id, tenant, name }
+    pub fn new(id: Uuid, tenant: Uuid, name: String, email: String) -> Self {
+        Self { id, tenant, name, email }
     }
 
     pub fn id(&self) -> &Uuid {
@@ -25,6 +26,10 @@ impl Context {
 
     pub fn name(&self) -> &str {
         &self.name.as_str()
+    }
+
+    pub fn email(&self) -> &str {
+        &self.email.as_str()
     }
 }
 

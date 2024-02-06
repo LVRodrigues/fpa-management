@@ -1,13 +1,15 @@
 use std::sync::Arc;
 
 use crate::{
-    ctx::Context, error::Error, jwks, state::AppState
+    ctx::Context, error::Error, jwks, model::{prelude::Users, users}, state::AppState
 };
 
 use axum::{
     body::Body, extract::State, http::{header, Request}, middleware::Next, response::Response
 };
+use chrono::Utc;
 use jsonwebtoken::{decode, decode_header, DecodingKey, Validation};
+use sea_orm::{ActiveModelTrait, EntityTrait, Set};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -22,11 +24,12 @@ struct Claims {
     sub: Uuid,
     tenant: Uuid,
     name: String,
+    email: String,
 }
 
 impl Claims {
     fn to_context(&self) -> Context {
-        Context::new(self.sub, self.tenant, self.name.to_owned())
+        Context::new(self.sub, self.tenant, self.name.to_owned(), self.email.to_owned())
     }
 }
 
@@ -64,6 +67,39 @@ pub async fn require(State(state): State<Arc<AppState>>, mut request: Request<Bo
 
     let claims = decode::<Claims>(&token, &key, &validation)?.claims;
     request.extensions_mut().insert(claims.to_context());
+
+    Ok(next.run(request).await)
+}
+
+
+
+pub async fn user_register(context: Option<Context>, State(state): State<Arc<AppState>>, request: Request<Body>, next: Next) -> Result<Response, Error> {
+    println!("==> {:<12} - user_register", "AUTH");
+
+    let ctx = context.unwrap();
+
+    let db = state.connection(ctx.tenant()).await?;
+    let user = match Users::find_by_id(*ctx.id()).one(&db).await {
+        Ok(u) => u,
+        Err(_) => return Err(Error::DatabaseConnection),
+    };
+    if user.is_none() {
+        let u = users::ActiveModel {
+            user: Set(ctx.id().clone()),
+            name: Set(Some(ctx.name().to_string())),
+            tenant: Set(ctx.tenant().clone()),
+            time: Set(Some(Utc::now().into())),
+            email: Set(Some(ctx.email().to_string()))
+        };
+        let _ = match u.insert(&db).await {
+            Ok(u) => println!(" -> Novo usuário adicionado: {:?}", u),
+            Err(_) => return Err(Error::RegisterUser)
+        };
+        match db.commit().await {
+            Ok(it) => it,
+            Err(_) => return Err(Error::DatabaseTransaction),
+        };
+    }
 
     Ok(next.run(request).await)
 }

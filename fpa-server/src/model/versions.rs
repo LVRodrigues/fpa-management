@@ -11,7 +11,7 @@ pub struct Model {
     pub major: i32,
     pub minor: i32,
     pub build: i32,
-    pub time: Option<Time>,
+    pub time: Option<DateTimeWithTimeZone>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

@@ -74,7 +74,7 @@ pub fn key(kid: String) -> Result<Key, Error> {
 }
 
 pub fn is_prepared() -> bool {
-    if unsafe { ! KEYS.is_none() } {
+    if unsafe { KEYS.is_none() } {
         false
     } else {
         let keys = unsafe { KEYS.get_or_insert_with(|| HashMap::new()) };
