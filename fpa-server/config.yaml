@@ -1,4 +1,5 @@
 jwks: 
+  - http://localhost:8080/realms/default/protocol/openid-connect/certs
   - http://localhost:8080/realms/tenant-01/protocol/openid-connect/certs
   - http://localhost:8080/realms/tenant-02/protocol/openid-connect/certs
   
