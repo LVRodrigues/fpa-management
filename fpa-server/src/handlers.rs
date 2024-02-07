@@ -62,6 +62,7 @@ pub async fn router(config: Configuration) -> Result<Router, Error> {
         (status = 204, description = "FPA Management service available."),
         (status = 503, description = "FPA Management service unavailable.")
     ),
+    security(("fpa-security" = []))
 )]
 pub async fn health(context: Option<Context>, State(state): State<Arc<AppState>>) -> impl IntoResponse {
     println!("==> {:<12} - /health", "HANDLER");
