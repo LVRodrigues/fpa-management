@@ -2,6 +2,8 @@
     "cmake.configureOnOpen": false,
     "rust-analyzer.linkedProjects": [
         "./fpa-server/Cargo.toml",
+        "./fpa-server/Cargo.toml",
+        "./fpa-server/Cargo.toml",
         "./fpa-server/Cargo.toml"
     ]
 }

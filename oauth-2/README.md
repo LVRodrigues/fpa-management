@@ -35,12 +35,12 @@ docker stop fpa-management-oauth2
 
 Users are created:
 
-| User          | Password   | Role                       | Realm                |
-| ------------- | ---------- | -------------------------- | -------------------- |
-| admin         | admin      | Keycloak Administrator.    | Master               |
-| system        | fpa-pass   | system                     | tenant-01, tenant-02 |
-| admin         | fpa-pass   | administrator              | tenant-01, tenant-02 |
-| user          | fpa-pass   | user                       | tenant-01, tenant-02 |
+| User          | Password   | Role                       | Realm                         |
+| ------------- | ---------- | -------------------------- | ----------------------------- |
+| admin         | admin      | Keycloak Administrator.    | Master                        |
+| system        | fpa-pass   | system                     | default, tenant-01, tenant-02 |
+| admin         | fpa-pass   | administrator              | default, tenant-01, tenant-02 |
+| user          | fpa-pass   | user                       | default, tenant-01, tenant-02 |
 
 ## Settings
 
@@ -62,11 +62,22 @@ Run the command to export the domain data:
 After the backup, the **fpa-management-realm.json** file must be extracted.
 
 ```bash
+docker cp fpa-management-oauth2:/opt/keycloak/data/export/default-realm.json   .
 docker cp fpa-management-oauth2:/opt/keycloak/data/export/tenant-01-realm.json .
 docker cp fpa-management-oauth2:/opt/keycloak/data/export/tenant-02-realm.json .
 ```
 
 Rerun the container rebuild to persist the changes.
+
+## Realms
+
+There are 3 realms in development. To access them, the customer identifier is required.
+
+| Realm     | Client ID       | Client Secret                    |
+| --------- | --------------- | -------------------------------- |
+| default   | fpa-management  | ogIzFgW9nY8kbptdREn5cw2rrn0Cihpv |
+| tenant-01 | fpa-management  | jKQO0Pxb1gFrSz64iUgqlgsoANs86d31 |
+| tenant-02 | fpa-management  | mUyu1Jd9VKIWCxrHkl00NauuAxzO7KCP |
 
 ## Authentication
 
@@ -74,11 +85,11 @@ Start the container and execute:
 
 ```bash
 curl -X POST \
-  'http://localhost:8080/realms/tenant-01/protocol/openid-connect/token' \
+  'http://localhost:8080/realms/<reaml>/protocol/openid-connect/token' \
   --header 'Content-Type: application/x-www-form-urlencoded' \
   --data-urlencode 'grant_type=password' \
   --data-urlencode 'client_id=fpa-management' \
-  --data-urlencode 'client_secret=jKQO0Pxb1gFrSz64iUgqlgsoANs86d31' \
+  --data-urlencode 'client_secret=******' \
   --data-urlencode 'username=******' \
   --data-urlencode 'password=******' 
 ```
@@ -89,11 +100,11 @@ Using de tools **jq**, **tr** and **jwt-cli**.
 
 ```bash
 curl -X POST \
-  'http://localhost:8080/realms/tenant-01/protocol/openid-connect/token' \
+  'http://localhost:8080/realms/<realm>/protocol/openid-connect/token' \
   --header 'Content-Type: application/x-www-form-urlencoded' \
   --data-urlencode 'grant_type=password' \
   --data-urlencode 'client_id=fpa-management' \
-  --data-urlencode 'client_secret=jKQO0Pxb1gFrSz64iUgqlgsoANs86d31' \
+  --data-urlencode 'client_secret=******' \
   --data-urlencode 'username=******' \
   --data-urlencode 'password=******' \
   | jq ".access_token" \
