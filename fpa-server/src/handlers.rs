@@ -4,7 +4,6 @@ use axum::{
     extract::State, http::StatusCode, middleware, response::IntoResponse, routing::get, Router,
 };
 use sea_orm::{DatabaseConnection, ConnectOptions, Database};
-use utoipa::OpenApi;
 
 use crate::{
     auth,
@@ -13,10 +12,6 @@ use crate::{
     error::Error,
     state::AppState, mapper::response_mapper,
 };
-
-#[derive(OpenApi)]
-#[openapi(paths(health))]
-pub struct ApiDoc;
 
 async fn prepare_connection(config: &Configuration) -> Result<DatabaseConnection, Error> {
     let dburl = format!("{}://{}:{}@{}:{}/{}",
@@ -60,12 +55,13 @@ pub async fn router(config: Configuration) -> Result<Router, Error> {
 }
 
 #[utoipa::path(
+    tag = "Status",
     get,
-    path = "/api/heath",
+    path = "/api/health",
     responses(
         (status = 204, description = "FPA Management service available."),
         (status = 503, description = "FPA Management service unavailable.")
-    )
+    ),
 )]
 pub async fn health(context: Option<Context>, State(state): State<Arc<AppState>>) -> impl IntoResponse {
     println!("==> {:<12} - /health", "HANDLER");
