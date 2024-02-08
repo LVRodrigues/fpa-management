@@ -1,8 +1,4 @@
-use serde::Serialize;
-use utoipa::{openapi::{security::{Flow, OAuth2, Password, Scopes, SecurityScheme}, Components}, Modify, OpenApi, ToSchema};
-
-use crate::model;
-
+use utoipa::{openapi::{security::{Flow, OAuth2, Password, Scopes, SecurityScheme}, Components}, Modify, OpenApi};
 
 #[derive(OpenApi)]
 #[openapi(
