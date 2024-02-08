@@ -12,7 +12,7 @@ CREATE TABLE versions (
     major   INTEGER     NOT NULL DEFAULT 0,
     minor   INTEGER     NOT NULL DEFAULT 0,
     build   INTEGER     NOT NULL DEFAULT 0,
-    time    datetime
+    time    datetime    NOT NULL
 );
 
 COMMENT ON TABLE versions           IS 'Application update records.';
@@ -53,8 +53,8 @@ ALTER TABLE tenants_status ADD
 COMMENT ON INDEX pk_tentants_status IS 'Primary key of the Tenant status.';
 
 CREATE TABLE tenants_tier (
-    tier        INTEGER NOT NULL,
-    description description
+    tier        INTEGER     NOT NULL,
+    description description NOT NULL
 );
 
 COMMENT ON TABLE tenants_tier               IS 'Tenant access level on the system.';

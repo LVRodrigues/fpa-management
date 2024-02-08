@@ -7,11 +7,11 @@ use sea_orm::entity::prelude::*;
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub version: Uuid,
-    pub name: Option<String>,
+    pub name: String,
     pub major: i32,
     pub minor: i32,
     pub build: i32,
-    pub time: Option<DateTimeWithTimeZone>,
+    pub time: DateTimeWithTimeZone,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

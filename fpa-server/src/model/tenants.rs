@@ -7,8 +7,8 @@ use sea_orm::entity::prelude::*;
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub tenant: Uuid,
-    pub name: Option<String>,
-    pub time: Option<DateTimeWithTimeZone>,
+    pub name: String,
+    pub time: DateTimeWithTimeZone,
     pub status: i32,
     pub tier: i32,
 }

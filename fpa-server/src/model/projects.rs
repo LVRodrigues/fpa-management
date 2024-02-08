@@ -12,9 +12,9 @@ pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub project: Uuid,
     pub tenant: Uuid,
-    pub name: Option<String>,
+    pub name: String,
     #[schema(value_type = String, format = DateTime)]
-    pub time: Option<DateTimeWithTimeZone>,
+    pub time: DateTimeWithTimeZone,
     pub user: Uuid,
 }
 

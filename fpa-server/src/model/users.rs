@@ -12,10 +12,10 @@ pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub user: Uuid,
     pub tenant: Uuid,
-    pub name: Option<String>,
-    pub email: Option<String>,
+    pub name: String,
+    pub email: String,
     #[schema(value_type = String, format = DateTime)]
-    pub time: Option<DateTimeWithTimeZone>,
+    pub time: DateTimeWithTimeZone,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
