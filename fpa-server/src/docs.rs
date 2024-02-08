@@ -23,6 +23,12 @@ struct User;
 #[derive(Debug, Serialize, ToSchema)]
 struct Users(Vec<User>);
 
+///
+/// Ficou, por enquanto, como curiosidade. 
+/// 
+/// Use o objeto Page para recuperar listas.
+/// 
+
 /* #endregion */
 
 #[derive(OpenApi)]
@@ -36,6 +42,7 @@ struct Users(Vec<User>);
         crate::handlers::projects::list,
     ),
     components(schemas(
+        crate::model::page::Page,
         crate::model::users::Model,
         Users,
         crate::model::projects::Model,

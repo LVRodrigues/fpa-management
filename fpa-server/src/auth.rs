@@ -86,10 +86,10 @@ pub async fn user_register(context: Option<Context>, State(state): State<Arc<App
     if user.is_none() {
         let u = users::ActiveModel {
             user: Set(ctx.id().clone()),
-            name: Set(Some(ctx.name().to_string())),
+            name: Set(ctx.name().to_string()),
             tenant: Set(ctx.tenant().clone()),
-            time: Set(Some(Utc::now().into())),
-            email: Set(Some(ctx.email().to_string()))
+            time: Set(Utc::now().into()),
+            email: Set(ctx.email().to_string())
         };
         let _ = match u.insert(&db).await {
             Ok(u) => println!(" -> Novo usuário adicionado: {:?}", u),

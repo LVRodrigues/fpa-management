@@ -8,3 +8,4 @@ pub mod tenants_status;
 pub mod tenants_tier;
 pub mod users;
 pub mod versions;
+pub mod page;

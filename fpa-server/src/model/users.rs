@@ -11,6 +11,7 @@ use utoipa::ToSchema;
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub user: Uuid,
+    #[serde(skip)]
     pub tenant: Uuid,
     pub name: String,
     pub email: String,

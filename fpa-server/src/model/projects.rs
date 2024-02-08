@@ -11,6 +11,7 @@ use utoipa::{schema, ToSchema};
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub project: Uuid,
+    #[serde(skip)]
     pub tenant: Uuid,
     pub name: String,
     #[schema(value_type = String, format = DateTime)]

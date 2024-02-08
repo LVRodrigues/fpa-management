@@ -15,8 +15,6 @@ use crate::{
     state::AppState, mapper::response_mapper,
 };
 
-use projects::list;
-
 async fn prepare_connection(config: &Configuration) -> Result<DatabaseConnection, Error> {
     let dburl = format!("{}://{}:{}@{}:{}/{}",
         &config.database.engine,
