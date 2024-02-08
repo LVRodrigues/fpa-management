@@ -1,4 +1,29 @@
-use utoipa::{openapi::{security::{Flow, OAuth2, Password, Scopes, SecurityScheme}, Components}, Modify, OpenApi};
+use serde_derive::Serialize;
+use utoipa::{openapi::{security::{Flow, OAuth2, Password, Scopes, SecurityScheme}, Components}, Modify, OpenApi, ToSchema};
+
+/* #region Arrays */
+
+///
+/// A redeclaração da estrutura Project é apenas para renomear o tipo na montagem da Matriz Projects.
+/// O tipo válido para operação no sistem está em model::projects::Model, que é renomeado
+/// para Project na documentação da API.
+/// 
+/// No módulo model estão os tipos corretos gerados pelo cliente sea-orm-cli
+/// 
+
+#[derive(Debug, Serialize)]
+struct Project;
+
+#[derive(Debug, Serialize, ToSchema)]
+struct Projects(Vec<Project>);
+
+#[derive(Debug, Serialize)]
+struct User;
+
+#[derive(Debug, Serialize, ToSchema)]
+struct Users(Vec<User>);
+
+/* #endregion */
 
 #[derive(OpenApi)]
 #[openapi(
@@ -12,7 +37,9 @@ use utoipa::{openapi::{security::{Flow, OAuth2, Password, Scopes, SecurityScheme
     ),
     components(schemas(
         crate::model::users::Model,
+        Users,
         crate::model::projects::Model,
+        Projects
     )),
     modifiers(&SecuritySchemas),
 )]

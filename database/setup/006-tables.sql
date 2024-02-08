@@ -8,10 +8,10 @@
 
 CREATE TABLE versions (
     version id,
-    name    description,
-    major   INTEGER NOT NULL DEFAULT 0,
-    minor   INTEGER NOT NULL DEFAULT 0,
-    build   INTEGER NOT NULL DEFAULT 0,
+    name    description NOT NULL,
+    major   INTEGER     NOT NULL DEFAULT 0,
+    minor   INTEGER     NOT NULL DEFAULT 0,
+    build   INTEGER     NOT NULL DEFAULT 0,
     time    datetime
 );
 
@@ -38,8 +38,8 @@ COMMENT ON INDEX uq_versions IS 'Unique index to register a Version, consisting 
 --==============================================================================
 
 CREATE TABLE tenants_status (
-    status      INTEGER NOT NULL,
-    description description
+    status      INTEGER     NOT NULL,
+    description description NOT NULL
 );
 
 COMMENT ON TABLE tenants_status                 IS 'Tenant status in the system.';
@@ -69,10 +69,10 @@ COMMENT ON INDEX pk_tenants_tier IS 'Primary key of the Tenant access level.';
 
 CREATE TABLE tenants (
     tenant  id,
-    name    description,
-    time    datetime,
-    status  INTEGER NOT NULL,
-    tier    INTEGER NOT NULL
+    name    description NOT NULL,
+    time    datetime    NOT NULL,
+    status  INTEGER     NOT NULL,
+    tier    INTEGER     NOT NULL
 );
 
 COMMENT ON TABLE tenants            IS 'Tenant of the system.';
@@ -109,9 +109,9 @@ COMMENT ON INDEX ix_tenants_tier IS 'Index to select the tier of tenants.';
 CREATE TABLE users (
     "user"      id,
     tenant      id,
-    name        description,
-    email       description,
-    time        datetime
+    name        description NOT NULL,
+    email       description NOT NULL,
+    time        datetime    NOT NULL
 );
 
 COMMENT ON TABLE users          IS 'User of the system.';
