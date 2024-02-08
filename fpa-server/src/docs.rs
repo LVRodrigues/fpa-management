@@ -1,10 +1,23 @@
-use utoipa::{openapi::{security::{Flow, OAuth2, Password, Scopes, SecurityScheme}, Components}, Modify, OpenApi};
+use serde::Serialize;
+use utoipa::{openapi::{security::{Flow, OAuth2, Password, Scopes, SecurityScheme}, Components}, Modify, OpenApi, ToSchema};
+
+use crate::model;
+
 
 #[derive(OpenApi)]
 #[openapi(
-    paths(crate::handlers::health),
-    tags([name = "Status", description = "Check service health."]),
-    info(description = "Project Management using Function Points Analysis."),
+    tags(
+        [name = "Status", description = "Check service health."],
+        [name = "Projects", description = "FPA Projects management."]
+    ),
+    paths(
+        crate::handlers::health,
+        crate::handlers::projects::list,
+    ),
+    components(schemas(
+        crate::model::users::Model,
+        crate::model::projects::Model,
+    )),
     modifiers(&SecuritySchemas),
 )]
 pub struct ApiDoc;    

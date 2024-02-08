@@ -120,3 +120,10 @@ impl From<jsonwebtoken::errors::Error> for Error {
         Error::TokenInvalid
     }
 }
+
+impl From<sea_orm::DbErr> for Error {
+    fn from(value: sea_orm::DbErr) -> Self {
+        println!("==> {:<12} - {value:?}", "ERROR");
+        Error::DatabaseTransaction
+    }
+}

@@ -1,3 +1,5 @@
+pub mod projects;
+
 use std::{sync::Arc, time::Duration};
 
 use axum::{
@@ -12,6 +14,8 @@ use crate::{
     error::Error,
     state::AppState, mapper::response_mapper,
 };
+
+use projects::list;
 
 async fn prepare_connection(config: &Configuration) -> Result<DatabaseConnection, Error> {
     let dburl = format!("{}://{}:{}@{}:{}/{}",
@@ -46,6 +50,7 @@ pub async fn router(config: Configuration) -> Result<Router, Error> {
         "/api",
         Router::new()
             .to_owned()
+            .route("/projects", get(projects::list))
             .route("/health", get(health))
             .layer(middleware::map_response(response_mapper))
             .route_layer(middleware::from_fn_with_state(state.clone(), auth::user_register))
@@ -71,20 +76,3 @@ pub async fn health(context: Option<Context>, State(state): State<Arc<AppState>>
         Err(_) => return StatusCode::SERVICE_UNAVAILABLE
     };
 }
-
-// pub async fn tests(context: Context, State(state): State<Arc<AppState>>) -> impl IntoResponse {
-//     println!("==> {:<12} - /tests", "HANDLER");
-//     let db = state.connection(context.tenant())
-//         .await
-//         .ok_or(Error::DatabaseConnection)
-//         .unwrap();
-
-//     let items = match Tests::find()
-//         .all(&db)
-//         .await {
-//         Ok(v) => Json(v),
-//         Err(_) => return Err(Error::NotFound),
-//     };
-
-//     Ok((StatusCode::OK, items))
-// }

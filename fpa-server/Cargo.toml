@@ -2,6 +2,8 @@
 name = "fpa-server"
 version = "0.1.0"
 edition = "2021"
+description = "Project Management using Function Points Analysis."
+authors = ["Luciano Vieira Rodrigues <lvrodrigues@gmail.com>"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -21,7 +23,7 @@ strum_macros = "0.26.1"
 tokio = { version = "1.35.1", features = ["full"] }
 tower = "0.4.13"
 url = "2.5.0"
-utoipa = { version = "4.2.0", features = ["axum_extras"] }
+utoipa = { version = "4.2.0", features = ["axum_extras", "uuid", "chrono", "openapi_extensions", "time"] }
 utoipa-rapidoc = { version = "3.0.0", features = ["axum"] }
 utoipa-swagger-ui = { version = "6.0.0", features = ["axum"] }
 uuid = { version = "1.6.1", features = ["serde", "v4", "v7"] }
