@@ -1,18 +1,73 @@
 use serde::Serialize;
-use utoipa::{ToResponse, ToSchema};
+use serde_derive::Deserialize;
+use utoipa::{IntoParams, ToResponse, ToSchema};
+
+/* Previous declaration of structure that will be fed by the model fields */
+#[derive(Debug, Serialize)]
+pub struct Project;
+
+#[derive(Debug, Serialize)]
+pub struct User;
+
+#[derive(Debug, Serialize)]
+pub struct Version;
 
 /// Page selected.
 #[derive(Debug, Clone, Serialize, ToSchema, ToResponse)]
-#[aliases(Page = Pages<String>)]
-pub struct Pages<T> {
+#[aliases(
+    Projects = Page<Project>,
+    Users = Page<User>,
+    Versions = Page<Version>
+)]
+pub struct Page<T> {
     /// Total of pages.
-    pub total: u16,
+    pub total: u64,
     /// Index of this page.
-    pub index: u16,
+    pub index: u64,
     /// Records in this page.
-    pub size: u16,
+    pub size: u64,
     /// Total of records.
     pub records: u64,
     /// List of records.
     pub items: Vec<T>,
+}
+
+impl<T> Page<T> {
+    pub fn new() -> Self {
+        Self { total: 0, index: 0, size: 0, records: 0, items: Vec::<T>::new() }
+    }
+}
+
+/// Page select params.
+#[derive(Deserialize, IntoParams)]
+#[into_params(parameter_in = Query)]
+pub struct PageParams {
+    /// Index of page to select.
+    #[param(minimum = 1, default = 1)]
+    page: Option<u64>,
+    /// Page's size (records).
+    #[param(minimum = 1, maximum = 50, default = 10)]
+    size: Option<u64>,
+}
+
+impl Default for PageParams {
+    fn default() -> Self {
+        Self { page: Some(1), size: Some(10) }
+    }
+}
+
+impl PageParams {
+    pub fn page(&self) -> u64 {
+        match self.page {
+            Some(v) => v,
+            None => Self::default().page.unwrap(),
+        }
+    }
+
+    pub fn size(&self) -> u64 {
+        match self.size {
+            Some(v) => v,
+            None => Self::default().size.unwrap(),
+        }
+    }
 }
