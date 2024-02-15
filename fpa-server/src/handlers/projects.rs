@@ -1,7 +1,11 @@
 use std::sync::Arc;
 
-use axum::{extract::{Query, State}, response::IntoResponse, Json};
-use sea_orm::{EntityTrait, PaginatorTrait};
+use axum::{extract::{Query, State}, http::StatusCode, response::IntoResponse, Json};
+use chrono::Utc;
+use sea_orm::{ActiveModelTrait, EntityTrait, PaginatorTrait, Set};
+use serde_derive::Deserialize;
+use utoipa::IntoParams;
+use uuid::Uuid;
 use crate::{ctx::Context, error::Error, model::{page::{Page, PageParams}, prelude::Projects, projects}, state::AppState};
 
 #[utoipa::path(
@@ -9,13 +13,14 @@ use crate::{ctx::Context, error::Error, model::{page::{Page, PageParams}, prelud
     get,
     path = "/api/projects",
     responses(
-        (status = OK, description = "Sucess.", body = Page),
+        (status = OK, description = "Sucess.", body = Projects),
+        (status = UNAUTHORIZED, description = "User not authorized."),
         (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.")
     ),
     params(PageParams),
     security(("fpa-security" = []))
 )]
-pub async fn list(params: Query<PageParams>, context: Option<Context>, State(state): State<Arc<AppState>>) -> Result<impl IntoResponse, Error> {
+pub async fn list(params: Query<PageParams>, context: Option<Context>, state: State<Arc<AppState>>) -> Result<impl IntoResponse, Error> {
     println!("==> {:<12} - /list (Page: {:?} - Size: {:?})", "PROJECTS", params.page(), params.size());
     
     let db = state.connection(context.unwrap().tenant()).await?;
@@ -31,4 +36,50 @@ pub async fn list(params: Query<PageParams>, context: Option<Context>, State(sta
     page.items      = items;
 
     Ok(Json(page))
+}
+
+/// Project create params.
+#[derive(Debug, Deserialize, IntoParams)]
+pub struct ProjectCreateParam {
+    /// New Project' name.
+    pub name: String,
+}
+
+#[utoipa::path(
+    tag = "Projects",
+    post,
+    path = "/api/projects",
+    responses(
+        (status = CREATED, description = "Sucess."),
+        (status = UNAUTHORIZED, description = "User not authorized."),
+        (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.")
+    ),
+    params(ProjectCreateParam),
+    security(("fpa-security" = []))
+)]
+pub async fn create(param: Query<ProjectCreateParam>, context: Option<Context>, state: State<Arc<AppState>>) -> Result<(StatusCode, Json<projects::Model>), Error> {
+    println!("==> {:<12} - /create (Name: {:?})", "PROJECTS", param);
+    let ctx = context.unwrap();
+    let db = state.connection(ctx.tenant()).await?;
+
+    let project = projects::ActiveModel {
+        project: Set(Uuid::new_v4()),
+        tenant: Set(ctx.tenant().clone()),
+        user: Set(ctx.id().clone()),
+        time: Set(Utc::now().into()),
+        name: Set(param.name.to_string()),
+    };
+    let project: projects::Model = match project.insert(&db).await {
+        Ok(v) => {
+            println!(" -> New Project: {:?}", v);
+            v
+        },
+        Err(_) => return Err(Error::ProjectCreate),
+    };
+    match db.commit().await {
+        Ok(it) => it,
+        Err(_) => return Err(Error::DatabaseTransaction),
+    };
+
+    Ok((StatusCode::CREATED, Json(project)))
 }

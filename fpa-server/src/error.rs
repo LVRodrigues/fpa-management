@@ -18,6 +18,7 @@ pub enum Error {
     DatabaseConnection,
     DatabaseTransaction,
     RegisterUser,
+    ProjectCreate,
 }
 
 impl core::fmt::Display for Error {

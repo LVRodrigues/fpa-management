@@ -48,7 +48,9 @@ pub async fn router(config: Configuration) -> Result<Router, Error> {
         "/api",
         Router::new()
             .to_owned()
-            .route("/projects", get(projects::list))
+            .route("/projects", 
+                get(projects::list)
+                .post(projects::create))
             .route("/health", get(health))
             .layer(middleware::map_response(response_mapper))
             .route_layer(middleware::from_fn_with_state(state.clone(), auth::user_register))
@@ -62,12 +64,13 @@ pub async fn router(config: Configuration) -> Result<Router, Error> {
     get,
     path = "/api/health",
     responses(
-        (status = 204, description = "FPA Management service available."),
-        (status = 503, description = "FPA Management service unavailable.")
+        (status = NO_CONTENT, description = "FPA Management service available."),
+        (status = UNAUTHORIZED, description = "User not authorized."),
+        (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable."),
     ),
     security(("fpa-security" = []))
 )]
-pub async fn health(context: Option<Context>, State(state): State<Arc<AppState>>) -> impl IntoResponse {
+pub async fn health(context: Option<Context>, state: State<Arc<AppState>>) -> impl IntoResponse {
     println!("==> {:<12} - /health", "HANDLER");
     let _ = match state.connection(context.unwrap().tenant()).await {
         Ok(_) => return StatusCode::NO_CONTENT,

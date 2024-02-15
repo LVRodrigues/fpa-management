@@ -92,7 +92,7 @@ pub async fn user_register(context: Option<Context>, State(state): State<Arc<App
             email: Set(ctx.email().to_string())
         };
         let _ = match u.insert(&db).await {
-            Ok(u) => println!(" -> Novo usuário adicionado: {:?}", u),
+            Ok(v) => println!(" -> New User: {:?}", v),
             Err(_) => return Err(Error::RegisterUser)
         };
         match db.commit().await {

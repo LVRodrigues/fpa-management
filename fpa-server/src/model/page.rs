@@ -17,7 +17,7 @@ pub struct Version;
 #[aliases(
     Projects = Page<Project>,
     Users = Page<User>,
-    Versions = Page<Version>
+    Versions = Page<Version>,
 )]
 pub struct Page<T> {
     /// Total of pages.

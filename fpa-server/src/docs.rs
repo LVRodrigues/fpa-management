@@ -42,6 +42,7 @@ use utoipa::{openapi::{security::{Flow, OAuth2, Password, Scopes, SecurityScheme
     paths(
         crate::handlers::health,
         crate::handlers::projects::list,
+        crate::handlers::projects::create,
     ),
     components(
         schemas(
