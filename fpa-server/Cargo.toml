@@ -30,3 +30,4 @@ uuid = { version = "1.6.1", features = ["serde", "v4", "v7"] }
 
 [dev-dependencies]
 anyhow = "1.0.79"
+serial_test = "3.0.0"

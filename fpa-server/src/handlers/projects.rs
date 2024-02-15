@@ -57,7 +57,7 @@ pub struct ProjectCreateParam {
     params(ProjectCreateParam),
     security(("fpa-security" = []))
 )]
-pub async fn create(param: Query<ProjectCreateParam>, context: Option<Context>, state: State<Arc<AppState>>) -> Result<(StatusCode, Json<projects::Model>), Error> {
+pub async fn create(param: Query<ProjectCreateParam>, context: Option<Context>, state: State<Arc<AppState>>) -> Result<impl IntoResponse, Error> {
     println!("==> {:<12} - /create (Name: {:?})", "PROJECTS", param);
     let ctx = context.unwrap();
     let db = state.connection(ctx.tenant()).await?;
