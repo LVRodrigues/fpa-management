@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use axum::{extract::{Query, State}, http::StatusCode, response::IntoResponse, Json};
+use axum::{extract::{Query, State}, http::{HeaderMap, StatusCode, Uri}, response::IntoResponse, Json};
 use chrono::Utc;
 use sea_orm::{ActiveModelTrait, EntityTrait, PaginatorTrait, Set};
 use serde_derive::Deserialize;
@@ -81,5 +81,18 @@ pub async fn create(param: Query<ProjectCreateParam>, context: Option<Context>, 
         Err(_) => return Err(Error::DatabaseTransaction),
     };
 
-    Ok((StatusCode::CREATED, Json(project)))
+    let config = state.configuration();
+    let location = Uri::builder()
+        .scheme(config.scheme.clone())
+        .authority(format!("{}:{}", config.authority.clone(), config.port.clone()))
+        .path_and_query(format!("/api/projects/{}", &project.project))
+        .build()
+        .unwrap()
+        .to_string()
+        .parse()
+        .unwrap();
+    let mut header = HeaderMap::new();
+    header.insert("Location", location);
+
+    Ok((StatusCode::CREATED, header))
 }

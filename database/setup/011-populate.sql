@@ -6,8 +6,8 @@
 -- Database Version
 --===============================================================================
 
-INSERT INTO versions (version, name, major, minor, build)
-VALUES (uuid_nil(), 'Database', 1, 0, 0);
+INSERT INTO versions (version, name, major, minor, build, time)
+VALUES (uuid_nil(), 'Database', 1, 0, 0, CURRENT_TIMESTAMP);
 
 --===============================================================================
 -- Tenants

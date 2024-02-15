@@ -106,6 +106,10 @@ CREATE INDEX ix_tenants_tier ON tenants (tier);
 
 COMMENT ON INDEX ix_tenants_tier IS 'Index to select the tier of tenants.';
 
+CREATE UNIQUE INDEX uq_tenants_tenant_name ON tenants (tenant, name);
+
+COMMENT ON INDEX uq_tenants_tenant_name IS 'Exclusive name of Project in a Tenant.';
+
 CREATE TABLE users (
     "user"      id,
     tenant      id,

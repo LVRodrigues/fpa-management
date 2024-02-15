@@ -8,9 +8,9 @@ use uuid::Uuid;
 #[derive(Clone, Debug, Serialize, strum_macros::AsRefStr)]
 pub enum Error {
     Unauthorized,
-    Forbidden,
-    ParamInvalid,
-    NotFound,
+    // Forbidden,
+    // ParamInvalid,
+    // NotFound,
     KeyNotFound,
     JWKSNotFound,
     TokenInvalid,
@@ -56,28 +56,28 @@ impl IntoResponse for Error {
                     }
                 )
             }
-            Error::Forbidden => {
-                (
-                    StatusCode::FORBIDDEN,
-                        ErrorResponse {
-                        id: Uuid::new_v4(),
-                        time: Utc::now(),
-                        error: "AUTHORIZATION",
-                        message: "Não autorizado para esta operação."
-                    }
-                )
-            }
-            Error::NotFound => {
-                (
-                    StatusCode::NOT_FOUND,
-                    ErrorResponse {
-                        id: Uuid::new_v4(),
-                        time: Utc::now(),
-                        error: "PARAM_INVALID",
-                        message: "Recurso não localizado com os parâmetros informados."
-                    }
-                )
-            }
+            // Error::Forbidden => {
+            //     (
+            //         StatusCode::FORBIDDEN,
+            //             ErrorResponse {
+            //             id: Uuid::new_v4(),
+            //             time: Utc::now(),
+            //             error: "AUTHORIZATION",
+            //             message: "Não autorizado para esta operação."
+            //         }
+            //     )
+            // }
+            // Error::NotFound => {
+            //     (
+            //         StatusCode::NOT_FOUND,
+            //         ErrorResponse {
+            //             id: Uuid::new_v4(),
+            //             time: Utc::now(),
+            //             error: "PARAM_INVALID",
+            //             message: "Recurso não localizado com os parâmetros informados."
+            //         }
+            //     )
+            // }
             Error::JWKSNotFound |
             Error::DatabaseConnection | 
             Error::DatabaseTransaction => {

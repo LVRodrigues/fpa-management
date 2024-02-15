@@ -17,4 +17,6 @@ database:
   timeout_idle: 10
   lifetime: 30
 
+scheme: HTTP
+authority: localhost
 port: 5000

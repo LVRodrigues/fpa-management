@@ -41,6 +41,7 @@ async fn create() -> Result<()> {
         .await?;
     assert!(response.status() == StatusCode::CREATED);
     assert!(response.content_length().unwrap() == 0);
+    assert!(response.headers().get("location").is_some());
 
     Ok(())
 }
