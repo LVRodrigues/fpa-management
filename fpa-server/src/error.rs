@@ -3,6 +3,7 @@ use axum::{http::StatusCode, response::{IntoResponse, Response}, Json};
 use chrono::{DateTime, Utc};
 use serde::Serialize;
 use serde_json::json;
+use utoipa::ToSchema;
 use uuid::Uuid;
 
 #[derive(Clone, Debug, Serialize, strum_macros::AsRefStr)]
@@ -10,7 +11,7 @@ pub enum Error {
     Unauthorized,
     // Forbidden,
     // ParamInvalid,
-    // NotFound,
+    NotFound,
     KeyNotFound,
     JWKSNotFound,
     TokenInvalid,
@@ -29,17 +30,24 @@ impl core::fmt::Display for Error {
 
 impl std::error::Error for Error {}
 
+/// Information about the error that occurred.
+#[derive(Serialize, ToSchema)]
+#[schema(as=Error)]
+#[serde(rename = "Error")] 
+pub struct ErrorResponse<'a> {
+    /// Error Unique Identifier
+    id: Uuid,
+    /// Error time.
+    time: DateTime<Utc>,
+    /// Error title.
+    error: &'a str,
+    /// Error message.
+    message: &'a str,
+}
+
 impl IntoResponse for Error {
 	fn into_response(self) -> Response {
 		println!("==> {:<12} - {self:?}", "ERROR");
-
-        #[derive(Serialize)]
-        struct ErrorResponse<'a> {
-            id: Uuid,
-            time: DateTime<Utc>,
-            error: &'a str,
-            message: &'a str,
-        }
 
         let (code, message) = match self {
             Error::TokenInvalid |
@@ -67,17 +75,17 @@ impl IntoResponse for Error {
             //         }
             //     )
             // }
-            // Error::NotFound => {
-            //     (
-            //         StatusCode::NOT_FOUND,
-            //         ErrorResponse {
-            //             id: Uuid::new_v4(),
-            //             time: Utc::now(),
-            //             error: "PARAM_INVALID",
-            //             message: "Recurso não localizado com os parâmetros informados."
-            //         }
-            //     )
-            // }
+            Error::NotFound => {
+                (
+                    StatusCode::NOT_FOUND,
+                    ErrorResponse {
+                        id: Uuid::new_v4(),
+                        time: Utc::now(),
+                        error: "NOT_FOUND",
+                        message: "Recurso não localizado com os parâmetros informados."
+                    }
+                )
+            }
             Error::JWKSNotFound |
             Error::DatabaseConnection | 
             Error::DatabaseTransaction => {

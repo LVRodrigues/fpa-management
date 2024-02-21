@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use axum::{extract::{Query, State}, http::{HeaderMap, StatusCode, Uri}, response::IntoResponse, Json};
+use axum::{extract::{Path, Query, State}, http::{HeaderMap, StatusCode, Uri}, response::IntoResponse, Json};
 use chrono::Utc;
 use sea_orm::{ActiveModelTrait, ColumnTrait, Condition, EntityTrait, PaginatorTrait, QueryFilter, Set};
 use serde_derive::Deserialize;
@@ -8,27 +8,29 @@ use utoipa::IntoParams;
 use uuid::Uuid;
 use crate::{ctx::Context, error::Error, model::{page::{Page, PageParams}, prelude::Projects, projects}, state::AppState};
 
+/// Select a set of projects.
 #[utoipa::path(
     tag = "Projects",
     get,
     path = "/api/projects",
     responses(
         (status = OK, description = "Sucess.", body = Projects),
-        (status = UNAUTHORIZED, description = "User not authorized."),
-        (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.")
+        (status = UNAUTHORIZED, description = "User not authorized.", body = Error),
+        (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = Error)
     ),
     params(PageParams),
     security(("fpa-security" = []))
 )]
 pub async fn list(params: Query<PageParams>, context: Option<Context>, state: State<Arc<AppState>>) -> Result<impl IntoResponse, Error> {
-    println!("==> {:<12} - /list (Page: {:?} - Size: {:?})", "PROJECTS", params.page(), params.size());
+    println!("==> {:<12} - /list (Params: {:?})", "PROJECTS", params);
 
     let mut conditions = Condition::all();
     if let Some(name) = params.name() {
         conditions = conditions.add(projects::Column::Name.contains(&name));
     }
     
-    let db = state.connection(context.unwrap().tenant()).await?;
+    let ctx = context.unwrap();
+    let db = state.connection(ctx.tenant()).await?;
     let paginator = Projects::find()
         .filter(conditions)
         .paginate(&db, params.size());
@@ -44,6 +46,34 @@ pub async fn list(params: Query<PageParams>, context: Option<Context>, state: St
     Ok(Json(page))
 }
 
+/// Select a specific project.
+#[utoipa::path(
+    tag = "Projects",
+    get,
+    path = "/api/projects/{id}",
+    responses(
+        (status = OK, description = "Sucess.", body = Project),
+        (status = UNAUTHORIZED, description = "User not authorized.", body = Error),
+        (status = NOT_FOUND, description = "Project not founded.", body = Error),
+        (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = Error)
+    ),
+    params(
+        ("id" = Uuid, Path, description = "Project Unique ID.")
+    ),
+    security(("fpa-security" = []))
+)]
+pub async fn by_id(Path(id): Path<Uuid>, context: Option<Context>, state: State<Arc<AppState>>) -> Result<impl IntoResponse, Error> {
+    println!("==> {:<12} - /byId (id: {:?})", "PROJECTS", id);
+    let ctx = context.unwrap();
+    let db = state.connection(ctx.tenant()).await?;
+
+    let project: Option<projects::Model> = Projects::find_by_id(id).one(&db).await?;
+    match project {
+        Some(v) => Ok((StatusCode::OK, Json(v))),
+        None => return Err(Error::NotFound),
+    }
+}
+
 /// Project create params.
 #[derive(Debug, Deserialize, IntoParams)]
 pub struct ProjectCreateParam {
@@ -51,14 +81,15 @@ pub struct ProjectCreateParam {
     pub name: String,
 }
 
+/// Create a new Project.
 #[utoipa::path(
     tag = "Projects",
     post,
     path = "/api/projects",
     responses(
-        (status = CREATED, description = "Sucess."),
-        (status = UNAUTHORIZED, description = "User not authorized."),
-        (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.")
+        (status = CREATED, description = "Sucess.", body = Project, headers(("Location", description = "New project address."))),
+        (status = UNAUTHORIZED, description = "User not authorized.", body = Error),
+        (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = Error)
     ),
     params(ProjectCreateParam),
     security(("fpa-security" = []))
@@ -100,5 +131,5 @@ pub async fn create(param: Query<ProjectCreateParam>, context: Option<Context>, 
     let mut header = HeaderMap::new();
     header.insert("Location", location);
 
-    Ok((StatusCode::CREATED, header))
+    Ok((StatusCode::CREATED, header, Json(project)))
 }

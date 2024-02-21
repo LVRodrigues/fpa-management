@@ -40,7 +40,7 @@ impl<T> Page<T> {
 }
 
 /// Page select params.
-#[derive(Deserialize, IntoParams)]
+#[derive(Debug, Deserialize, IntoParams)]
 #[into_params(parameter_in = Query)]
 pub struct PageParams {
     /// Index of page to select.

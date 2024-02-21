@@ -51,6 +51,7 @@ pub async fn router(config: Configuration) -> Result<Router, Error> {
             .route("/projects", 
                 get(projects::list)
                 .post(projects::create))
+            .route("/projects/:id", get(projects::by_id))
             .route("/health", get(health))
             .layer(middleware::map_response(response_mapper))
             .route_layer(middleware::from_fn_with_state(state.clone(), auth::user_register))
@@ -59,6 +60,8 @@ pub async fn router(config: Configuration) -> Result<Router, Error> {
     ))
 }
 
+
+/// Checks system health.
 #[utoipa::path(
     tag = "Status",
     get,
