@@ -1,3 +1,4 @@
+
 use serde::Serialize;
 use serde_derive::Deserialize;
 use utoipa::{IntoParams, ToResponse, ToSchema};
@@ -21,7 +22,7 @@ pub struct Version;
 )]
 pub struct Page<T> {
     /// Total of pages.
-    pub total: u64,
+    pub pages: u64,
     /// Index of this page.
     pub index: u64,
     /// Records in this page.
@@ -34,7 +35,7 @@ pub struct Page<T> {
 
 impl<T> Page<T> {
     pub fn new() -> Self {
-        Self { total: 0, index: 0, size: 0, records: 0, items: Vec::<T>::new() }
+        Self { pages: 0, index: 0, size: 0, records: 0, items: Vec::<T>::new() }
     }
 }
 
@@ -48,11 +49,14 @@ pub struct PageParams {
     /// Page's size (records).
     #[param(minimum = 1, maximum = 50, default = 10)]
     size: Option<u64>,
+    /// Filter by name.
+    #[param()]
+    name: Option<String>,
 }
 
 impl Default for PageParams {
     fn default() -> Self {
-        Self { page: Some(1), size: Some(10) }
+        Self { page: Some(1), size: Some(10), name: Some(String::new()) }
     }
 }
 
@@ -69,5 +73,9 @@ impl PageParams {
             Some(v) => v,
             None => Self::default().size.unwrap(),
         }
+    }
+
+    pub fn name(&self) -> Option<String> {
+        self.name.clone()
     }
 }

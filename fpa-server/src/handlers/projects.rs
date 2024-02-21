@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use axum::{extract::{Query, State}, http::{HeaderMap, StatusCode, Uri}, response::IntoResponse, Json};
 use chrono::Utc;
-use sea_orm::{ActiveModelTrait, EntityTrait, PaginatorTrait, Set};
+use sea_orm::{ActiveModelTrait, ColumnTrait, Condition, EntityTrait, PaginatorTrait, QueryFilter, Set};
 use serde_derive::Deserialize;
 use utoipa::IntoParams;
 use uuid::Uuid;
@@ -22,14 +22,20 @@ use crate::{ctx::Context, error::Error, model::{page::{Page, PageParams}, prelud
 )]
 pub async fn list(params: Query<PageParams>, context: Option<Context>, state: State<Arc<AppState>>) -> Result<impl IntoResponse, Error> {
     println!("==> {:<12} - /list (Page: {:?} - Size: {:?})", "PROJECTS", params.page(), params.size());
+
+    let mut conditions = Condition::all();
+    if let Some(name) = params.name() {
+        conditions = conditions.add(projects::Column::Name.contains(&name));
+    }
     
     let db = state.connection(context.unwrap().tenant()).await?;
     let paginator = Projects::find()
+        .filter(conditions)
         .paginate(&db, params.size());
 
     let items = paginator.fetch_page(params.page() - 1).await?;
     let mut page: Page<projects::Model> = Page::new();
-    page.total      = paginator.num_pages().await?;
+    page.pages      = paginator.num_pages().await?;
     page.index      = params.page();
     page.size       = items.len() as u64;
     page.records    = paginator.num_items().await?;
