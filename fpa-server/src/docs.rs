@@ -1,4 +1,7 @@
 
+use std::collections::HashMap;
+
+use serde_json::{json, Value};
 use utoipa::{openapi::{security::{Flow, OAuth2, Password, Scopes, SecurityScheme}, Components}, Modify, OpenApi};
 
 
@@ -25,13 +28,44 @@ use utoipa::{openapi::{security::{Flow, OAuth2, Password, Scopes, SecurityScheme
             crate::error::ErrorResponse,
         ),
     ),
-    modifiers(&SecuritySchemas),
+    modifiers(&SecuritySchemas, &InfoModifier),
 )]
 pub struct ApiDoc;    
 
+struct InfoModifier;
+impl Modify for InfoModifier {
+    fn modify(&self, openapi: &mut utoipa::openapi::OpenApi) {
+        let mut logo: HashMap<String, Value> = HashMap::new();
+        let value = json!({
+            //"url": "https://github.com/LVRodrigues/apf-calc/blob/main/src/assets/logo.png?raw=true", 
+            "url": "/assets/logo.png", 
+            "backgroundColor": "#FFFFFF"
+        });
+        logo.insert("x-logo".to_owned(), value);
+        openapi.info.extensions = Some(logo);
+
+        let desc = r#"
+# Introduction
+
+Project Management using Function Points Analysis.
+
+# Cross-Origin Resource Sharing
+
+This API features Cross-Origin Resource Sharing (CORS) implemented in 
+compliance with W3C spec. And that allows cross-domain communication from 
+the browser. All responses have a wildcard same-origin which makes them 
+completely public and accessible to everyone, including any code on any site.
+
+# Authentication
+
+<SecurityDefinitions />
+        "#;
+        openapi.info.description = Some(desc.to_owned());
+    }
+}
+
 struct SecuritySchemas;
 impl Modify for SecuritySchemas {
-
     fn modify(&self, openapi: &mut utoipa::openapi::OpenApi) {
         let components = match openapi.components.as_mut() {
             Some(c) => c,

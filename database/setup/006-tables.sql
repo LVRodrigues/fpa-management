@@ -176,3 +176,7 @@ ALTER TABLE projects ADD
 CREATE INDEX ix_projects_user ON projects ("user");
 
 COMMENT ON INDEX ix_projects_user IS 'Reference index for Users.';
+
+CREATE UNIQUE INDEX uq_projects_tenant_name ON projects(tenant, name);
+
+COMMENT ON INDEX uq_projects_tenant_name IS 'Unique Project Name on a Tenant.';

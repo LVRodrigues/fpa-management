@@ -60,7 +60,7 @@ impl IntoResponse for Error {
                         id: Uuid::new_v4(),
                         time: Utc::now(),
                         error: "AUTHENTICATION",
-                        message: "Erro de autenticação."
+                        message: "Authentication error. Request a new Access Token."
                     }
                 )
             }
@@ -82,7 +82,7 @@ impl IntoResponse for Error {
                         id: Uuid::new_v4(),
                         time: Utc::now(),
                         error: "NOT_FOUND",
-                        message: "Recurso não localizado com os parâmetros informados."
+                        message: "Resource not found with the specified parameters."
                     }
                 )
             }
@@ -95,7 +95,7 @@ impl IntoResponse for Error {
                         id: Uuid::new_v4(),
                         time: Utc::now(),
                         error: "SERVICE_ERROR",
-                        message: "Serviço temporariamente indisponível."
+                        message: "Service temporarily unavailable."
                     }
                 )
             }
@@ -105,7 +105,7 @@ impl IntoResponse for Error {
                         id: Uuid::new_v4(),
                         time: Utc::now(),
                         error: "SERVICE_ERROR",
-                        message: "Erro interno do serviço."
+                        message: "Internal service error."
                     }
                 )
         };

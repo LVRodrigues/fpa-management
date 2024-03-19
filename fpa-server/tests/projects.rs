@@ -34,14 +34,21 @@ async fn list() -> Result<()> {
 async fn create() -> Result<()> {
     let token = tokens::request_token("user", "fpa-pass", Tenant::TENANT_DEFAULT).await?;
 
+    let name = "Runing-Test";
+
     let response = reqwest::Client::new()
-        .post("http://localhost:5000/api/projects?name=Running%20Test")
+        .post(format!("http://localhost:5000/api/projects?name={}", name))
         .bearer_auth(token)
         .send()
         .await?;
     assert!(response.status() == StatusCode::CREATED);
-    assert!(response.content_length().unwrap() == 0);
     assert!(response.headers().get("location").is_some());
+
+    let json = response.json::<serde_json::Value>().await?;
+    assert!(json.get("project").is_some());
+    assert_eq!(*json.get("name").unwrap(), name);
+    assert!(json.get("time").is_some());
+    assert!(json.get("user").is_some());
 
     Ok(())
 }
