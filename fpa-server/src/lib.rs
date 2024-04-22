@@ -2,10 +2,9 @@ use axum::{routing::get_service, Router};
 use tokio::{net::TcpListener, signal};
 use tower_http::services::ServeDir;
 use utoipa_redoc::{Redoc, Servable};
+use utoipa_swagger_ui::SwaggerUi;
 use std::{error::Error, net::SocketAddr};
 use utoipa::OpenApi;
-// use utoipa_rapidoc::RapiDoc;
-use utoipa_swagger_ui::SwaggerUi;
 
 mod docs;
 mod configuration;
@@ -23,7 +22,7 @@ pub async fn start() -> Result<(), Box<dyn Error>> {
     let config = configuration::prepare();
 
     let router = Router::new()
-        //.merge(SwaggerUi::new("/doc/swagger").url("/doc/openapi.json", docs::ApiDoc::openapi()))
+        .merge(SwaggerUi::new("/doc/swagger").url("/doc/openapi.json", docs::ApiDoc::openapi()))
         //.merge(RapiDoc::new("/doc/openapi.json").path("/doc/rapidoc"))
         .merge(Redoc::with_url("/", docs::ApiDoc::openapi()))
         .nest_service("/assets", get_service(ServeDir::new("./assets")))

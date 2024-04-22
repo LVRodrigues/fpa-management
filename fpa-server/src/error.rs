@@ -110,8 +110,7 @@ impl IntoResponse for Error {
                 )
         };
 
-        println!("--->>> error: \n{}", json!(message));
-        println!();
+        println!("--->>> error: {}", json!(message));
         (code, Json(json!(message))).into_response()
 	}
 }
