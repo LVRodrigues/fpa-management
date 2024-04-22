@@ -12,6 +12,7 @@ pub enum Error {
     // Forbidden,
     // ParamInvalid,
     NotFound,
+    MultipleRowsAffected,
     KeyNotFound,
     JWKSNotFound,
     TokenInvalid,
@@ -83,6 +84,17 @@ impl IntoResponse for Error {
                         time: Utc::now(),
                         error: "NOT_FOUND",
                         message: "Resource not found with the specified parameters."
+                    }
+                )
+            }
+            Error::MultipleRowsAffected => {
+                (
+                    StatusCode::CONFLICT,
+                    ErrorResponse {
+                        id: Uuid::new_v4(),
+                        time: Utc::now(),
+                        error: "DATABASE_ERROR",
+                        message: "Database in inconsistent state."
                     }
                 )
             }

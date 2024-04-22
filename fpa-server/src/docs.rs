@@ -16,6 +16,8 @@ use utoipa::{openapi::{security::{Flow, OAuth2, Password, Scopes, SecurityScheme
         crate::handlers::projects::list,
         crate::handlers::projects::by_id,
         crate::handlers::projects::create,
+        crate::handlers::projects::update,
+        crate::handlers::projects::remove,
     ),
     components(
         schemas(
@@ -26,6 +28,7 @@ use utoipa::{openapi::{security::{Flow, OAuth2, Password, Scopes, SecurityScheme
             crate::model::versions::Model,
             crate::model::page::Versions,
             crate::error::ErrorResponse,
+            crate::handlers::projects::ProjectUpdateParam,
         ),
     ),
     modifiers(&SecuritySchemas, &InfoModifier),

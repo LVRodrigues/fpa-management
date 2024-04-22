@@ -50,8 +50,11 @@ pub async fn router(config: Configuration) -> Result<Router, Error> {
             .to_owned()
             .route("/projects", 
                 get(projects::list)
-                .post(projects::create))
-            .route("/projects/:id", get(projects::by_id))
+                .post(projects::create)
+                .put(projects::update))
+            .route("/projects/:id", 
+                get(projects::by_id)
+                .delete(projects::remove))
             .route("/health", get(health))
             .layer(middleware::map_response(response_mapper))
             .route_layer(middleware::from_fn_with_state(state.clone(), auth::user_register))

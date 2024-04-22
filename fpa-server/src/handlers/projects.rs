@@ -2,13 +2,13 @@ use std::sync::Arc;
 
 use axum::{extract::{Path, Query, State}, http::{HeaderMap, StatusCode, Uri}, response::IntoResponse, Json};
 use chrono::Utc;
-use sea_orm::{ActiveModelTrait, ColumnTrait, Condition, EntityTrait, PaginatorTrait, QueryFilter, Set};
+use sea_orm::{ActiveModelTrait, ColumnTrait, Condition, EntityTrait, ModelTrait, PaginatorTrait, QueryFilter, Set};
 use serde_derive::Deserialize;
-use utoipa::IntoParams;
+use utoipa::{IntoParams, ToSchema};
 use uuid::Uuid;
-use crate::{ctx::Context, error::Error, model::{page::{Page, PageParams}, prelude::Projects, projects}, state::AppState};
+use crate::{ctx::Context, error::Error, model::{page::{Page, PageParams}, prelude::Projects, projects::{self, ActiveModel, Model}}, state::AppState};
 
-/// Select a set of projects.
+/// Search for a set of Projects.
 #[utoipa::path(
     tag = "Projects",
     get,
@@ -36,7 +36,7 @@ pub async fn list(params: Query<PageParams>, context: Option<Context>, state: St
         .paginate(&db, params.size());
 
     let items = paginator.fetch_page(params.page() - 1).await?;
-    let mut page: Page<projects::Model> = Page::new();
+    let mut page: Page<Model> = Page::new();
     page.pages      = paginator.num_pages().await?;
     page.index      = params.page();
     page.size       = items.len() as u64;
@@ -46,7 +46,7 @@ pub async fn list(params: Query<PageParams>, context: Option<Context>, state: St
     Ok(Json(page))
 }
 
-/// Select a specific project.
+/// Select a specific Project.
 #[utoipa::path(
     tag = "Projects",
     get,
@@ -132,4 +132,91 @@ pub async fn create(param: Query<ProjectCreateParam>, context: Option<Context>, 
     header.insert("Location", location);
 
     Ok((StatusCode::CREATED, header, Json(project)))
+}
+
+
+/// Project update params.
+#[derive(Debug, Deserialize, ToSchema)]
+pub struct ProjectUpdateParam {
+    /// Project Unique ID
+    pub id: Uuid,
+    /// New Project' name.
+    pub name: String,
+}
+
+/// Update a existing Project.
+#[utoipa::path(
+    tag = "Projects",
+    put,
+    path = "/api/projects",
+    responses(
+        (status = OK, description = "Sucess.", body = Project),
+        (status = UNAUTHORIZED, description = "User not authorized.", body = Error),
+        (status = NOT_FOUND, description = "Project not founded.", body = Error),
+        (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = Error)
+    ),
+    security(("fpa-security" = []))
+)]
+pub async fn update(context: Option<Context>, state: State<Arc<AppState>>, Json(params): Json<ProjectUpdateParam>,) -> Result<impl IntoResponse, Error> {
+    println!("==> {:<12} - /update ({:?})", "PROJECTS", params);
+    let ctx = context.unwrap();
+    let db = state.connection(ctx.tenant()).await?;    
+
+    let data: Option<Model> = Projects::find_by_id(params.id).one(&db).await?;
+    let data = match data {
+        Some(v) => v,
+        None => return Err(Error::NotFound),
+    };
+    let mut data: ActiveModel = data.into();
+    data.name = Set(params.name);
+
+    let data: Model = data.update(&db).await?;
+    match db.commit().await {
+        Ok(it) => it,
+        Err(_) => return Err(Error::DatabaseTransaction),
+    };
+
+    Ok((StatusCode::OK, Json(data)))
+}
+
+/// Remove a existing Project.
+#[utoipa::path(
+    tag = "Projects",
+    delete,
+    path = "/api/projects/{id}",
+    responses(
+        (status = NO_CONTENT, description = "Sucess."),
+        (status = UNAUTHORIZED, description = "User not authorized.", body = Error),
+        (status = NOT_FOUND, description = "Project not founded.", body = Error),
+        (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = Error)
+    ),
+    params(
+        ("id" = Uuid, Path, description = "Project Unique ID.")
+    ),
+    security(("fpa-security" = []))
+)]
+pub async fn remove(Path(id): Path<Uuid>, context: Option<Context>, state: State<Arc<AppState>>) -> Result<impl IntoResponse, Error> {
+    println!("==> {:<12} - /remove (id: {:?})", "PROJECTS", id);
+    let ctx = context.unwrap();
+    let db = state.connection(ctx.tenant()).await?;    
+
+    let data: Option<Model> = Projects::find_by_id(id).one(&db).await?;
+    let data = match data {
+        Some(v) => v,
+        None => return Err(Error::NotFound),
+    };
+    match data.delete(&db).await {
+        Ok(v) => {
+            if v.rows_affected != 1 {
+                return Err(Error::MultipleRowsAffected)
+            }
+        }
+        Err(_) => return Err(Error::NotFound),
+    };
+    match db.commit().await {
+        Ok(it) => it,
+        Err(_) => return Err(Error::DatabaseTransaction),
+    };
+
+    Ok(StatusCode::NO_CONTENT)
 }
