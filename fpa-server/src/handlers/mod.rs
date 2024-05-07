@@ -1,10 +1,11 @@
+pub mod projects;
+
 use std::{sync::Arc, time::Duration};
 
 use axum::{
     extract::State, http::StatusCode, middleware, response::IntoResponse, routing::get, Router,
 };
 use sea_orm::{DatabaseConnection, ConnectOptions, Database};
-use utoipa::OpenApi;
 
 use crate::{
     auth,
@@ -13,10 +14,6 @@ use crate::{
     error::Error,
     state::AppState, mapper::response_mapper,
 };
-
-#[derive(OpenApi)]
-#[openapi(paths(health))]
-pub struct ApiDoc;
 
 async fn prepare_connection(config: &Configuration) -> Result<DatabaseConnection, Error> {
     let dburl = format!("{}://{}:{}@{}:{}/{}",
@@ -51,6 +48,13 @@ pub async fn router(config: Configuration) -> Result<Router, Error> {
         "/api",
         Router::new()
             .to_owned()
+            .route("/projects", 
+                get(projects::list)
+                .post(projects::create)
+                .put(projects::update))
+            .route("/projects/:id", 
+                get(projects::by_id)
+                .delete(projects::remove))
             .route("/health", get(health))
             .layer(middleware::map_response(response_mapper))
             .route_layer(middleware::from_fn_with_state(state.clone(), auth::user_register))
@@ -59,35 +63,23 @@ pub async fn router(config: Configuration) -> Result<Router, Error> {
     ))
 }
 
+
+/// Checks system health.
 #[utoipa::path(
+    tag = "Status",
     get,
-    path = "/api/heath",
+    path = "/api/health",
     responses(
-        (status = 204, description = "FPA Management service available."),
-        (status = 503, description = "FPA Management service unavailable.")
-    )
+        (status = NO_CONTENT, description = "FPA Management service available."),
+        (status = UNAUTHORIZED, description = "User not authorized."),
+        (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable."),
+    ),
+    security(("fpa-security" = []))
 )]
-pub async fn health(context: Option<Context>, State(state): State<Arc<AppState>>) -> impl IntoResponse {
+pub async fn health(context: Option<Context>, state: State<Arc<AppState>>) -> impl IntoResponse {
     println!("==> {:<12} - /health", "HANDLER");
     let _ = match state.connection(context.unwrap().tenant()).await {
         Ok(_) => return StatusCode::NO_CONTENT,
         Err(_) => return StatusCode::SERVICE_UNAVAILABLE
     };
 }
-
-// pub async fn tests(context: Context, State(state): State<Arc<AppState>>) -> impl IntoResponse {
-//     println!("==> {:<12} - /tests", "HANDLER");
-//     let db = state.connection(context.tenant())
-//         .await
-//         .ok_or(Error::DatabaseConnection)
-//         .unwrap();
-
-//     let items = match Tests::find()
-//         .all(&db)
-//         .await {
-//         Ok(v) => Json(v),
-//         Err(_) => return Err(Error::NotFound),
-//     };
-
-//     Ok((StatusCode::OK, items))
-// }

@@ -7,7 +7,7 @@ mod tokens;
 
 #[tokio::test]
 async fn health() -> Result<()> {
-    let token = tokens::request_token("user", "fpa-pass", Tenant::TENANT_01).await?;
+    let token = tokens::request_token("user", "fpa-pass", Tenant::TENANT_DEFAULT).await?;
 
     let response = reqwest::Client::new()
         .get("http://localhost:5000/api/health")

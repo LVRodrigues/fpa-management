@@ -1,4 +1,5 @@
 jwks: 
+  - http://localhost:8080/realms/default/protocol/openid-connect/certs
   - http://localhost:8080/realms/tenant-01/protocol/openid-connect/certs
   - http://localhost:8080/realms/tenant-02/protocol/openid-connect/certs
   
@@ -16,4 +17,6 @@ database:
   timeout_idle: 10
   lifetime: 30
 
+scheme: HTTP
+authority: localhost
 port: 5000

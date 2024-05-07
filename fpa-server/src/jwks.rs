@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::{Arc, Mutex, OnceLock}};
 
 use jsonwebtoken::jwk::Jwk;
 use serde::{Deserialize, Serialize};
@@ -33,7 +33,7 @@ struct Keys {
     items: Vec<Key>,
 }
 
-static mut KEYS: Option<HashMap<String, Key>> = None;
+static KEYS: OnceLock<Arc<Mutex<HashMap<String, Key>>>> = OnceLock::new();
 
 async fn request_jwks(tenant: String) -> Result<Keys, Error> {
     let jwks: Keys = reqwest::Client::new()
@@ -49,20 +49,22 @@ async fn request_jwks(tenant: String) -> Result<Keys, Error> {
 pub async fn prepare(config: &Configuration) -> Result<(), Error> {
     println!("==> {:<12} - prepare", "JWKS");
     
-    let keys = unsafe { KEYS.get_or_insert_with(|| HashMap::new()) };
+    let keys = Arc::new(Mutex::new(HashMap::new()));
 
     for jwks in &config.jwks {
         let ks = request_jwks(jwks.clone()).await?;
         for key in ks.items {
-            keys.insert(key.kid.clone(), key);
+            keys.lock().unwrap().insert(key.kid.clone(), key);
         }
     }
+
+    KEYS.set(keys).unwrap();
 
     Ok(())
 }
 
 pub fn key(kid: String) -> Result<Key, Error> {
-    let keys = unsafe { KEYS.get_or_insert_with(|| HashMap::new()) };
+    let keys = KEYS.get().unwrap().lock().unwrap();
 
     let key = keys.get(&kid).cloned();
     let key = match key {
@@ -74,10 +76,5 @@ pub fn key(kid: String) -> Result<Key, Error> {
 }
 
 pub fn is_prepared() -> bool {
-    if unsafe { KEYS.is_none() } {
-        false
-    } else {
-        let keys = unsafe { KEYS.get_or_insert_with(|| HashMap::new()) };
-        ! keys.is_empty()
-    }
+    KEYS.get().is_some()
 }

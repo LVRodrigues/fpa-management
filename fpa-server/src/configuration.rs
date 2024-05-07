@@ -1,5 +1,6 @@
-use std::path::Path;
+use std::{path::Path, str::FromStr};
 
+use axum::http::uri::Scheme;
 use config::{Config, File};
 
 #[derive(Debug, Clone)]
@@ -20,6 +21,8 @@ pub struct ConfigurationDatabase {
 
 #[derive(Debug, Clone)]
 pub struct Configuration {
+    pub scheme: Scheme,
+    pub authority: String,
     pub port: u16,
     pub jwks: Vec<String>,
     pub database: ConfigurationDatabase,
@@ -32,7 +35,10 @@ pub fn prepare() -> Configuration {
         .build()
         .unwrap();
 
+    let scheme: String = settings.get("scheme").unwrap();
     Configuration {
+        scheme: Scheme::from_str(scheme.as_str()).unwrap(),
+        authority: settings.get("authority").unwrap(),
         port: settings.get("port").unwrap(),
         jwks: settings.get("jwks").unwrap(),
         database: ConfigurationDatabase {

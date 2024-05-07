@@ -18,6 +18,8 @@ Project Management using Function Points Analysis.
 ![Static Badge](https://img.shields.io/badge/REST_API-yellow)
 ![Static Badge](https://img.shields.io/badge/Axum-yellow)
 ![Static Badge](https://img.shields.io/badge/Sea_ORM-yellow)
+![Static Badge](https://img.shields.io/badge/OpenAPI-yellow)
+![Static Badge](https://img.shields.io/badge/ReDOC-yellow)
 
 ![Static Badge](https://img.shields.io/badge/angular-17.0-blue?logo=angular) 
 ![Static Badge](https://img.shields.io/badge/SAAS-yellow)

@@ -1,10 +1,12 @@
-use axum::Router;
+use axum::{routing::get_service, Router};
 use tokio::{net::TcpListener, signal};
+use tower_http::services::ServeDir;
+use utoipa_redoc::{Redoc, Servable};
+use utoipa_swagger_ui::SwaggerUi;
 use std::{error::Error, net::SocketAddr};
 use utoipa::OpenApi;
-use utoipa_rapidoc::RapiDoc;
-use utoipa_swagger_ui::SwaggerUi;
 
+mod docs;
 mod configuration;
 mod error;
 mod jwks;
@@ -18,11 +20,12 @@ mod log;
 
 pub async fn start() -> Result<(), Box<dyn Error>> {
     let config = configuration::prepare();
-    //jwks::prepare(config.clone()).await?;
 
     let router = Router::new()
-        .merge(SwaggerUi::new("/doc/swagger").url("/doc/openapi.json", handlers::ApiDoc::openapi()))
-        .merge(RapiDoc::new("/doc/openapi.json").path("/"))
+        .merge(SwaggerUi::new("/doc/swagger").url("/doc/openapi.json", docs::ApiDoc::openapi()))
+        //.merge(RapiDoc::new("/doc/openapi.json").path("/doc/rapidoc"))
+        .merge(Redoc::with_url("/", docs::ApiDoc::openapi()))
+        .nest_service("/assets", get_service(ServeDir::new("./assets")))
         .merge(handlers::router(config.clone()).await.unwrap());
     
     let address = SocketAddr::from(([0, 0, 0, 0], config.port));

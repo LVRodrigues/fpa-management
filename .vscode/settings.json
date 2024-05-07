@@ -1,6 +1,22 @@
 {
     "cmake.configureOnOpen": false,
     "rust-analyzer.linkedProjects": [
+        "./fpa-server/Cargo.toml",
+        "./fpa-server/Cargo.toml",
+        "./fpa-server/Cargo.toml",
         "./fpa-server/Cargo.toml"
+    ],
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5432,
+            "driver": "PostgreSQL",
+            "name": "FPA Admin",
+            "group": "FPA",
+            "database": "fpa-management",
+            "username": "fpa-admin",
+            "password": "fpa-pass"
+        }
     ]
 }

@@ -1,0 +1,167 @@
+use std::borrow::Borrow;
+
+use anyhow::Result;
+use reqwest::StatusCode;
+use sea_orm::prelude::DateTimeWithTimeZone;
+use serde::{de::value, Deserialize, Serialize};
+use uuid::Uuid;
+use crate::tokens::Tenant;
+use serde_json::json;
+
+mod tokens;
+
+const URL: &str = "http://localhost:5000/api/projects";
+
+const USERNAME: &str = "user";
+const PASSWORD: &str = "fpa-pass";
+
+const PROJECT_NAME: &str = "Running-Test";
+
+#[derive(Debug, Deserialize, Serialize)]
+struct Data {
+    project: Uuid,
+    pub name: String,
+    pub time: DateTimeWithTimeZone,
+    pub user: Uuid,    
+}
+
+impl PartialEq for Data {
+    fn eq(&self, other: &Self) -> bool {
+        self.project == other.project && self.name == other.name && self.time == other.time && self.user == other.user
+    }
+}
+
+async fn list(token: &String) -> Result<()> {
+    let response = reqwest::Client::new()
+        .get(URL)
+        .bearer_auth(token)
+        .send()
+        .await?;
+    assert_eq!(response.status(), StatusCode::OK);
+
+    let json = response.json::<serde_json::Value>().await?;
+    assert_eq!(json["pages"], json!(10));
+    assert_eq!(json["index"], json!(1));
+    assert_eq!(json["size"], json!(10));
+    assert_eq!(json["records"], json!(100));    
+    assert!(json["items"].is_array());
+    assert_eq!(json["items"].as_array().unwrap().len(), 10);
+    Ok(())
+}
+
+async fn create(token: &String) -> Result<Data> {
+    let response = reqwest::Client::new()
+        .post(format!("{}?name={}", URL, PROJECT_NAME))
+        .bearer_auth(token)
+        .send()
+        .await?;
+    assert!(response.status() == StatusCode::CREATED);
+    assert!(response.headers().get("location").is_some());
+
+    let data = response.json::<Data>().await?;
+    assert!(!data.project.is_nil());
+    assert_eq!(data.name, PROJECT_NAME);
+    assert!(!data.user.is_nil());
+
+    Ok(data)
+}
+
+async fn find_by_id(token: &String, data: &Data) -> Result<()> { 
+    let response = reqwest::Client::new()
+        .get(format!("{}/{}", URL, data.project))
+        .bearer_auth(token)
+        .send()
+        .await?;
+    assert_eq!(response.status(), StatusCode::OK);
+
+    let other = response.json::<Data>().await?;
+    assert_eq!(*data, other);
+
+    Ok(())
+}
+
+async fn find_by_name(token: &String, data: &Data) -> Result<()> { 
+    let response = reqwest::Client::new()
+        .get(format!("{}?name={}", URL, PROJECT_NAME))
+        .bearer_auth(token)
+        .send()
+        .await?;
+    assert_eq!(response.status(), StatusCode::OK);
+
+    let json = response.json::<serde_json::Value>().await?;
+    assert_eq!(json["pages"], json!(1));
+    assert_eq!(json["index"], json!(1));
+    assert_eq!(json["size"], json!(1));
+    assert_eq!(json["records"], json!(1));
+    assert!(json["items"].is_array());
+    assert_eq!(json["items"].as_array().unwrap().len(), 1);
+
+    let value = &json["items"][0];
+    let other: Data = serde_json::from_value(value.clone()).unwrap();
+    assert_eq!(*data, other);
+
+    Ok(())
+}
+
+async fn update(token: &String, data: &Data) -> Result<Data> {
+    let body = json!({
+        "id": data.project,
+        "name": "Nome Alterado"
+    });
+    let response = reqwest::Client::new()
+        .put(format!("{}?name={}", URL, PROJECT_NAME))
+        .bearer_auth(token)
+        .json(&body)
+        .send()
+        .await?;
+    assert_eq!(response.status(), StatusCode::OK);
+
+    let other = response.json::<Data>().await?;
+    assert_eq!(other.project, data.project);
+    assert_eq!(other.name, body["name"].as_str().unwrap());
+    assert_eq!(other.time, data.time);
+    assert_eq!(other.user, data.user);
+
+    Ok(other)
+}
+
+async fn remove(token: &String, data: &Data) -> Result<()> {
+    let response = reqwest::Client::new()
+        .delete(format!("{}/{}", URL, data.project))
+        .bearer_auth(token)
+        .send()
+        .await?;
+    assert_eq!(response.status(), StatusCode::NO_CONTENT); 
+    Ok(())
+}
+
+async fn not_found(token: &String, data: &Data) -> Result<()> {
+    let response = reqwest::Client::new()
+        .get(format!("{}/{}", URL, data.project))
+        .bearer_auth(token)
+        .send()
+        .await?;
+    assert_eq!(response.status(), StatusCode::NOT_FOUND);    
+    Ok(())
+}
+
+#[tokio::test]
+async fn execute() -> Result<()> {
+    let token = tokens::request_token(USERNAME, PASSWORD, Tenant::TENANT_DEFAULT).await?;
+    assert!(!token.is_empty());
+
+    list(&token).await?;
+
+    let data = create(&token).await?;
+
+    find_by_id(&token, &data).await?;
+    find_by_name(&token, &data).await?;
+
+    let data = update(&token, &data).await?;
+
+    remove(&token, &data).await?;
+
+    not_found(&token, &data).await?;
+
+    Ok(())
+}

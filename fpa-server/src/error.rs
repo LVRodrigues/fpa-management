@@ -3,14 +3,16 @@ use axum::{http::StatusCode, response::{IntoResponse, Response}, Json};
 use chrono::{DateTime, Utc};
 use serde::Serialize;
 use serde_json::json;
+use utoipa::ToSchema;
 use uuid::Uuid;
 
 #[derive(Clone, Debug, Serialize, strum_macros::AsRefStr)]
 pub enum Error {
     Unauthorized,
-    Forbidden,
-    ParamInvalid,
+    // Forbidden,
+    // ParamInvalid,
     NotFound,
+    MultipleRowsAffected,
     KeyNotFound,
     JWKSNotFound,
     TokenInvalid,
@@ -18,6 +20,7 @@ pub enum Error {
     DatabaseConnection,
     DatabaseTransaction,
     RegisterUser,
+    ProjectCreate,
 }
 
 impl core::fmt::Display for Error {
@@ -28,17 +31,24 @@ impl core::fmt::Display for Error {
 
 impl std::error::Error for Error {}
 
+/// Information about the error that occurred.
+#[derive(Serialize, ToSchema)]
+#[schema(as=Error)]
+#[serde(rename = "Error")] 
+pub struct ErrorResponse<'a> {
+    /// Error Unique Identifier
+    id: Uuid,
+    /// Error time.
+    time: DateTime<Utc>,
+    /// Error title.
+    error: &'a str,
+    /// Error message.
+    message: &'a str,
+}
+
 impl IntoResponse for Error {
 	fn into_response(self) -> Response {
 		println!("==> {:<12} - {self:?}", "ERROR");
-
-        #[derive(Serialize)]
-        struct ErrorResponse<'a> {
-            id: Uuid,
-            time: DateTime<Utc>,
-            error: &'a str,
-            message: &'a str,
-        }
 
         let (code, message) = match self {
             Error::TokenInvalid |
@@ -51,29 +61,40 @@ impl IntoResponse for Error {
                         id: Uuid::new_v4(),
                         time: Utc::now(),
                         error: "AUTHENTICATION",
-                        message: "Erro de autenticação."
+                        message: "Authentication error. Request a new Access Token."
                     }
                 )
             }
-            Error::Forbidden => {
-                (
-                    StatusCode::FORBIDDEN,
-                        ErrorResponse {
-                        id: Uuid::new_v4(),
-                        time: Utc::now(),
-                        error: "AUTHORIZATION",
-                        message: "Não autorizado para esta operação."
-                    }
-                )
-            }
+            // Error::Forbidden => {
+            //     (
+            //         StatusCode::FORBIDDEN,
+            //             ErrorResponse {
+            //             id: Uuid::new_v4(),
+            //             time: Utc::now(),
+            //             error: "AUTHORIZATION",
+            //             message: "Não autorizado para esta operação."
+            //         }
+            //     )
+            // }
             Error::NotFound => {
                 (
                     StatusCode::NOT_FOUND,
                     ErrorResponse {
                         id: Uuid::new_v4(),
                         time: Utc::now(),
-                        error: "PARAM_INVALID",
-                        message: "Recurso não localizado com os parâmetros informados."
+                        error: "NOT_FOUND",
+                        message: "Resource not found with the specified parameters."
+                    }
+                )
+            }
+            Error::MultipleRowsAffected => {
+                (
+                    StatusCode::CONFLICT,
+                    ErrorResponse {
+                        id: Uuid::new_v4(),
+                        time: Utc::now(),
+                        error: "DATABASE_ERROR",
+                        message: "Database in inconsistent state."
                     }
                 )
             }
@@ -86,7 +107,7 @@ impl IntoResponse for Error {
                         id: Uuid::new_v4(),
                         time: Utc::now(),
                         error: "SERVICE_ERROR",
-                        message: "Serviço temporariamente indisponível."
+                        message: "Service temporarily unavailable."
                     }
                 )
             }
@@ -96,13 +117,12 @@ impl IntoResponse for Error {
                         id: Uuid::new_v4(),
                         time: Utc::now(),
                         error: "SERVICE_ERROR",
-                        message: "Erro interno do serviço."
+                        message: "Internal service error."
                     }
                 )
         };
 
-        println!("--->>> error: \n{}", json!(message));
-        println!();
+        println!("--->>> error: {}", json!(message));
         (code, Json(json!(message))).into_response()
 	}
 }
@@ -118,5 +138,12 @@ impl From<jsonwebtoken::errors::Error> for Error {
     fn from(value: jsonwebtoken::errors::Error) -> Self {
         println!("==> {:<12} - {value:?}", "ERROR");
         Error::TokenInvalid
+    }
+}
+
+impl From<sea_orm::DbErr> for Error {
+    fn from(value: sea_orm::DbErr) -> Self {
+        println!("==> {:<12} - {value:?}", "ERROR");
+        Error::DatabaseTransaction
     }
 }
