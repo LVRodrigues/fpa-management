@@ -1,0 +1,22 @@
+jwks: 
+  - http://localhost:8080/realms/default/protocol/openid-connect/certs
+  - http://localhost:8080/realms/tenant-01/protocol/openid-connect/certs
+  - http://localhost:8080/realms/tenant-02/protocol/openid-connect/certs
+  
+database:
+  engine: postgres
+  server: localhost
+  port: 5432
+  username: fpa-user
+  password: fpa-pass
+  name: fpa-management
+  connections_max: 100
+  connections_min: 5
+  timeout_connect: 10
+  timeout_acquire: 10
+  timeout_idle: 10
+  lifetime: 30
+
+scheme: HTTP
+authority: localhost
+port: 5000
