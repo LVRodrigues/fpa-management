@@ -15,6 +15,7 @@ pub struct Model {
     pub major: i32,
     pub minor: i32,
     pub build: i32,
+    #[schema(value_type = String, format = DateTime)]
     pub time: DateTimeWithTimeZone,
 }
 
