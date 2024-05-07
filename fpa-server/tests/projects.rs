@@ -1,14 +1,12 @@
-use std::borrow::Borrow;
+mod shared;
 
 use anyhow::Result;
 use reqwest::StatusCode;
 use sea_orm::prelude::DateTimeWithTimeZone;
-use serde::{de::value, Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use crate::tokens::Tenant;
+use crate::shared::tokens::{self, Tenant};
 use serde_json::json;
-
-mod tokens;
 
 const URL: &str = "http://localhost:5000/api/projects";
 
