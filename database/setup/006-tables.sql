@@ -8,7 +8,7 @@
 
 CREATE TABLE versions (
     version id,
-    name    description NOT NULL,
+    name    description,
     major   INTEGER     NOT NULL DEFAULT 0,
     minor   INTEGER     NOT NULL DEFAULT 0,
     build   INTEGER     NOT NULL DEFAULT 0,
@@ -39,7 +39,7 @@ COMMENT ON INDEX uq_versions IS 'Unique index to register a Version, consisting 
 
 CREATE TABLE tenants_status (
     status      INTEGER     NOT NULL,
-    description description NOT NULL
+    description description
 );
 
 COMMENT ON TABLE tenants_status                 IS 'Tenant status in the system.';
@@ -54,7 +54,7 @@ COMMENT ON INDEX pk_tentants_status IS 'Primary key of the Tenant status.';
 
 CREATE TABLE tenants_tier (
     tier        INTEGER     NOT NULL,
-    description description NOT NULL
+    description description
 );
 
 COMMENT ON TABLE tenants_tier               IS 'Tenant access level on the system.';
@@ -69,7 +69,7 @@ COMMENT ON INDEX pk_tenants_tier IS 'Primary key of the Tenant access level.';
 
 CREATE TABLE tenants (
     tenant  id,
-    name    description NOT NULL,
+    name    description,
     time    datetime    NOT NULL,
     status  INTEGER     NOT NULL,
     tier    INTEGER     NOT NULL
@@ -113,8 +113,8 @@ COMMENT ON INDEX uq_tenants_tenant_name IS 'Exclusive name of Project in a Tenan
 CREATE TABLE users (
     "user"      id,
     tenant      id,
-    name        description NOT NULL,
-    email       description NOT NULL,
+    name        description,
+    email       description,
     time        datetime    NOT NULL
 );
 
@@ -144,16 +144,18 @@ CREATE TABLE projects (
     project     id,
     tenant      id,
     name        description,
+    description description_long,
     time        datetime,
     "user"      id
 );
 
-COMMENT ON TABLE projects           IS 'Project information.';
-COMMENT ON COLUMN projects.project  IS 'Unique Project identificatier.';
-COMMENT ON COLUMN projects.tenant   IS 'Tenant owner of the Project.';
-COMMENT ON COLUMN projects.name     IS 'Name of the Project.';
-COMMENT ON COLUMN projects.time     IS 'Project registration time.';
-COMMENT ON COLUMN projects.user     IS 'User responsible for the Project.';
+COMMENT ON TABLE projects               IS 'Project information.';
+COMMENT ON COLUMN projects.project      IS 'Unique Project identificatier.';
+COMMENT ON COLUMN projects.tenant       IS 'Tenant owner of the Project.';
+COMMENT ON COLUMN projects.name         IS 'Name of the Project.';
+COMMENT ON COLUMN projects.description  IS 'Description of the Project.';
+COMMENT ON COLUMN projects.time         IS 'Project registration time.';
+COMMENT ON COLUMN projects.user         IS 'User responsible for the Project.';
 
 ALTER TABLE projects ADD
     CONSTRAINT pk_projects

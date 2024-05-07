@@ -14,6 +14,7 @@ pub struct Model {
     #[serde(skip)]
     pub tenant: Uuid,
     pub name: String,
+    pub description: Option<String>,
     #[schema(value_type = String, format = DateTime)]
     pub time: DateTimeWithTimeZone,
     pub user: Uuid,

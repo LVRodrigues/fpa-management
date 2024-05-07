@@ -28,6 +28,7 @@ use utoipa::{openapi::{security::{Flow, OAuth2, Password, Scopes, SecurityScheme
             crate::model::versions::Model,
             crate::model::page::Versions,
             crate::error::ErrorResponse,
+            crate::handlers::projects::ProjectCreateParam,
             crate::handlers::projects::ProjectUpdateParam,
         ),
     ),

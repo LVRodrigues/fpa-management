@@ -14,13 +14,15 @@ const USERNAME: &str = "user";
 const PASSWORD: &str = "fpa-pass";
 
 const PROJECT_NAME: &str = "Running-Test";
+const PROJECT_DESCRIPTION: &str = "Long project description for test";
 
 #[derive(Debug, Deserialize, Serialize)]
 struct Data {
     project: Uuid,
-    pub name: String,
-    pub time: DateTimeWithTimeZone,
-    pub user: Uuid,    
+    name: String,
+    description: Option<String>,
+    time: DateTimeWithTimeZone,
+    user: Uuid,    
 }
 
 impl PartialEq for Data {
@@ -48,9 +50,14 @@ async fn list(token: &String) -> Result<()> {
 }
 
 async fn create(token: &String) -> Result<Data> {
+    let body = json!({
+        "name": PROJECT_NAME,
+        "description": PROJECT_DESCRIPTION,
+    });
     let response = reqwest::Client::new()
-        .post(format!("{}?name={}", URL, PROJECT_NAME))
+        .post(URL)
         .bearer_auth(token)
+        .json(&body)
         .send()
         .await?;
     assert!(response.status() == StatusCode::CREATED);
@@ -59,6 +66,7 @@ async fn create(token: &String) -> Result<Data> {
     let data = response.json::<Data>().await?;
     assert!(!data.project.is_nil());
     assert_eq!(data.name, PROJECT_NAME);
+    assert_eq!(data.description, Some(String::from(PROJECT_DESCRIPTION)));
     assert!(!data.user.is_nil());
 
     Ok(data)
@@ -104,7 +112,8 @@ async fn find_by_name(token: &String, data: &Data) -> Result<()> {
 async fn update(token: &String, data: &Data) -> Result<Data> {
     let body = json!({
         "id": data.project,
-        "name": "Nome Alterado"
+        "name": "Nome Alterado",
+        "description": "Descrição alterada...",
     });
     let response = reqwest::Client::new()
         .put(format!("{}?name={}", URL, PROJECT_NAME))
@@ -117,6 +126,7 @@ async fn update(token: &String, data: &Data) -> Result<Data> {
     let other = response.json::<Data>().await?;
     assert_eq!(other.project, data.project);
     assert_eq!(other.name, body["name"].as_str().unwrap());
+    assert_eq!(other.description.clone().unwrap().as_str(), body["description"].as_str().unwrap());
     assert_eq!(other.time, data.time);
     assert_eq!(other.user, data.user);
 

@@ -48,6 +48,7 @@ erDiagram
         project     id
         tenant      id
         name        description
+        description description
         time        datetime
         user        id
     }

@@ -12,8 +12,8 @@ DECLARE
 	i INTEGER;
 BEGIN
 	FOR i IN 1..100 LOOP
-		INSERT INTO projects (project, tenant, "user", name, time)
-		VALUES (uuid_generate_v4(), uuid_nil(), uuid_nil(), 'Project ' || TO_CHAR(i, 'fm000'), CURRENT_TIMESTAMP);
+		INSERT INTO projects (project, tenant, "user", name, description, time)
+		VALUES (uuid_generate_v4(), uuid_nil(), uuid_nil(), 'Project ' || TO_CHAR(i, 'fm000'), 'Long description for the Project ' || TO_CHAR(i, 'fm000'), CURRENT_TIMESTAMP);
 	END LOOP;
 END;
 $$ LANGUAGE 'plpgsql';
