@@ -2,7 +2,6 @@ use std::sync::{Arc, Mutex, OnceLock};
 
 use anyhow::Result;
 use reqwest::StatusCode;
-use serial_test::serial;
 use uuid::Uuid;
 use crate::tokens::Tenant;
 use serde_json::json;
@@ -12,22 +11,17 @@ mod tokens;
 const PROJECT_NAME: &str = "Running-Test";
 
 #[derive(Debug)]
-struct DataTest {
-    created: Option<Uuid>,
+struct Data {
+    project: Option<Uuid>,
 }
-impl DataTest {
+impl Data {
     fn new() -> Self {
-        Self { created: None }
+        Self { project: None }
     }
 }
-static TEST: OnceLock<Arc<Mutex<DataTest>>> = OnceLock::new();
+static TEST: OnceLock<Arc<Mutex<Data>>> = OnceLock::new();
 
-#[tokio::test]
-#[serial]
-async fn list() -> Result<()> {
-    let token = tokens::request_token("user", "fpa-pass", Tenant::TENANT_DEFAULT).await?;
-    assert!(!token.is_empty());
-
+async fn list(token: &String) -> Result<()> {
     let response = reqwest::Client::new()
         .get("http://localhost:5000/api/projects")
         .bearer_auth(token)
@@ -42,17 +36,11 @@ async fn list() -> Result<()> {
     assert_eq!(*json.get("records").unwrap(), json!(100));
     assert!(json.get("items").unwrap().is_array());
     assert_eq!(json.get("items").unwrap().as_array().unwrap().len(), 10);
-
     Ok(())
 }
 
-#[tokio::test]
-#[serial]
-async fn create() -> Result<()> {
-    let token = tokens::request_token("user", "fpa-pass", Tenant::TENANT_DEFAULT).await?;
-    assert!(!token.is_empty());
-
-    let data = Arc::new(Mutex::new(DataTest::new()));
+async fn create(token: &String) -> Result<()> {
+    let data = Arc::new(Mutex::new(Data::new()));
 
     let response = reqwest::Client::new()
         .post(format!("http://localhost:5000/api/projects?name={}", PROJECT_NAME))
@@ -68,35 +56,44 @@ async fn create() -> Result<()> {
     assert!(json.get("time").is_some());
     assert!(json.get("user").is_some());
 
-    data.lock().unwrap().created = Some(Uuid::parse_str(json["project"].as_str().unwrap())?);
+    data.lock().unwrap().project = Some(Uuid::parse_str(json["project"].as_str().unwrap())?);
     TEST.set(data).unwrap();
+    assert!(TEST.get().unwrap().lock().unwrap().project.is_some());
 
     Ok(())
 }
 
-#[tokio::test]
-#[serial]
-async fn find_by_id() -> Result<()> {
+async fn find_by_id(token: &String) -> Result<()> { 
     let data = match TEST.get() {
         Some(v) => v,
         None => panic!("Run create() test first.")
     };
     let data = data.lock().unwrap();
-    assert!(data.created.is_some());
-
-    let token = tokens::request_token("user", "fpa-pass", Tenant::TENANT_DEFAULT).await?;
-    assert!(!token.is_empty());
+    assert!(data.project.is_some());
 
     let response = reqwest::Client::new()
-        .get(format!("http://localhost:5000/api/projects/{}", data.created.unwrap()))
-        .bearer_auth(token)
-        .send()
-        .await?;
+    .get(format!("http://localhost:5000/api/projects/{}", data.project.unwrap()))
+    .bearer_auth(token)
+    .send()
+    .await?;
     assert_eq!(response.status(), StatusCode::OK);
 
     let json = response.json::<serde_json::Value>().await?;
-    assert_eq!(json["project"].as_str().unwrap(), data.created.unwrap().to_string().as_str());
+    assert_eq!(json["project"].as_str().unwrap(), data.project.unwrap().to_string().as_str());
     assert_eq!(json["name"].as_str().unwrap(), PROJECT_NAME);
+
+    Ok(())
+}
+
+
+#[tokio::test]
+async fn execute() -> Result<()> {
+    let token = tokens::request_token("user", "fpa-pass", Tenant::TENANT_DEFAULT).await?;
+    assert!(!token.is_empty());
+
+    list(&token).await?;
+    create(&token).await?;
+    find_by_id(&token).await?;
 
     Ok(())
 }
