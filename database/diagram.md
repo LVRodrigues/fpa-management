@@ -5,7 +5,6 @@ erDiagram
     tenants_status  ||--o{ tenants: fk_tenants_status
     tenants_tier    ||--o{ tenants: fk_tenants_tier
     tenants         ||--o{ users: fk_users_tenant
-
     tenants         ||--o{ projects: fk_projects_tenant
     tenants         ||--o{ projects_factors: fk_projects_factor_tenant
     tenants         ||--o{ projects_empiricals: fk_projects_empiricals_tenant
@@ -31,17 +30,17 @@ erDiagram
     functions_types ||--o{ functions: fk_functions_type
         
     tenants_status {
-        status      integer
+        status      integer     PK
         description description
     }
 
     tenants_tier {
-        tier        int
+        tier        integer     PK
         description description
     }
 
     tenants {
-        tenant      id
+        tenant      id          PK
         name        description
         time        datetime
         status      integer
@@ -49,7 +48,7 @@ erDiagram
     }
 
     users {
-        user        id
+        user        id          PK
         tenant      id
         name        description
         time        datetime
@@ -57,7 +56,7 @@ erDiagram
     }
 
     versions {
-        version     id
+        version     id          PK
         name        description
         major       integer
         minor       integer
@@ -66,45 +65,46 @@ erDiagram
     }
 
     influences {
-        influence   int
+        influence   integer     PK
         description description        
     }    
 
     factors {
-        factor      int
+        factor      integer     PK
         description description
     }
 
     empiricals {
-        empirical   int
+        empirical   integer     PK
         description description
     } 
 
     projects {
-        project     id
+        project     id          PK
         tenant      id
         name        description
         description description_long
         time        datetime
         user        id
-        version     int
+        version     integer
     }
 
     projects_factors {
-        project     id
-        factor      int
+        project     id          PK
+        factor      integer     PK
         tenant      id
-        influence   int
+        influence   integer
     }
 
     projects_empiricals {
-        project     id
-        empirical   int
+        project     id          PK
+        empirical   integer     PK
         tenant      id
+        value       integer
     }
 
     modules {
-        module      id
+        module      id          PK
         name        description
         description description_long
         project     id
@@ -112,21 +112,21 @@ erDiagram
     }
 
     functions_types {
-        type        int
+        type        integer     PK
         description description
     }
 
     functions {
-        function    id
+        function    id          PK
         name        description
         description description_long
-        type        int
+        type        integer
         module      id
         tenant      id
     }
 
     ders {
-        der         id
+        der         id          PK
         name        description
         description description_long
         function    id
@@ -134,7 +134,7 @@ erDiagram
     }
 
     rlrs {
-        rlr         id
+        rlr         id          PK
         name        description
         description description_long
         function    id
