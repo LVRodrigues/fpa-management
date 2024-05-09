@@ -129,7 +129,7 @@ ALTER TABLE users ADD
     CONSTRAINT pk_users
     PRIMARY KEY ("user");
 
-COMMENT ON index pk_users IS 'Primary key of the Users.';
+COMMENT ON INDEX pk_users IS 'Primary key of the Users.';
 
 ALTER TABLE users ADD
     CONSTRAINT fk_users_tenant
@@ -139,6 +139,40 @@ ALTER TABLE users ADD
 CREATE INDEX ix_users_tenant ON users (tenant);
 
 COMMENT ON INDEX ix_users_tenant IS 'Index to management access on tenant scope.';
+
+--==============================================================================
+-- Projetos de Análise por Pontos de Função (Multi Tenant)
+--==============================================================================
+
+CREATE TABLE influences (
+    influence   INTEGER     NOT NULL,
+    description description
+);
+
+COMMENT ON TABLE influences                 IS 'Influence value of the factor on the project.';
+COMMENT ON COLUMN influences.influence      IS 'Unique Influence identifier.';
+COMMENT ON COLUMN influences.description    IS 'Description of the Influence.';
+
+ALTER TABLE influences ADD 
+    CONSTRAINT pk_influences
+    PRIMARY KEY (influence);
+
+COMMENT ON INDEX pk_influences IS 'Primary key of the Influences.';
+
+CREATE TABLE factors (
+    factor      INTEGER     NOT NULL,
+    description description
+);
+
+COMMENT ON TABLE factors                IS 'Set of possible Factor`s Types.';
+COMMENT ON COLUMN factors.factor        IS 'Factor`s Type.';
+COMMENT ON COLUMN factors.description   IS 'Description for the Factor`s Type.';
+
+ALTER TABLE factors ADD
+    CONSTRAINT pk_factors
+    PRIMARY KEY (factor);
+
+COMMENT ON INDEX pk_factors IS 'Primary key for the Factors`s Types.';
 
 CREATE TABLE projects (
     project     id,
@@ -161,6 +195,8 @@ ALTER TABLE projects ADD
     CONSTRAINT pk_projects
     PRIMARY KEY (project);
 
+COMMENT ON INDEX pk_projects IS 'Primary key for the Project.';
+
 ALTER TABLE projects ADD
     CONSTRAINT fk_projects_tenant
     FOREIGN KEY (tenant)
@@ -182,3 +218,58 @@ COMMENT ON INDEX ix_projects_user IS 'Reference index for Users.';
 CREATE UNIQUE INDEX uq_projects_tenant_name ON projects(tenant, name);
 
 COMMENT ON INDEX uq_projects_tenant_name IS 'Unique Project Name on a Tenant.';
+
+CREATE TABLE projects_factors (
+    project     id,
+    factor      INTEGER NOT NULL,
+    tenant      id,
+    influence   INTEGER NOT NULL
+);
+
+COMMENT ON TABLE projects_factors               IS 'Adjusts Factors for the Project.';
+COMMENT ON COLUMN projects_factors.project      IS 'Project identifier.';
+COMMENT ON COLUMN projects_factors.factor       IS 'Fator`s Type for the Project.';
+COMMENT ON COLUMN projects_factors.tenant       IS 'Tenant owner of the Project.';
+COMMENT ON COLUMN projects_factors.influence    IS 'Influence value for the factor on this project.';
+
+ALTER TABLE projects_factors ADD
+    CONSTRAINT pk_projects_factors
+    PRIMARY KEY (project, factor);
+
+COMMENT ON INDEX pk_projects_factors IS 'Primary key for the Factor`s Types on a Project.';
+
+ALTER TABLE projects_factors ADD
+    CONSTRAINT fk_projects_factors_project
+    FOREIGN KEY (project)
+    REFERENCES projects (project);
+
+CREATE INDEX ix_projects_factors_project ON projects_factors (project);
+
+COMMENT ON INDEX ix_projects_factors_project IS 'Index to relate to Project.';
+
+ALTER TABLE projects_factors ADD
+    CONSTRAINT fk_projects_factors_factor
+    FOREIGN KEY (factor)
+    REFERENCES factors (factor);
+
+CREATE INDEX ix_projects_factors_factor ON projects_factors (factor);
+
+COMMENT ON INDEX ix_projects_factors_factor IS 'Index to relate to Fator`s Types.';
+
+ALTER TABLE projects_factors ADD
+    CONSTRAINT fk_projects_factors_tenant
+    FOREIGN KEY (tenant)
+    REFERENCES tenants (tenant);
+
+CREATE INDEX ix_projects_factors_tenant ON projects_factors (tenant);
+
+COMMENT ON INDEX ix_projects_factors_tenant IS 'Index to management access on tenant scope.';
+
+ALTER TABLE projects_factors ADD
+    CONSTRAINT fk_projects_factors_influence
+    FOREIGN KEY (influence)
+    REFERENCES influences (influence);
+
+CREATE INDEX ix_projects_factors_influence ON projects_factors (influence);
+
+COMMENT ON INDEX ix_projects_factors_influence IS 'Influence value for the Factor`s Type on this Project.';
