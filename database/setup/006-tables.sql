@@ -8,7 +8,7 @@
 
 CREATE TABLE versions (
     version id,
-    name    description,
+    name    brief,
     major   INTEGER     NOT NULL DEFAULT 0,
     minor   INTEGER     NOT NULL DEFAULT 0,
     build   INTEGER     NOT NULL DEFAULT 0,
@@ -39,7 +39,7 @@ COMMENT ON INDEX uq_versions IS 'Unique index to register a Version, consisting 
 
 CREATE TABLE tenants_status (
     status      INTEGER     NOT NULL,
-    description description
+    description brief
 );
 
 COMMENT ON TABLE tenants_status                 IS 'Tenant status in the system.';
@@ -54,7 +54,7 @@ COMMENT ON INDEX pk_tentants_status IS 'Primary key of the Tenant status.';
 
 CREATE TABLE tenants_tier (
     tier        INTEGER     NOT NULL,
-    description description
+    description brief
 );
 
 COMMENT ON TABLE tenants_tier               IS 'Tenant access level on the system.';
@@ -69,7 +69,7 @@ COMMENT ON INDEX pk_tenants_tier IS 'Primary key of the Tenant access level.';
 
 CREATE TABLE tenants (
     tenant  id,
-    name    description,
+    name    brief,
     time    datetime    NOT NULL,
     status  INTEGER     NOT NULL,
     tier    INTEGER     NOT NULL
@@ -113,8 +113,8 @@ COMMENT ON INDEX uq_tenants_tenant_name IS 'Exclusive name of Project in a Tenan
 CREATE TABLE users (
     "user"      id,
     tenant      id,
-    name        description,
-    email       description,
+    name        brief,
+    email       brief,
     time        datetime    NOT NULL
 );
 
@@ -146,7 +146,7 @@ COMMENT ON INDEX ix_users_tenant IS 'Index to management access on tenant scope.
 
 CREATE TABLE influences (
     influence   INTEGER     NOT NULL,
-    description description
+    description brief
 );
 
 COMMENT ON TABLE influences                 IS 'Influence value of the factor on the project.';
@@ -161,7 +161,7 @@ COMMENT ON INDEX pk_influences IS 'Primary key of the Influences.';
 
 CREATE TABLE factors (
     factor      INTEGER     NOT NULL,
-    description description
+    description brief
 );
 
 COMMENT ON TABLE factors                IS 'Set of possible Factor`s Types.';
@@ -176,7 +176,7 @@ COMMENT ON INDEX pk_factors IS 'Primary key for the Factors`s Types.';
 
 CREATE TABLE empiricals (
     empirical   INTEGER     NOT NULL,
-    description description
+    description brief
 );
 
 COMMENT ON TABLE empiricals                 IS 'Set of possible Empirical`s Factors.';
@@ -192,8 +192,8 @@ COMMENT ON INDEX pk_empiricals IS 'Primary key for the Empirical`s Factors.';
 CREATE TABLE projects (
     project     id,
     tenant      id,
-    name        description,
-    description description_long,
+    name        brief,
+    description description,
     time        datetime,
     "user"      id
 );
@@ -334,3 +334,18 @@ ALTER TABLE projects_empiricals ADD
 CREATE INDEX ix_projects_empiricals_tenant ON projects_empiricals (tenant);
 
 COMMENT ON INDEX ix_projects_factors_tenant IS 'Index to management access on tenant scope.';
+
+CREATE TABLE modules (
+    module      id,
+    project     id,
+    tenant      id,
+    name        brief,
+    description description
+);
+
+COMMENT ON TABLE modules                IS 'Module for group Functions on a Project.';
+COMMENT ON COLUMN modules.module        IS 'Unique identifier for Module.';
+COMMENT ON COLUMN modules.project       IS 'Project Identifier.';
+COMMENT ON COLUMN modules.tenant        IS 'Tenant owner of the Project.';
+COMMENT ON COLUMN modules.name          IS 'Module`s Name.';
+COMMENT ON COLUMN modules.description   IS 'Module`s Description';
