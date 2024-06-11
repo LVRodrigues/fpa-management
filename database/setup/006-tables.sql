@@ -346,6 +346,190 @@ CREATE TABLE modules (
 COMMENT ON TABLE modules                IS 'Module for group Functions on a Project.';
 COMMENT ON COLUMN modules.module        IS 'Unique identifier for Module.';
 COMMENT ON COLUMN modules.project       IS 'Project Identifier.';
-COMMENT ON COLUMN modules.tenant        IS 'Tenant owner of the Project.';
+COMMENT ON COLUMN modules.tenant        IS 'Tenant owner of the Module.';
 COMMENT ON COLUMN modules.name          IS 'Module`s Name.';
 COMMENT ON COLUMN modules.description   IS 'Module`s Description';
+
+ALTER TABLE modules ADD 
+    CONSTRAINT pk_modules
+    PRIMARY KEY (module);
+
+COMMENT ON INDEX pk_modules IS 'Primary key for Modules.';
+
+ALTER TABLE modules ADD
+    CONSTRAINT fk_modules_project
+    FOREIGN KEY (project)
+    REFERENCES projects (project);
+
+CREATE INDEX ix_modules_project ON modules (project);
+
+COMMENT ON INDEX ix_modules_project IS 'Index to relate Modules and Projects.';
+
+ALTER TABLE modules ADD
+    CONSTRAINT fk_modules_tenant
+    FOREIGN KEY (tenant)
+    REFERENCES tenants (tenant);
+
+CREATE INDEX ix_modules_tenant ON modules (tenant);
+
+COMMENT ON INDEX ix_modules_tenant IS 'Index to management access on tenant scope.';
+
+CREATE TABLE functions_types (
+    type        INTEGER  NOT NULL,
+    description brief
+);
+
+COMMENT ON TABLE functions_types                IS 'Set of possible Functions`s Types.';
+COMMENT ON COLUMN functions_types.type          IS 'Type of the Function.';
+COMMENT ON COLUMN functions_types.description   IS 'Description for the Function`s type.';
+
+ALTER TABLE functions_types ADD
+    CONSTRAINT pk_functions_types 
+    PRIMARY KEY (type);
+
+COMMENT ON INDEX pk_functions_types IS 'Primary key for Functions`s Types.';
+
+CREATE TABLE functions (
+    function    id,
+    module      id,
+    tenant      id,
+    type        INTEGER NOT NULL,
+    name        brief,
+    description description
+
+);
+
+COMMENT ON TABLE functions              IS 'Set of Functions for the Module.';
+COMMENT ON COLUMN functions.function    IS 'Unique identifier for Function.';
+COMMENT ON COLUMN functions.module      IS 'Identifier of the module that owns the function.';
+COMMENT ON COLUMN functions.tenant      IS 'Tenant owner of the Function';
+COMMENT ON COLUMN functions.type        IS 'Functions`s type.';
+COMMENT ON COLUMN functions.name        IS 'Name of the Function.';
+COMMENT ON COLUMN functions.description IS 'Description for the Function.';
+
+ALTER TABLE functions ADD 
+    CONSTRAINT pk_functions
+    PRIMARY KEY (function);
+
+COMMENT ON INDEX pk_functions IS 'Primary key for Functions.';
+
+ALTER TABLE functions ADD
+    CONSTRAINT fk_functions_module
+    FOREIGN KEY (module)
+    REFERENCES modules (module);
+
+CREATE INDEX ix_functions_module ON functions (module);
+
+COMMENT ON INDEX ix_functions_module IS 'Reference index to the function`s owning module.';
+
+ALTER TABLE functions ADD
+    CONSTRAINT fk_functions_tenant
+    FOREIGN KEY (tenant)
+    REFERENCES tenants (tenant);
+
+CREATE INDEX ix_functions_tenant ON functions (tenant);
+
+COMMENT ON INDEX ix_functions_tenant IS 'Index to management access on tenant scope.';
+
+ALTER TABLE functions ADD
+    CONSTRAINT fk_functions_type
+    FOREIGN KEY (type)
+    REFERENCES functions_types (type);
+
+CREATE INDEX ix_functions_type ON functions (type);
+
+COMMENT ON INDEX ix_functions_type IS 'Reference index to the functions`s type.';
+
+CREATE TABLE functions_datas () INHERITS (functions);
+
+COMMENT ON TABLE functions_datas                IS 'Set of Functions of type Data (ALI, AIE) for the Module.';
+COMMENT ON COLUMN functions_datas.function      IS 'Unique identifier for Function.';
+COMMENT ON COLUMN functions_datas.module        IS 'Identifier of the module that owns the function.';
+COMMENT ON COLUMN functions_datas.tenant        IS 'Tenant owner of the Function';
+COMMENT ON COLUMN functions_datas.type          IS 'Functions`s type.';
+COMMENT ON COLUMN functions_datas.name          IS 'Name of the Function.';
+COMMENT ON COLUMN functions_datas.description   IS 'Description for the Function.';
+
+ALTER TABLE functions_datas ADD 
+    CONSTRAINT pk_functions_datas
+    PRIMARY KEY (function);
+
+COMMENT ON INDEX pk_functions_datas IS 'Primary key for Functions of type Data.';
+
+ALTER TABLE functions_datas ADD
+    CONSTRAINT fk_functions_datas_module
+    FOREIGN KEY (module)
+    REFERENCES modules (module);
+
+CREATE INDEX ix_functions_datas_module ON functions (module);
+
+COMMENT ON INDEX ix_functions_datas_module IS 'Reference index to the function`s owning module.';
+
+ALTER TABLE functions_datas ADD
+    CONSTRAINT fk_functions_datas_tenant
+    FOREIGN KEY (tenant)
+    REFERENCES tenants (tenant);
+
+CREATE INDEX ix_functions_datas_tenant ON functions (tenant);
+
+COMMENT ON INDEX ix_functions_datas_tenant IS 'Index to management access on tenant scope.';
+
+ALTER TABLE functions_datas ADD
+    CONSTRAINT fk_functions_datas_type
+    FOREIGN KEY (type)
+    REFERENCES functions_types (type);
+
+CREATE INDEX ix_functions_datas_type ON functions (type);
+
+COMMENT ON INDEX ix_functions_datas_type IS 'Reference index to the functions`s type.';
+
+ALTER TABLE functions_datas ADD 
+    CONSTRAINT check_functions_datas_type
+    CHECK (type IN (1, 2));
+
+CREATE TABLE functions_transactions () INHERITS (functions);
+
+COMMENT ON TABLE functions_transactions                 IS 'Set of Functions of type Transaction (EE, CE, SE) for the Module.';
+COMMENT ON COLUMN functions_transactions.function       IS 'Unique identifier for Function.';
+COMMENT ON COLUMN functions_transactions.module         IS 'Identifier of the module that owns the function.';
+COMMENT ON COLUMN functions_transactions.tenant         IS 'Tenant owner of the Function';
+COMMENT ON COLUMN functions_transactions.type           IS 'Functions`s type.';
+COMMENT ON COLUMN functions_transactions.name           IS 'Name of the Function.';
+COMMENT ON COLUMN functions_transactions.description    IS 'Description for the Function.';
+
+ALTER TABLE functions_transactions ADD 
+    CONSTRAINT pk_functions_transactions
+    PRIMARY KEY (function);
+
+COMMENT ON INDEX pk_functions_transactions IS 'Primary key for Functions of type Transaction.';
+
+ALTER TABLE functions_transactions ADD
+    CONSTRAINT fk_functions_transactions_module
+    FOREIGN KEY (module)
+    REFERENCES modules (module);
+
+CREATE INDEX ix_functions_transactions_module ON functions (module);
+
+COMMENT ON INDEX ix_functions_transactions_module IS 'Reference index to the function`s owning module.';
+
+ALTER TABLE functions_transactions ADD
+    CONSTRAINT fk_functions_transactions_tenant
+    FOREIGN KEY (tenant)
+    REFERENCES tenants (tenant);
+
+CREATE INDEX ix_functions_transactions_tenant ON functions (tenant);
+
+COMMENT ON INDEX ix_functions_transactions_tenant IS 'Index to management access on tenant scope.';
+
+ALTER TABLE functions_transactions ADD
+    CONSTRAINT fk_functions_transactions_type
+    FOREIGN KEY (type)
+    REFERENCES functions_types (type);
+
+CREATE INDEX ix_functions_transactions_type ON functions (type);
+
+COMMENT ON INDEX ix_functions_transactions_type IS 'Reference index to the functions`s type.';
+
+ALTER TABLE functions_transactions ADD 
+    CONSTRAINT check_functions_transactions_type
+    CHECK (type IN (3, 4, 5));
