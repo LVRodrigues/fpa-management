@@ -25,6 +25,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE    ON modules                  TO "fpa-acce
 GRANT SELECT                            ON functions                TO "fpa-access";
 GRANT SELECT, INSERT, UPDATE, DELETE    ON functions_datas          TO "fpa-access";
 GRANT SELECT, INSERT, UPDATE, DELETE    ON functions_transactions   TO "fpa-access";
+GRANT SELECT, INSERT, UPDATE, DELETE    ON alrs                     TO "fpa-access";
 
 --==============================================================================
 -- Policies (Multi-Tenant)
@@ -65,3 +66,7 @@ USING (tenant = current_setting('app.current_tenant')::UUID);
 ALTER TABLE functions_transactions ENABLE ROW LEVEL SECURITY;
 CREATE POLICY functions_transactions_policy ON functions_transactions
 USING (tenant = current_setting('app.current_tenant')::UUID);
+
+ALTER TABLE alrs ENABLE ROW LEVEL SECURITY;
+CREATE POLICY alrs_policy ON alrs
+USING (tenant = current_setting('/app.current_tenant')::UUID);

@@ -399,7 +399,7 @@ CREATE TABLE functions (
 
 );
 
-COMMENT ON TABLE functions              IS 'Set of Functions for the Module.';
+COMMENT ON TABLE functions              IS 'Set of All Functions for the Module.';
 COMMENT ON COLUMN functions.function    IS 'Unique identifier for Function.';
 COMMENT ON COLUMN functions.module      IS 'Identifier of the module that owns the function.';
 COMMENT ON COLUMN functions.tenant      IS 'Tenant owner of the Function';
@@ -446,7 +446,7 @@ COMMENT ON TABLE functions_datas                IS 'Set of Functions of type Dat
 COMMENT ON COLUMN functions_datas.function      IS 'Unique identifier for Function.';
 COMMENT ON COLUMN functions_datas.module        IS 'Identifier of the module that owns the function.';
 COMMENT ON COLUMN functions_datas.tenant        IS 'Tenant owner of the Function';
-COMMENT ON COLUMN functions_datas.type          IS 'Functions`s type.';
+COMMENT ON COLUMN functions_datas.type          IS 'Functions`s type. Only for Data on type 1 and 2.';
 COMMENT ON COLUMN functions_datas.name          IS 'Name of the Function.';
 COMMENT ON COLUMN functions_datas.description   IS 'Description for the Function.';
 
@@ -492,8 +492,8 @@ CREATE TABLE functions_transactions () INHERITS (functions);
 COMMENT ON TABLE functions_transactions                 IS 'Set of Functions of type Transaction (EE, CE, SE) for the Module.';
 COMMENT ON COLUMN functions_transactions.function       IS 'Unique identifier for Function.';
 COMMENT ON COLUMN functions_transactions.module         IS 'Identifier of the module that owns the function.';
-COMMENT ON COLUMN functions_transactions.tenant         IS 'Tenant owner of the Function';
-COMMENT ON COLUMN functions_transactions.type           IS 'Functions`s type.';
+COMMENT ON COLUMN functions_transactions.tenant         IS 'Tenant owner of the Function.';
+COMMENT ON COLUMN functions_transactions.type           IS 'Functions`s type. Only for Transactions on type 3, 4 and 5.';
 COMMENT ON COLUMN functions_transactions.name           IS 'Name of the Function.';
 COMMENT ON COLUMN functions_transactions.description    IS 'Description for the Function.';
 
@@ -533,3 +533,86 @@ COMMENT ON INDEX ix_functions_transactions_type IS 'Reference index to the funct
 ALTER TABLE functions_transactions ADD 
     CONSTRAINT check_functions_transactions_type
     CHECK (type IN (3, 4, 5));
+
+CREATE TABLE alrs (
+    function    id,
+    alr         id,
+    tenant      id
+);
+
+COMMENT ON TABLE alrs           IS 'Referenced Logical Files.';
+COMMENT ON COLUMN alrs.function IS 'Unique identifier for a Function of type Transaction..';
+COMMENT ON COLUMN alrs.alr      IS 'Unique identifier for a Function if type Data.';
+COMMENT ON COLUMN alrs.tenant   IS 'Tenant owner of the Function.';
+
+ALTER TABLE alrs ADD
+    CONSTRAINT pk_alrs
+    PRIMARY KEY (function, alr);
+
+COMMENT ON INDEX pk_alrs IS 'Index for association between Transaction and Data functions.';
+
+ALTER TABLE alrs ADD 
+    CONSTRAINT fk_alrs_function
+    FOREIGN KEY (function)
+    REFERENCES functions_transactions (function);
+
+CREATE INDEX ix_alrs_function ON alrs (function);
+
+COMMENT ON INDEX ix_alrs_function IS 'Reference index to the functions of type Transaction.';
+
+ALTER TABLE alrs ADD
+    CONSTRAINT fk_alrs_alr
+    FOREIGN KEY (alr)
+    REFERENCES functions_datas (function);
+
+CREATE INDEX ix_alrs_alr ON alrs (alr);
+
+COMMENT ON INDEX ix_alrs_alr IS 'Reference index to the functions of type Data.';
+
+ALTER TABLE alrs ADD
+    CONSTRAINT fk_alrs_tenant
+    FOREIGN KEY (tenant)
+    REFERENCES tenants (tenant);
+
+CREATE INDEX ix_alrs_tenant ON alrs (tenant);
+
+COMMENT ON INDEX ix_alrs_tenant IS 'Index to management access on tenant scope.';
+
+CREATE TABLE rlrs (
+    rlr         id,
+    function    id,
+    tenant      id,
+    name        brief,
+    description description
+);
+
+COMMENT ON TABLE rlrs               IS 'Referenced Logical Records.';
+COMMENT ON COLUMN rlrs.rlr          IS 'Unique identifier for a Reference Logical Record.';
+COMMENT ON COLUMN rlrs.function     IS 'unique identifier for a Function.';
+COMMENT ON COLUMN rlrs.tenant       IS 'Tenant owner of the Function.';
+COMMENT ON COLUMN rlrs.name         IS 'Name of the Referenced Logical Record.';
+COMMENT ON COLUMN rlrs.description  IS 'Description for the Referenced Logical Record.';
+
+ALTER TABLE rlrs ADD
+    CONSTRAINT pk_rlrs
+    PRIMARY KEY (rlr);
+
+COMMENT ON INDEX pk_rlrs IS 'Primary key for Referenced Logial Records.';
+
+ALTER TABLE rlrs ADD 
+    CONSTRAINT fk_rlrs_function
+    FOREIGN KEY (function)
+    REFERENCES functions (function);
+
+CREATE INDEX ix_rlrs_function ON rlrs (function);
+
+COMMENT ON INDEX ix_rlrs_function IS 'Reference index to the Functions.';
+
+ALTER TABLE rlrs ADD
+    CONSTRAINT fk_rlrs_tenant
+    FOREIGN KEY (tenant)
+    REFERENCES tenants (tenant);
+
+CREATE INDEX ix_rlrs_tenant ON alrs (tenant);
+
+COMMENT ON INDEX ix_rlrs_tenant IS 'Index to management access on tenant scope.';
