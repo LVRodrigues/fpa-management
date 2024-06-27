@@ -29,11 +29,10 @@ erDiagram
     functions_types         ||--o{ functions: fk_functions_type
     functions               ||--|| functions_datas: inherit
     functions               ||--|| functions_transactions: inherit
-    functions_datas         ||--o{ ders: fk_ders_function 
+    functions               ||--o{ ders: fk_ders_functions
     functions_datas         ||--o{ rlrs: fk_rlrs_function
     functions_datas         ||--o{ alrs: fk_functions_transactions_alr
     functions_transactions  ||--o{ alrs: fk_functions_transactions_function
-    functions_transactions  ||--o{ ders: fk_rlrs_functions    
         
     tenants_status {
         status      integer     PK
