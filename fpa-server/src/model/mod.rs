@@ -2,10 +2,21 @@
 
 pub mod prelude;
 
+pub mod alrs;
+pub mod empiricals;
+pub mod factors;
+pub mod functions;
+pub mod functions_types;
+pub mod influences;
+pub mod modules;
 pub mod projects;
+pub mod projects_empiricals;
+pub mod projects_factors;
+pub mod rlrs;
 pub mod tenants;
 pub mod tenants_status;
 pub mod tenants_tier;
 pub mod users;
 pub mod versions;
+
 pub mod page;

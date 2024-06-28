@@ -1,9 +1,9 @@
+mod shared;
+
 use anyhow::Result;
 use reqwest::StatusCode;
 
-use crate::tokens::Tenant;
-
-mod tokens;
+use crate::shared::tokens::{self, Tenant};
 
 #[tokio::test]
 async fn health() -> Result<()> {

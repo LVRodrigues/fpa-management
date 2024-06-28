@@ -4,7 +4,7 @@ use axum::{extract::{Path, Query, State}, http::{HeaderMap, StatusCode, Uri}, re
 use chrono::Utc;
 use sea_orm::{ActiveModelTrait, ColumnTrait, Condition, EntityTrait, ModelTrait, PaginatorTrait, QueryFilter, Set};
 use serde_derive::Deserialize;
-use utoipa::{IntoParams, ToSchema};
+use utoipa::ToSchema;
 use uuid::Uuid;
 use crate::{ctx::Context, error::Error, model::{page::{Page, PageParams}, prelude::Projects, projects::{self, ActiveModel, Model}}, state::AppState};
 
@@ -75,10 +75,12 @@ pub async fn by_id(Path(id): Path<Uuid>, context: Option<Context>, state: State<
 }
 
 /// Project create params.
-#[derive(Debug, Deserialize, IntoParams)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct ProjectCreateParam {
-    /// New Project' name.
+    /// New Project's name.
     pub name: String,
+    /// New Project's description.
+    pub description: Option<String>,
 }
 
 /// Create a new Project.
@@ -91,11 +93,10 @@ pub struct ProjectCreateParam {
         (status = UNAUTHORIZED, description = "User not authorized.", body = Error),
         (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = Error)
     ),
-    params(ProjectCreateParam),
     security(("fpa-security" = []))
 )]
-pub async fn create(param: Query<ProjectCreateParam>, context: Option<Context>, state: State<Arc<AppState>>) -> Result<impl IntoResponse, Error> {
-    println!("==> {:<12} - /create (Name: {:?})", "PROJECTS", param);
+pub async fn create(context: Option<Context>, state: State<Arc<AppState>>, Json(params): Json<ProjectCreateParam>) -> Result<impl IntoResponse, Error> {
+    println!("==> {:<12} - /create (Name: {:?})", "PROJECTS", params);
     let ctx = context.unwrap();
     let db = state.connection(ctx.tenant()).await?;
 
@@ -104,7 +105,8 @@ pub async fn create(param: Query<ProjectCreateParam>, context: Option<Context>, 
         tenant: Set(ctx.tenant().clone()),
         user: Set(ctx.id().clone()),
         time: Set(Utc::now().into()),
-        name: Set(param.name.to_string()),
+        name: Set(params.name.to_owned()),
+        description: Set(params.description.to_owned()),
     };
     let project: projects::Model = match project.insert(&db).await {
         Ok(v) => {
@@ -140,8 +142,10 @@ pub async fn create(param: Query<ProjectCreateParam>, context: Option<Context>, 
 pub struct ProjectUpdateParam {
     /// Project Unique ID
     pub id: Uuid,
-    /// New Project' name.
+    /// New Project's name.
     pub name: String,
+    /// New Project's description.
+    pub description: Option<String>,
 }
 
 /// Update a existing Project.
@@ -157,7 +161,7 @@ pub struct ProjectUpdateParam {
     ),
     security(("fpa-security" = []))
 )]
-pub async fn update(context: Option<Context>, state: State<Arc<AppState>>, Json(params): Json<ProjectUpdateParam>,) -> Result<impl IntoResponse, Error> {
+pub async fn update(context: Option<Context>, state: State<Arc<AppState>>, Json(params): Json<ProjectUpdateParam>) -> Result<impl IntoResponse, Error> {
     println!("==> {:<12} - /update ({:?})", "PROJECTS", params);
     let ctx = context.unwrap();
     let db = state.connection(ctx.tenant()).await?;    
@@ -168,7 +172,8 @@ pub async fn update(context: Option<Context>, state: State<Arc<AppState>>, Json(
         None => return Err(Error::NotFound),
     };
     let mut data: ActiveModel = data.into();
-    data.name = Set(params.name);
+    data.name           = Set(params.name);
+    data.description    = Set(params.description);
 
     let data: Model = data.update(&db).await?;
     match db.commit().await {
