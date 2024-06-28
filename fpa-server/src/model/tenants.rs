@@ -15,8 +15,20 @@ pub struct Model {
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
+    #[sea_orm(has_many = "super::alrs::Entity")]
+    Alrs,
+    #[sea_orm(has_many = "super::functions::Entity")]
+    Functions,
+    #[sea_orm(has_many = "super::modules::Entity")]
+    Modules,
     #[sea_orm(has_many = "super::projects::Entity")]
     Projects,
+    #[sea_orm(has_many = "super::projects_empiricals::Entity")]
+    ProjectsEmpiricals,
+    #[sea_orm(has_many = "super::projects_factors::Entity")]
+    ProjectsFactors,
+    #[sea_orm(has_many = "super::rlrs::Entity")]
+    Rlrs,
     #[sea_orm(
         belongs_to = "super::tenants_status::Entity",
         from = "Column::Status",
@@ -37,9 +49,45 @@ pub enum Relation {
     Users,
 }
 
+impl Related<super::alrs::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Alrs.def()
+    }
+}
+
+impl Related<super::functions::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Functions.def()
+    }
+}
+
+impl Related<super::modules::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Modules.def()
+    }
+}
+
 impl Related<super::projects::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::Projects.def()
+    }
+}
+
+impl Related<super::projects_empiricals::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::ProjectsEmpiricals.def()
+    }
+}
+
+impl Related<super::projects_factors::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::ProjectsFactors.def()
+    }
+}
+
+impl Related<super::rlrs::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Rlrs.def()
     }
 }
 

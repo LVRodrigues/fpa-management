@@ -194,7 +194,7 @@ CREATE TABLE projects (
     tenant      id,
     name        brief,
     description description,
-    time        datetime,
+    time        datetime        NOT NULL,
     "user"      id
 );
 

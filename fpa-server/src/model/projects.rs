@@ -14,6 +14,7 @@ pub struct Model {
     #[serde(skip)]
     pub tenant: Uuid,
     pub name: String,
+    #[sea_orm(column_type = "Text", nullable)]
     pub description: Option<String>,
     #[schema(value_type = String, format = DateTime)]
     pub time: DateTimeWithTimeZone,
@@ -22,6 +23,12 @@ pub struct Model {
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
+    #[sea_orm(has_many = "super::modules::Entity")]
+    Modules,
+    #[sea_orm(has_many = "super::projects_empiricals::Entity")]
+    ProjectsEmpiricals,
+    #[sea_orm(has_many = "super::projects_factors::Entity")]
+    ProjectsFactors,
     #[sea_orm(
         belongs_to = "super::tenants::Entity",
         from = "Column::Tenant",
@@ -38,6 +45,24 @@ pub enum Relation {
         on_delete = "NoAction"
     )]
     Users,
+}
+
+impl Related<super::modules::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Modules.def()
+    }
+}
+
+impl Related<super::projects_empiricals::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::ProjectsEmpiricals.def()
+    }
+}
+
+impl Related<super::projects_factors::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::ProjectsFactors.def()
+    }
 }
 
 impl Related<super::tenants::Entity> for Entity {
