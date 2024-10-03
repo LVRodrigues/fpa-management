@@ -113,7 +113,7 @@ impl IntoResponse for Error {
             }
             _ => (
                     StatusCode::INTERNAL_SERVER_ERROR,
-                        ErrorResponse {
+                    ErrorResponse {
                         id: Uuid::new_v4(),
                         time: Utc::now(),
                         error: "SERVICE_ERROR",
