@@ -1,4 +1,4 @@
-FROM rust:1.75 AS builder
+FROM rust:1.81 AS builder
 WORKDIR /usr/src
 RUN rustup target add x86_64-unknown-linux-gnu
 
@@ -18,6 +18,7 @@ RUN apt update \
 WORKDIR /usr/share/fpa
 COPY --from=builder /usr/local/cargo/bin/fpa-server .
 COPY config.yaml config.yaml
+RUN chmod +x /usr/share/fpa/fpa-server
 USER 1000
-EXPOSE 5000 5000
-CMD ["./usr/share/fpa/fpa-server"]
+EXPOSE 5000
+CMD ["./fpa-server"]
