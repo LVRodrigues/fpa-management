@@ -1,11 +1,11 @@
 jwks: 
-  - http://localhost:8080/realms/default/protocol/openid-connect/certs
-  - http://localhost:8080/realms/tenant-01/protocol/openid-connect/certs
-  - http://localhost:8080/realms/tenant-02/protocol/openid-connect/certs
+  - http://oauth-2:8080/realms/default/protocol/openid-connect/certs
+  - http://oauth-2:8080/realms/tenant-01/protocol/openid-connect/certs
+  - http://oauth-2:8080/realms/tenant-02/protocol/openid-connect/certs
   
 database:
   engine: postgres
-  server: localhost
+  server: database
   port: 5432
   username: fpa-user
   password: fpa-pass
@@ -18,5 +18,5 @@ database:
   lifetime: 30
 
 scheme: HTTP
-authority: localhost
+authority: oauth-2
 port: 5000

@@ -3,8 +3,12 @@ services:
     build: ./database
     ports:
       - 5432:5432
-  oauth2:
+  oauth-2:
     build: ./oauth-2
     ports:
       - 8080:8080
       - 8443:8443
+  fpa-server:
+    build: ./fpa-server
+    ports: 
+      - 5000:5000

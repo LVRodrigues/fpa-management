@@ -101,7 +101,7 @@ pub async fn create(context: Option<Context>, state: State<Arc<AppState>>, Json(
     let db = state.connection(ctx.tenant()).await?;
 
     let project = projects::ActiveModel {
-        project: Set(Uuid::new_v4()),
+        project: Set(Uuid::now_v7()),
         tenant: Set(ctx.tenant().clone()),
         user: Set(ctx.id().clone()),
         time: Set(Utc::now().into()),

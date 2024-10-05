@@ -1,4 +1,4 @@
-FROM postgres:16
+FROM postgres:17
 
 ENV POSTGRES_PASSWORD 'postgres'
 ENV POSTGRES_DB 'fpa-management'
