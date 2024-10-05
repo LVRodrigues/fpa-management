@@ -46,7 +46,7 @@ pub async fn request_token(user: &str, password: &str, tenant: Tenant) -> Result
         .extend_pairs(params.iter())
         .finish();
     let response: AccessTokenResponse = reqwest::Client::new()
-        .post(format!("http://localhost:8080/realms/{realm}/protocol/openid-connect/token"))
+        .post(format!("http://oauth-2:8080/realms/{realm}/protocol/openid-connect/token"))
         .header("Content-Type", "application/x-www-form-urlencoded")
         .body(body)
         .send()
