@@ -9,15 +9,21 @@ use utoipa::{schema, ToSchema};
 #[schema(as=Project)]
 #[serde(rename = "Project")] 
 pub struct Model {
+    /// Project unique identifier.
     #[sea_orm(primary_key, auto_increment = false)]
     pub project: Uuid,
+    /// Tenant owner of the Project.
     #[serde(skip)]
     pub tenant: Uuid,
+    /// Project name.
     pub name: String,
+    /// Project description.
     #[sea_orm(column_type = "Text", nullable)]
     pub description: Option<String>,
+    /// Project creation date and time.
     #[schema(value_type = String, format = DateTime)]
     pub time: DateTimeWithTimeZone,
+    /// User owner of the Project.
     pub user: Uuid,
 }
 

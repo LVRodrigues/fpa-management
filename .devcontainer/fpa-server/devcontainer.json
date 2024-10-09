@@ -44,7 +44,13 @@
 	// Configure tool-specific properties.
 	"customizations": {
 		"vscode": {
-			"extensions": ["humao.rest-client"]
+			"extensions": [
+				"humao.rest-client",
+				"bierner.markdown-mermaid",
+				"bpruitt-goddard.mermaid-markdown-syntax-highlighting",
+				"mtxr.sqltools",
+				"mtxr.sqltools-driver-pg"
+			]
 		}
 	},
 
