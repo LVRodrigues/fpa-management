@@ -49,7 +49,8 @@
 				"bierner.markdown-mermaid",
 				"bpruitt-goddard.mermaid-markdown-syntax-highlighting",
 				"mtxr.sqltools",
-				"mtxr.sqltools-driver-pg"
+				"mtxr.sqltools-driver-pg",
+				"fill-labs.dependi"
 			]
 		}
 	},
