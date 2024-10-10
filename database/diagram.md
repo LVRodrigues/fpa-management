@@ -6,8 +6,6 @@ erDiagram
     tenants_tier            ||--o{ tenants: fk_tenants_tier
     tenants                 ||--o{ users: fk_users_tenant
     tenants                 ||--o{ projects: fk_projects_tenant
-    tenants                 ||--o{ projects_factors: fk_projects_factor_tenant
-    tenants                 ||--o{ projects_empiricals: fk_projects_empiricals_tenant
     tenants                 ||--o{ modules: fk_modules_tenant
     tenants                 ||--o{ functions: fk_functions_tenant
     tenants                 ||--o{ ders: fk_ders_tenant
@@ -16,14 +14,10 @@ erDiagram
 
     users                   ||--o{ projects: fk_projects_user
 
-    influences              ||--o{ projects_factors: fk_projects_factors_influence
-    factors                 ||--o{ projects_factors: fk_projecs_factors_factor
-    projects                ||--o{ projects_factors: fk_projects_factors_project
-
-    empiricals              ||--o{ projects_empiricals: fk_projects_empiricals_empirical
-    projects                ||--o{ projects_empiricals: fk_projects_empiricals_project
-
+    projects                ||--o{ factors: fk_factors_project
+    projects                ||--o{ empiricals: fk_empiricals_project
     projects                ||--o{ modules: fk_modules_project
+
     modules                 ||--o{ functions: fk_functions_module
 
     functions_types         ||--o{ functions: fk_functions_type
@@ -69,21 +63,6 @@ erDiagram
         time        datetime
     }
 
-    influences {
-        influence   integer     PK
-        description brief        
-    }    
-
-    factors {
-        factor      integer     PK
-        description brief
-    }
-
-    empiricals {
-        empirical   integer     PK
-        description brief
-    } 
-
     projects {
         project     id          PK
         tenant      id
@@ -94,16 +73,16 @@ erDiagram
         version     integer
     }
 
-    projects_factors {
+    factors {
         project     id          PK
-        factor      integer     PK
+        factor      factor      PK
         tenant      id
-        influence   integer
+        influence   influence
     }
 
-    projects_empiricals {
+    empiricals {
         project     id          PK
-        empirical   integer     PK
+        empirical   empirical   PK
         tenant      id
         value       integer
     }
