@@ -274,26 +274,11 @@ CREATE INDEX ix_modules_tenant ON modules (tenant);
 
 COMMENT ON INDEX ix_modules_tenant IS 'Index to management access on tenant scope.';
 
-CREATE TABLE functions_types (
-    type        INTEGER  NOT NULL,
-    description brief
-);
-
-COMMENT ON TABLE functions_types                IS 'Set of possible Functions`s Types.';
-COMMENT ON COLUMN functions_types.type          IS 'Type of the Function.';
-COMMENT ON COLUMN functions_types.description   IS 'Description for the Function`s type.';
-
-ALTER TABLE functions_types ADD
-    CONSTRAINT pk_functions_types 
-    PRIMARY KEY (type);
-
-COMMENT ON INDEX pk_functions_types IS 'Primary key for Functions`s Types.';
-
 CREATE TABLE functions (
     function    id,
     module      id,
     tenant      id,
-    type        INTEGER NOT NULL,
+    type        function_type NOT NULL,
     name        brief,
     description description
 
@@ -330,11 +315,6 @@ ALTER TABLE functions ADD
 CREATE INDEX ix_functions_tenant ON functions (tenant);
 
 COMMENT ON INDEX ix_functions_tenant IS 'Index to management access on tenant scope.';
-
-ALTER TABLE functions ADD
-    CONSTRAINT fk_functions_type
-    FOREIGN KEY (type)
-    REFERENCES functions_types (type);
 
 CREATE INDEX ix_functions_type ON functions (type);
 
@@ -374,18 +354,13 @@ CREATE INDEX ix_functions_datas_tenant ON functions (tenant);
 
 COMMENT ON INDEX ix_functions_datas_tenant IS 'Index to management access on tenant scope.';
 
-ALTER TABLE functions_datas ADD
-    CONSTRAINT fk_functions_datas_type
-    FOREIGN KEY (type)
-    REFERENCES functions_types (type);
-
 CREATE INDEX ix_functions_datas_type ON functions (type);
 
 COMMENT ON INDEX ix_functions_datas_type IS 'Reference index to the functions`s type.';
 
 ALTER TABLE functions_datas ADD 
     CONSTRAINT check_functions_datas_type
-    CHECK (type IN (1, 2));
+    CHECK (type IN ('ALI', 'AIE'));
 
 CREATE TABLE functions_transactions () INHERITS (functions);
 
@@ -421,18 +396,13 @@ CREATE INDEX ix_functions_transactions_tenant ON functions (tenant);
 
 COMMENT ON INDEX ix_functions_transactions_tenant IS 'Index to management access on tenant scope.';
 
-ALTER TABLE functions_transactions ADD
-    CONSTRAINT fk_functions_transactions_type
-    FOREIGN KEY (type)
-    REFERENCES functions_types (type);
-
 CREATE INDEX ix_functions_transactions_type ON functions (type);
 
 COMMENT ON INDEX ix_functions_transactions_type IS 'Reference index to the functions`s type.';
 
 ALTER TABLE functions_transactions ADD 
     CONSTRAINT check_functions_transactions_type
-    CHECK (type IN (3, 4, 5));
+    CHECK (type IN ('CE', 'EE', 'SE'));
 
 CREATE TABLE alrs (
     function    id,

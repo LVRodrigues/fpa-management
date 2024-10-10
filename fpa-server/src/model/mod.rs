@@ -6,7 +6,6 @@ pub mod alrs;
 pub mod empiricals;
 pub mod factors;
 pub mod functions;
-pub mod functions_types;
 pub mod modules;
 pub mod projects;
 pub mod rlrs;

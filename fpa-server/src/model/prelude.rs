@@ -4,7 +4,6 @@ pub use super::alrs::Entity as Alrs;
 pub use super::empiricals::Entity as Empiricals;
 pub use super::factors::Entity as Factors;
 pub use super::functions::Entity as Functions;
-pub use super::functions_types::Entity as FunctionsTypes;
 pub use super::modules::Entity as Modules;
 pub use super::projects::Entity as Projects;
 pub use super::rlrs::Entity as Rlrs;

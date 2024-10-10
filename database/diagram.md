@@ -18,7 +18,6 @@ erDiagram
 
     modules                 ||--o{ functions: fk_functions_module
 
-    functions_types         ||--o{ functions: fk_functions_type
     functions               ||--|| functions_datas: inherit
     functions               ||--|| functions_transactions: inherit
     functions               ||--o{ ders: fk_ders_functions
@@ -83,16 +82,11 @@ erDiagram
         tenant      id
     }
 
-    functions_types {
-        type        integer     PK
-        description brief
-    }
-
     functions {
         function    id          PK
         name        brief
         description description
-        type        integer
+        type        function_type
         module      id
         tenant      id
     }

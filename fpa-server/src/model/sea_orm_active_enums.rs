@@ -70,6 +70,7 @@ pub enum Influence {
     #[sea_orm(string_value = "STRONG")]
     Strong,
 }
+
 #[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum)]
 #[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "tenant_status")]
 pub enum TenantStatus {
@@ -80,6 +81,7 @@ pub enum TenantStatus {
     #[sea_orm(string_value = "SUSPENDED")]
     Suspended,
 }
+
 #[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum)]
 #[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "tenant_tier")]
 pub enum TenantTier {
@@ -89,4 +91,20 @@ pub enum TenantTier {
     Gold,
     #[sea_orm(string_value = "SILVER")]
     Silver,
+}
+
+/// Type of the Function.
+#[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum, ToSchema)]
+#[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "functions_type")]
+pub enum FunctionType {
+    #[sea_orm(string_value = "AIE")]
+    AIE,
+    #[sea_orm(string_value = "ALI")]
+    ALI,
+    #[sea_orm(string_value = "CE")]
+    CE,
+    #[sea_orm(string_value = "EE")]
+    EE,
+    #[sea_orm(string_value = "SE")]
+    SE,
 }

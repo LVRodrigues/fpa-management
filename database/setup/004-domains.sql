@@ -63,3 +63,11 @@ CREATE TYPE empirical AS ENUM (
     'TESTING',
     'DEPLOYMENT');
 COMMENT ON TYPE empirical IS 'Empirical adjustment for the Project.';
+
+CREATE TYPE function_type AS ENUM (
+	'ALI',
+	'AIE',
+	'CE',
+	'EE',
+	'SE');
+COMMENT ON TYPE functions_type IS 'Type os Functions.';	
