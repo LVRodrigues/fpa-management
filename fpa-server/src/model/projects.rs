@@ -29,12 +29,12 @@ pub struct Model {
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
+    #[sea_orm(has_many = "super::empiricals::Entity")]
+    Empiricals,
+    #[sea_orm(has_many = "super::factors::Entity")]
+    Factors,
     #[sea_orm(has_many = "super::modules::Entity")]
     Modules,
-    #[sea_orm(has_many = "super::projects_empiricals::Entity")]
-    ProjectsEmpiricals,
-    #[sea_orm(has_many = "super::projects_factors::Entity")]
-    ProjectsFactors,
     #[sea_orm(
         belongs_to = "super::tenants::Entity",
         from = "Column::Tenant",
@@ -53,21 +53,21 @@ pub enum Relation {
     Users,
 }
 
+impl Related<super::empiricals::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Empiricals.def()
+    }
+}
+
+impl Related<super::factors::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Factors.def()
+    }
+}
+
 impl Related<super::modules::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::Modules.def()
-    }
-}
-
-impl Related<super::projects_empiricals::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::ProjectsEmpiricals.def()
-    }
-}
-
-impl Related<super::projects_factors::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::ProjectsFactors.def()
     }
 }
 

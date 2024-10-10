@@ -2,8 +2,6 @@
 
 ```mermaid
 erDiagram
-    tenants_status          ||--o{ tenants: fk_tenants_status
-    tenants_tier            ||--o{ tenants: fk_tenants_tier
     tenants                 ||--o{ users: fk_users_tenant
     tenants                 ||--o{ projects: fk_projects_tenant
     tenants                 ||--o{ modules: fk_modules_tenant
@@ -28,22 +26,12 @@ erDiagram
     functions_datas         ||--o{ alrs: fk_functions_transactions_alr
     functions_transactions  ||--o{ alrs: fk_functions_transactions_function
         
-    tenants_status {
-        status      integer     PK
-        description brief
-    }
-
-    tenants_tier {
-        tier        integer     PK
-        description brief
-    }
-
     tenants {
         tenant      id          PK
         name        brief
         time        datetime
-        status      integer
-        tier        integer
+        status      tenant_status
+        tier        tenant_tier
     }
 
     users {

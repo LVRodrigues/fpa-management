@@ -37,42 +37,12 @@ COMMENT ON INDEX uq_versions IS 'Unique index to register a Version, consisting 
 -- Controle de Inquilinos (Multi Tenant)
 --==============================================================================
 
-CREATE TABLE tenants_status (
-    status      INTEGER     NOT NULL,
-    description brief
-);
-
-COMMENT ON TABLE tenants_status                 IS 'Tenant status in the system.';
-COMMENT ON COLUMN tenants_status.status         IS 'Tenant status identifier.';
-COMMENT ON COLUMN tenants_status.description    IS 'Description of the Tenant status.';
-
-ALTER TABLE tenants_status ADD  
-    CONSTRAINT pk_tentants_status
-    PRIMARY KEY (status);
-
-COMMENT ON INDEX pk_tentants_status IS 'Primary key of the Tenant status.';
-
-CREATE TABLE tenants_tier (
-    tier        INTEGER     NOT NULL,
-    description brief
-);
-
-COMMENT ON TABLE tenants_tier               IS 'Tenant access level on the system.';
-COMMENT ON COLUMN tenants_tier.tier         IS 'Tenant access level identifier.';
-COMMENT ON COLUMN tenants_tier.description  IS 'Description of the Tenant access level.';
-
-ALTER TABLE tenants_tier ADD
-    CONSTRAINT pk_tenants_tier
-    PRIMARY KEY (tier);
-
-COMMENT ON INDEX pk_tenants_tier IS 'Primary key of the Tenant access level.';
-
 CREATE TABLE tenants (
     tenant  id,
     name    brief,
-    time    datetime    NOT NULL,
-    status  INTEGER     NOT NULL,
-    tier    INTEGER     NOT NULL
+    time    datetime        NOT NULL,
+    status  tenant_status   NOT NULL,
+    tier    tenant_tier     NOT NULL
 );
 
 COMMENT ON TABLE tenants            IS 'Tenant of the system.';
@@ -88,19 +58,9 @@ ALTER TABLE tenants ADD
 
 COMMENT ON INDEX pk_tenants IS 'Primary key of the Tenant.';
 
-ALTER TABLE tenants ADD
-    CONSTRAINT fk_tenant_status
-    FOREIGN KEY (status)
-    REFERENCES tenants_status (status);
-
 CREATE INDEX ix_tenants_status ON tenants (status);
 
 COMMENT ON INDEX ix_tenants_status IS 'Index to select the status of tenants.';
-
-ALTER TABLE tenants ADD
-    CONSTRAINT fk_tenants_tier
-    FOREIGN KEY (tier)
-    REFERENCES tenants_tier (tier);
 
 CREATE INDEX ix_tenants_tier ON tenants (tier);
 

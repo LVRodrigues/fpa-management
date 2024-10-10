@@ -18,6 +18,18 @@ COMMENT ON DOMAIN datetime IS 'Date and Time with time zone.';
 -- Types
 --==============================================================================
 
+CREATE TYPE tenant_status AS ENUM (
+    'ACTIVE',
+    'SUSPENDED',
+    'DISABLED');
+COMMENT ON TYPE tenant_status IS 'Tenant status in the system.';
+
+CREATE TYPE tenant_tier AS ENUM (
+    'GOLD',
+    'SILVER',
+    'BRONZE');
+COMMENT ON TYPE tenant_status IS 'Tenant access level on the system.';	
+
 CREATE TYPE influence AS ENUM (
 	'ABSENT', 
 	'MINIMUM', 
@@ -50,4 +62,4 @@ CREATE TYPE empirical AS ENUM (
     'COODINATION',
     'TESTING',
     'DEPLOYMENT');
-COMMENT ON TYPE empirical IS 'Empirical adjustment for the Project';
+COMMENT ON TYPE empirical IS 'Empirical adjustment for the Project.';

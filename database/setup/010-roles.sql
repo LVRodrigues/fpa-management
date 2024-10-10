@@ -10,8 +10,6 @@ GRANT "fpa-access" TO "fpa-user";
 -- Tables
 --==============================================================================
 
-GRANT SELECT                            ON tenants_status           TO "fpa-access";
-GRANT SELECT                            ON tenants_tier             TO "fpa-access";
 GRANT SELECT                            ON tenants                  TO "fpa-access";
 GRANT SELECT, INSERT, UPDATE            ON users                    TO "fpa-access";
 GRANT SELECT, INSERT                    ON versions                 TO "fpa-access";

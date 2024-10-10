@@ -21,6 +21,9 @@ use utoipa::{openapi::{security::{Flow, OAuth2, Password, Scopes, SecurityScheme
     ),
     components(
         schemas(
+            crate::model::sea_orm_active_enums::Empirical,
+            crate::model::sea_orm_active_enums::Factor,
+            crate::model::sea_orm_active_enums::Influence,
             crate::model::users::Model,
             crate::model::page::Users,
             crate::model::projects::Model,
