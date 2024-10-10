@@ -144,51 +144,6 @@ COMMENT ON INDEX ix_users_tenant IS 'Index to management access on tenant scope.
 -- Projetos de Análise por Pontos de Função (Multi Tenant)
 --==============================================================================
 
-CREATE TABLE influences (
-    influence   INTEGER     NOT NULL,
-    description brief
-);
-
-COMMENT ON TABLE influences                 IS 'Influence value of the factor on the project.';
-COMMENT ON COLUMN influences.influence      IS 'Unique Influence identifier.';
-COMMENT ON COLUMN influences.description    IS 'Description of the Influence.';
-
-ALTER TABLE influences ADD 
-    CONSTRAINT pk_influences
-    PRIMARY KEY (influence);
-
-COMMENT ON INDEX pk_influences IS 'Primary key of the Influences.';
-
-CREATE TABLE factors (
-    factor      INTEGER     NOT NULL,
-    description brief
-);
-
-COMMENT ON TABLE factors                IS 'Set of possible Factor`s Types.';
-COMMENT ON COLUMN factors.factor        IS 'Factor`s Type.';
-COMMENT ON COLUMN factors.description   IS 'Description for the Factor`s Type.';
-
-ALTER TABLE factors ADD
-    CONSTRAINT pk_factors
-    PRIMARY KEY (factor);
-
-COMMENT ON INDEX pk_factors IS 'Primary key for the Factors`s Types.';
-
-CREATE TABLE empiricals (
-    empirical   INTEGER     NOT NULL,
-    description brief
-);
-
-COMMENT ON TABLE empiricals                 IS 'Set of possible Empirical`s Factors.';
-COMMENT ON COLUMN empiricals.empirical      IS 'Empirical`s Factor.';
-COMMENT ON COLUMN empiricals.description    IS 'Description for the Empirical`s factors.';
-
-ALTER TABLE empiricals ADD
-    CONSTRAINT pk_empiricals
-    PRIMARY KEY (empirical);
-
-COMMENT ON INDEX pk_empiricals IS 'Primary key for the Empirical`s Factors.';
-
 CREATE TABLE projects (
     project     id,
     tenant      id,
@@ -234,106 +189,91 @@ CREATE UNIQUE INDEX uq_projects_tenant_name ON projects(tenant, name);
 
 COMMENT ON INDEX uq_projects_tenant_name IS 'Unique Project Name on a Tenant.';
 
-CREATE TABLE projects_factors (
+CREATE TABLE factors (
     project     id,
-    factor      INTEGER NOT NULL,
+    factor      factor NOT NULL,
     tenant      id,
-    influence   INTEGER NOT NULL
+    influence   influence NOT NULL
 );
 
-COMMENT ON TABLE projects_factors               IS 'Adjusts Factors for the Project.';
-COMMENT ON COLUMN projects_factors.project      IS 'Project identifier.';
-COMMENT ON COLUMN projects_factors.factor       IS 'Fator`s Type for the Project.';
-COMMENT ON COLUMN projects_factors.tenant       IS 'Tenant owner of the Project.';
-COMMENT ON COLUMN projects_factors.influence    IS 'Influence value for the factor on this project.';
+COMMENT ON TABLE factors            IS 'Adjustments Factors for the Project.';
+COMMENT ON COLUMN factors.factor    IS 'Fator`s Type for the Project.';
+COMMENT ON COLUMN factors.tenant    IS 'Tenant owner of the Project.';
+COMMENT ON COLUMN factors.project   IS 'Project identifier.';
+COMMENT ON COLUMN factors.influence	IS 'Influence value for the factor on this project.';
 
-ALTER TABLE projects_factors ADD
-    CONSTRAINT pk_projects_factors
+ALTER TABLE factors ADD
+    CONSTRAINT pk_factors
     PRIMARY KEY (project, factor);
 
-COMMENT ON INDEX pk_projects_factors IS 'Primary key for the Factor`s Types on a Project.';
+COMMENT ON INDEX pk_factors IS 'Primary key for the Factor`s Types on a Project.';
 
-ALTER TABLE projects_factors ADD
-    CONSTRAINT fk_projects_factors_project
+ALTER TABLE factors ADD
+    CONSTRAINT fk_factors_project
     FOREIGN KEY (project)
     REFERENCES projects (project);
 
-CREATE INDEX ix_projects_factors_project ON projects_factors (project);
+CREATE INDEX ix_factors_project ON factors (project);
 
-COMMENT ON INDEX ix_projects_factors_project IS 'Index to relate to Project.';
+COMMENT ON INDEX ix_factors_project IS 'Index to relate to Project.';
 
-ALTER TABLE projects_factors ADD
-    CONSTRAINT fk_projects_factors_factor
-    FOREIGN KEY (factor)
-    REFERENCES factors (factor);
+CREATE INDEX ix_factors_factor ON factors (factor);
 
-CREATE INDEX ix_projects_factors_factor ON projects_factors (factor);
+COMMENT ON INDEX ix_factors_factor IS 'Index to relate to Fator`s Types.';
 
-COMMENT ON INDEX ix_projects_factors_factor IS 'Index to relate to Fator`s Types.';
-
-ALTER TABLE projects_factors ADD
-    CONSTRAINT fk_projects_factors_tenant
+ALTER TABLE factors ADD
+    CONSTRAINT fk_factors_tenant
     FOREIGN KEY (tenant)
     REFERENCES tenants (tenant);
 
-CREATE INDEX ix_projects_factors_tenant ON projects_factors (tenant);
+CREATE INDEX ix_factors_tenant ON factors (tenant);
 
-COMMENT ON INDEX ix_projects_factors_tenant IS 'Index to management access on tenant scope.';
+COMMENT ON INDEX ix_factors_tenant IS 'Index to management access on tenant scope.';
 
-ALTER TABLE projects_factors ADD
-    CONSTRAINT fk_projects_factors_influence
-    FOREIGN KEY (influence)
-    REFERENCES influences (influence);
+CREATE INDEX ix_factors_influence ON factors (influence);
 
-CREATE INDEX ix_projects_factors_influence ON projects_factors (influence);
+COMMENT ON INDEX ix_factors_influence IS 'Influence value for the Factor`s Type on this Project.';
 
-COMMENT ON INDEX ix_projects_factors_influence IS 'Influence value for the Factor`s Type on this Project.';
-
-CREATE TABLE projects_empiricals (
+CREATE TABLE empiricals (
     project     id,
-    empirical   INTEGER NOT NULL,
+    empirical   empirical NOT NULL,
     tenant      id,
     value       INTEGER NOT NULL
 );
 
-COMMENT ON TABLE projects_empiricals            IS 'Empirical Adjusts Factors for the Project.';
-COMMENT ON COLUMN projects_empiricals.project   IS 'Project identifier.';
-COMMENT ON COLUMN projects_empiricals.empirical IS 'Empirical`s Factor.';
-COMMENT ON COLUMN projects_empiricals.tenant    IS 'Tenant owner of the Project.';
-COMMENT ON COLUMN projects_empiricals.value     IS 'Percent of influence for the Empirical`s Factor..';
+COMMENT ON TABLE empiricals            IS 'Empirical Adjusts Factors for the Project.';
+COMMENT ON COLUMN empiricals.project   IS 'Project identifier.';
+COMMENT ON COLUMN empiricals.empirical IS 'Empirical`s Factor.';
+COMMENT ON COLUMN empiricals.tenant    IS 'Tenant owner of the Project.';
+COMMENT ON COLUMN empiricals.value     IS 'Percent of influence for the Empirical`s Factor..';
 
-ALTER TABLE projects_empiricals ADD
-    CONSTRAINT pk_projects_empiricals
+ALTER TABLE empiricals ADD
+    CONSTRAINT pk_empiricals
     PRIMARY KEY (project, empirical);
 
-COMMENT ON INDEX pk_projects_empiricals IS 'Primary key for the Empirical`s Factors on a Project.';
+COMMENT ON INDEX pk_empiricals IS 'Primary key for the Empirical`s Factors on a Project.';
 
-ALTER TABLE projects_empiricals ADD
-    CONSTRAINT fk_projects_empiricals_project
+ALTER TABLE empiricals ADD
+    CONSTRAINT fk_empiricals_project
     FOREIGN KEY (project)
     REFERENCES projects (project);
 
-CREATE INDEX ix_projects_empiricals_project ON projects_empiricals (project);
+CREATE INDEX ix_empiricals_project ON empiricals (project);
 
-COMMENT ON INDEX ix_projects_factors_project IS 'Index to relate to Project.';
+COMMENT ON INDEX ix_empiricals_project IS 'Index to relate to Project.';
 
-ALTER TABLE projects_empiricals ADD
-    CONSTRAINT fk_projects_empiricals_empirical
-    FOREIGN KEY (empirical)
-    REFERENCES empiricals (empirical);
+CREATE INDEX ix_empiricals_empirical ON empiricals (empirical);
 
-CREATE INDEX ix_projects_empiricals_empirical ON projects_empiricals (empirical);
+COMMENT ON INDEX ix_empiricals_empirical IS 'Index to relate to Empirical`s Factors.';
 
-COMMENT ON INDEX ix_projects_factors_factor IS 'Index to relate to Empirical`s Factors.';
-
-ALTER TABLE projects_empiricals ADD
-    CONSTRAINT fk_projects_empiricals_tenant
+ALTER TABLE empiricals ADD
+    CONSTRAINT fk_empiricals_tenant
     FOREIGN KEY (tenant)
     REFERENCES tenants (tenant);
 
-CREATE INDEX ix_projects_empiricals_tenant ON projects_empiricals (tenant);
+CREATE INDEX ix_empiricals_tenant ON empiricals (tenant);
 
-COMMENT ON INDEX ix_projects_factors_tenant IS 'Index to management access on tenant scope.';
+COMMENT ON INDEX ix_empiricals_tenant IS 'Index to management access on tenant scope.';
 
 CREATE TABLE modules (
     module      id,

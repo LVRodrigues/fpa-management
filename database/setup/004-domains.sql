@@ -14,3 +14,40 @@ COMMENT ON DOMAIN description IS 'Long description for the record.';
 CREATE DOMAIN datetime AS TIMESTAMP WITH TIME ZONE;
 COMMENT ON DOMAIN datetime IS 'Date and Time with time zone.';
 
+--==============================================================================
+-- Types
+--==============================================================================
+
+CREATE TYPE influence AS ENUM (
+	'ABSENT', 
+	'MINIMUM', 
+	'MODERATE',
+    'AVERAGE',
+    'SIGNIFICANT',
+    'STRONG');
+COMMENT ON TYPE influence IS 'Influence value for the adjustment factor.';   
+    
+CREATE TYPE factor AS ENUM (
+	'DATA_COMMUNICATIONS',
+	'DISTRIBUTED_DATA_PROCESSING',
+	'PERFORMANCE',
+	'HEAVILY_USED_CONFIGURATION',
+	'TRANSACTION_RATE',
+	'ONLINE_DATA_ENTRY',
+	'END_USER_EFFICIENCY',
+	'ONLINE_UPDATE',
+	'COMPLEX_PROCESSING',
+	'REUSABILITY',
+	'INSTALLATION_EASE',
+	'OPERATIONAL_EASE',
+	'FACILITTE_CHANGE',
+	'MULTIPLE_SITES');
+COMMENT ON TYPE factor IS 'Adjustment factor for the Project.';
+
+CREATE TYPE empirical AS ENUM (
+	'PRODUCTIVITY',
+    'PLANNING',
+    'COODINATION',
+    'TESTING',
+    'DEPLOYMENT');
+COMMENT ON TYPE empirical IS 'Empirical adjustment for the Project';

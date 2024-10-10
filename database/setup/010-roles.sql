@@ -15,12 +15,9 @@ GRANT SELECT                            ON tenants_tier             TO "fpa-acce
 GRANT SELECT                            ON tenants                  TO "fpa-access";
 GRANT SELECT, INSERT, UPDATE            ON users                    TO "fpa-access";
 GRANT SELECT, INSERT                    ON versions                 TO "fpa-access";
-GRANT SELECT                            ON empiricals               TO "fpa-access";
-GRANT SELECT                            ON influences               TO "fpa-access";
-GRANT SELECT                            ON factors                  TO "fpa-access";
 GRANT SELECT, INSERT, UPDATE, DELETE    ON projects                 TO "fpa-access";
-GRANT SELECT, INSERT, UPDATE, DELETE    ON projects_empiricals      TO "fpa-access";
-GRANT SELECT, INSERT, UPDATE, DELETE    ON projects_factors         TO "fpa-access";
+GRANT SELECT, INSERT, UPDATE, DELETE    ON empiricals               TO "fpa-access";
+GRANT SELECT, INSERT, UPDATE, DELETE    ON factors                  TO "fpa-access";
 GRANT SELECT, INSERT, UPDATE, DELETE    ON modules                  TO "fpa-access";
 GRANT SELECT                            ON functions                TO "fpa-access";
 GRANT SELECT, INSERT, UPDATE, DELETE    ON functions_datas          TO "fpa-access";
@@ -43,12 +40,12 @@ ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
 CREATE POLICY projects_policy ON projects
 USING (tenant = current_setting('app.current_tenant')::UUID);
 
-ALTER TABLE projects_empiricals ENABLE ROW LEVEL SECURITY;
-CREATE POLICY projects_empiricals_policy ON projects_empiricals
+ALTER TABLE empiricals ENABLE ROW LEVEL SECURITY;
+CREATE POLICY empiricals_policy ON empiricals
 USING (tenant = current_setting('app.current_tenant')::UUID);
 
-ALTER TABLE projects_factors ENABLE ROW LEVEL SECURITY;
-CREATE POLICY projects_factors_policy ON projects_factors
+ALTER TABLE factors ENABLE ROW LEVEL SECURITY;
+CREATE POLICY factors_policy ON factors
 USING (tenant = current_setting('app.current_tenant')::UUID);
 
 ALTER TABLE modules ENABLE ROW LEVEL SECURITY;
