@@ -157,7 +157,7 @@ CREATE TABLE factors (
 );
 
 COMMENT ON TABLE factors            IS 'Adjustments Factors for the Project.';
-COMMENT ON COLUMN factors.factor    IS 'Fator`s Type for the Project.';
+COMMENT ON COLUMN factors.factor    IS 'Adjustment Fator for the Project.';
 COMMENT ON COLUMN factors.tenant    IS 'Tenant owner of the Project.';
 COMMENT ON COLUMN factors.project   IS 'Project identifier.';
 COMMENT ON COLUMN factors.influence	IS 'Influence value for the factor on this project.';
@@ -205,7 +205,7 @@ COMMENT ON TABLE empiricals            IS 'Empirical Adjusts Factors for the Pro
 COMMENT ON COLUMN empiricals.project   IS 'Project identifier.';
 COMMENT ON COLUMN empiricals.empirical IS 'Empirical`s Factor.';
 COMMENT ON COLUMN empiricals.tenant    IS 'Tenant owner of the Project.';
-COMMENT ON COLUMN empiricals.value     IS 'Percent of influence for the Empirical`s Factor..';
+COMMENT ON COLUMN empiricals.value     IS 'Percent of influence for the Empirical`s Factor.';
 
 ALTER TABLE empiricals ADD
     CONSTRAINT pk_empiricals

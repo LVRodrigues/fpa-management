@@ -3,15 +3,25 @@
 use super::sea_orm_active_enums::Factor;
 use super::sea_orm_active_enums::Influence;
 use sea_orm::entity::prelude::*;
+use serde::Serialize;
+use utoipa::ToSchema;
 
-#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
+/// Adjustments Factors for the Project.
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, ToSchema)]
 #[sea_orm(table_name = "factors")]
+#[schema(as=Factor)]
+#[serde(rename = "Factor")] 
 pub struct Model {
+    /// Project identifier.
     #[sea_orm(primary_key, auto_increment = false)]
     pub project: Uuid,
+    /// Adjustment Fator for the Project.
     #[sea_orm(primary_key, auto_increment = false)]
     pub factor: Factor,
+    /// Tenant owner of the Project.
+    #[serde(skip)]
     pub tenant: Uuid,
+    /// Influence value for the factor on this project.
     pub influence: Influence,
 }
 

@@ -4,11 +4,18 @@ use serde_derive::Deserialize;
 use utoipa::{IntoParams, ToResponse, ToSchema};
 
 /* Previous declaration of structure that will be fed by the model fields */
+
+#[derive(Debug, Serialize)]
+pub struct User;
+
 #[derive(Debug, Serialize)]
 pub struct Project;
 
 #[derive(Debug, Serialize)]
-pub struct User;
+pub struct Empirical;
+
+#[derive(Debug, Serialize)]
+pub struct Factor;
 
 #[derive(Debug, Serialize)]
 pub struct Version;
@@ -16,8 +23,10 @@ pub struct Version;
 /// Page selected.
 #[derive(Debug, Clone, Serialize, ToSchema, ToResponse)]
 #[aliases(
-    Projects = Page<Project>,
     Users = Page<User>,
+    Projects = Page<Project>,
+    Empiricals = Page<Empirical>,
+    Factors = Page<Factor>,
     Versions = Page<Version>,
 )]
 pub struct Page<T> {
