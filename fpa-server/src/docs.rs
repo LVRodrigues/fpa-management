@@ -9,7 +9,8 @@ use utoipa::{openapi::{security::{Flow, OAuth2, Password, Scopes, SecurityScheme
 #[openapi(
     tags(
         [name = "Status", description = "Check service health."],
-        [name = "Projects", description = "FPA Projects management."]
+        [name = "Projects", description = "FPA Projects management."],
+        [name = "Empiricals", description = "Empiricals Adjustments Factors."],
     ),
     paths(
         crate::handlers::health,
@@ -18,6 +19,7 @@ use utoipa::{openapi::{security::{Flow, OAuth2, Password, Scopes, SecurityScheme
         crate::handlers::projects::create,
         crate::handlers::projects::update,
         crate::handlers::projects::remove,
+        crate::handlers::empiricals::list,
     ),
     components(
         schemas(

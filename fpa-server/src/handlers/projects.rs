@@ -14,7 +14,7 @@ use crate::{ctx::Context, error::Error, model::{page::{Page, PageParams}, prelud
     get,
     path = "/api/projects",
     responses(
-        (status = OK, description = "Sucess.", body = Projects),
+        (status = OK, description = "Success.", body = Projects),
         (status = UNAUTHORIZED, description = "User not authorized.", body = Error),
         (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = Error)
     ),
@@ -52,7 +52,7 @@ pub async fn list(params: Query<PageParams>, context: Option<Context>, state: St
     get,
     path = "/api/projects/{id}",
     responses(
-        (status = OK, description = "Sucess.", body = Project),
+        (status = OK, description = "Success.", body = Project),
         (status = UNAUTHORIZED, description = "User not authorized.", body = Error),
         (status = NOT_FOUND, description = "Project not founded.", body = Error),
         (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = Error)
@@ -89,7 +89,7 @@ pub struct ProjectCreateParam {
     post,
     path = "/api/projects",
     responses(
-        (status = CREATED, description = "Sucess.", body = Project, headers(("Location", description = "New project address."))),
+        (status = CREATED, description = "Success.", body = Project, headers(("Location", description = "New project address."))),
         (status = UNAUTHORIZED, description = "User not authorized.", body = Error),
         (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = Error)
     ),
@@ -154,7 +154,7 @@ pub struct ProjectUpdateParam {
     put,
     path = "/api/projects",
     responses(
-        (status = OK, description = "Sucess.", body = Project),
+        (status = OK, description = "Success.", body = Project),
         (status = UNAUTHORIZED, description = "User not authorized.", body = Error),
         (status = NOT_FOUND, description = "Project not founded.", body = Error),
         (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = Error)
@@ -190,7 +190,7 @@ pub async fn update(context: Option<Context>, state: State<Arc<AppState>>, Json(
     delete,
     path = "/api/projects/{id}",
     responses(
-        (status = NO_CONTENT, description = "Sucess."),
+        (status = NO_CONTENT, description = "Success."),
         (status = UNAUTHORIZED, description = "User not authorized.", body = Error),
         (status = NOT_FOUND, description = "Project not founded.", body = Error),
         (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = Error)

@@ -70,4 +70,4 @@ CREATE TYPE function_type AS ENUM (
 	'CE',
 	'EE',
 	'SE');
-COMMENT ON TYPE functions_type IS 'Type os Functions.';	
+COMMENT ON TYPE function_type IS 'Type os Functions.';	

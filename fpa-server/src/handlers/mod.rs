@@ -1,4 +1,5 @@
 pub mod projects;
+pub mod empiricals;
 
 use std::{sync::Arc, time::Duration};
 
@@ -48,13 +49,12 @@ pub async fn router(config: Configuration) -> Result<Router, Error> {
         "/api",
         Router::new()
             .to_owned()
-            .route("/projects", 
-                get(projects::list)
+            .route("/projects", get(projects::list)
                 .post(projects::create)
                 .put(projects::update))
-            .route("/projects/:id", 
-                get(projects::by_id)
+            .route("/projects/:id", get(projects::by_id)
                 .delete(projects::remove))
+            .route("/projects/:id/empiricals", get(empiricals::list))
             .route("/health", get(health))
             .layer(middleware::map_response(response_mapper))
             .route_layer(middleware::from_fn_with_state(state.clone(), auth::user_register))
