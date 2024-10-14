@@ -5,10 +5,9 @@ use sea_orm::{ActiveModelTrait, EntityTrait, ModelTrait, Set};
 use serde::Deserialize;
 use utoipa::ToSchema;
 use uuid::Uuid;
-use axum::{extract::{Path, Query, State}, http::{HeaderMap, StatusCode, Uri}, response::IntoResponse, Json};
-use chrono::Utc;
+use axum::{extract::{Path, State}, http::StatusCode, response::IntoResponse, Json};
 
-use crate::{ctx::Context, error::Error, model::{empiricals::{self, ActiveModel, Model}, page::Page, prelude::{Empiricals, Projects}, sea_orm_active_enums::EmpiricalType}, state::AppState};
+use crate::{ctx::Context, error::Error, model::{empiricals::{ActiveModel, Model}, page::Page, prelude::{Empiricals, Projects}, sea_orm_active_enums::EmpiricalType}, state::AppState};
 
 /// Search for a set of Empirical's Factor for a Project.
 #[utoipa::path(
