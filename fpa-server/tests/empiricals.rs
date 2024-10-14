@@ -10,13 +10,13 @@ use uuid::Uuid;
 const USERNAME: &str = "user";
 const PASSWORD: &str = "fpa-pass";
 
-const EMPIRICAL: &str = "Deployment";
-const VALUE: u64 = 50;
+const PROCUCTIVITY: &str = "Productivity";
+const DEPLOYMENT: &str = "Deployment";
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Data {
     empirical: String,
-    value: u64
+    value: i32
 }
 
 async fn list(token: &String, project: &Uuid) -> Result<()> {
@@ -39,8 +39,9 @@ async fn list(token: &String, project: &Uuid) -> Result<()> {
 }
 
 async fn update(token: &String, project: &Uuid) -> Result<()> {
+    const VALUE: i32 = 50;
     let body = Data {
-        empirical: String::from(EMPIRICAL),
+        empirical: String::from(DEPLOYMENT),
         value: VALUE
     };
     let response = reqwest::Client::new()
@@ -52,11 +53,46 @@ async fn update(token: &String, project: &Uuid) -> Result<()> {
     assert_eq!(response.status(), StatusCode::OK);    
 
     let data = response.json::<Data>().await?;
-    assert_eq!(data.empirical, EMPIRICAL);
+    assert_eq!(data.empirical, DEPLOYMENT);
     assert_eq!(data.value, VALUE);
 
     Ok(())
 }
+
+async fn update_productivity_error(token: &String, project: &Uuid) -> Result<()> {
+    const VALUE: i32 = 60;
+    let body = Data {
+        empirical: String::from(PROCUCTIVITY),
+        value: VALUE
+    };
+    let response = reqwest::Client::new()
+        .put(format!("{}/{}/empiricals", URL, &project))
+        .bearer_auth(&token)
+        .json(&body)
+        .send()
+        .await?;
+    assert_eq!(response.status(), StatusCode::NOT_ACCEPTABLE);    
+
+    Ok(())
+}
+
+async fn update_deployment_error(token: &String, project: &Uuid) -> Result<()> {
+    const VALUE: i32 = 160;
+    let body = Data {
+        empirical: String::from(DEPLOYMENT),
+        value: VALUE
+    };
+    let response = reqwest::Client::new()
+        .put(format!("{}/{}/empiricals", URL, &project))
+        .bearer_auth(&token)
+        .json(&body)
+        .send()
+        .await?;
+    assert_eq!(response.status(), StatusCode::NOT_ACCEPTABLE);    
+
+    Ok(())
+}
+
 
 #[tokio::test]
 async fn execute() -> Result<()> {
@@ -68,6 +104,8 @@ async fn execute() -> Result<()> {
     list(&token, &project).await?;
 
     update(&token, &project).await?;
+    update_productivity_error(&token, &project).await?;
+    update_deployment_error(&token, &project).await?;
 
     Ok(())
 }

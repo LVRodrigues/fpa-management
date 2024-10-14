@@ -21,6 +21,8 @@ pub enum Error {
     DatabaseTransaction,
     RegisterUser,
     ProjectCreate,
+    ProductivityInvalid,
+    EmpiricalInvalid,
 }
 
 impl core::fmt::Display for Error {
@@ -55,17 +57,17 @@ impl IntoResponse for Error {
             Error::ContextInvalid |
             Error::KeyNotFound |
             Error::Unauthorized => {
-                (   
-                    StatusCode::UNAUTHORIZED, 
-                    ErrorResponse {
-                        id: Uuid::now_v7(),
-                        time: Utc::now(),
-                        error: "AUTHENTICATION",
-                        message: "Authentication error. Request a new Access Token."
-                    }
-                )
-                
-            }
+                    (   
+                        StatusCode::UNAUTHORIZED, 
+                        ErrorResponse {
+                            id: Uuid::now_v7(),
+                            time: Utc::now(),
+                            error: "AUTHENTICATION",
+                            message: "Authentication error. Request a new Access Token."
+                        }
+                    )
+                    
+                }
             // Error::Forbidden => {
             //     (
             //         StatusCode::FORBIDDEN,
@@ -78,40 +80,62 @@ impl IntoResponse for Error {
             //     )
             // }
             Error::NotFound => {
-                (
-                    StatusCode::NOT_FOUND,
-                    ErrorResponse {
-                        id: Uuid::now_v7(),
-                        time: Utc::now(),
-                        error: "NOT_FOUND",
-                        message: "Resource not found with the specified parameters."
-                    }
-                )
-            }
+                    (
+                        StatusCode::NOT_FOUND,
+                        ErrorResponse {
+                            id: Uuid::now_v7(),
+                            time: Utc::now(),
+                            error: "NOT_FOUND",
+                            message: "Resource not found with the specified parameters."
+                        }
+                    )
+                }
             Error::MultipleRowsAffected => {
-                (
-                    StatusCode::CONFLICT,
-                    ErrorResponse {
-                        id: Uuid::now_v7(),
-                        time: Utc::now(),
-                        error: "DATABASE_ERROR",
-                        message: "Database in inconsistent state."
-                    }
-                )
-            }
+                    (
+                        StatusCode::CONFLICT,
+                        ErrorResponse {
+                            id: Uuid::now_v7(),
+                            time: Utc::now(),
+                            error: "DATABASE_ERROR",
+                            message: "Database in inconsistent state."
+                        }
+                    )
+                }
             Error::JWKSNotFound |
             Error::DatabaseConnection | 
             Error::DatabaseTransaction => {
-                (
-                    StatusCode::SERVICE_UNAVAILABLE,
-                    ErrorResponse {
-                        id: Uuid::now_v7(),
-                        time: Utc::now(),
-                        error: "SERVICE_ERROR",
-                        message: "Service temporarily unavailable."
-                    }
-                )
-            }
+                    (
+                        StatusCode::SERVICE_UNAVAILABLE,
+                        ErrorResponse {
+                            id: Uuid::now_v7(),
+                            time: Utc::now(),
+                            error: "SERVICE_ERROR",
+                            message: "Service temporarily unavailable."
+                        }
+                    )
+                }
+            Error::ProductivityInvalid => {
+                    (
+                        StatusCode::NOT_ACCEPTABLE,
+                        ErrorResponse {
+                            id: Uuid::now_v7(),
+                            time: Utc::now(),
+                            error: "NOT_ACCEPTABLE",
+                            message: "Productivity must have a value between 1 and 50."
+                        }
+                    )
+                }
+            Error::EmpiricalInvalid => {
+                    (
+                        StatusCode::NOT_ACCEPTABLE,
+                        ErrorResponse {
+                            id: Uuid::now_v7(),
+                            time: Utc::now(),
+                            error: "NOT_ACCEPTABLE",
+                            message: "Empirical adjustment factors must have a value between 0 and 100."
+                        }
+                    )
+                }                
             _ => (
                     StatusCode::INTERNAL_SERVER_ERROR,
                     ErrorResponse {

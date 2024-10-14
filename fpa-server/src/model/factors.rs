@@ -13,6 +13,7 @@ use utoipa::ToSchema;
 #[serde(rename = "Factor")] 
 pub struct Model {
     /// Project identifier.
+    #[serde(skip)]
     #[sea_orm(primary_key, auto_increment = false)]
     pub project: Uuid,
     /// Adjustment Fator for the Project.

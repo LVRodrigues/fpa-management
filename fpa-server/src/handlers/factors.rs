@@ -1,21 +1,22 @@
-
 use std::sync::Arc;
 
+use axum::{extract::{Path, State}, response::IntoResponse, Json};
+use reqwest::StatusCode;
 use sea_orm::{ActiveModelTrait, EntityTrait, ModelTrait, Set};
 use serde::Deserialize;
 use utoipa::ToSchema;
 use uuid::Uuid;
-use axum::{extract::{Path, State}, http::StatusCode, response::IntoResponse, Json};
 
-use crate::{ctx::Context, error::Error, model::{empiricals::{ActiveModel, Model}, page::Page, prelude::{Empiricals, Projects}, sea_orm_active_enums::EmpiricalType}, state::AppState};
+use crate::{ctx::Context, error::Error, model::{factors::ActiveModel, factors::Model, page::Page, prelude::{Factors, Projects}, sea_orm_active_enums::{FactorType, InfluenceType}}, state::AppState};
 
-/// Search for a set of Empirical's Factor for a Project.
+
+/// Search for a set of Factor´s Adjustment for a Project.
 #[utoipa::path(
-    tag = "Empiricals",
+    tag = "Factors",
     get,
-    path = "/api/projects/{id}/empiricals",
+    path = "/api/projects/{id}/factors",
     responses(
-        (status = OK, description = "Success", body = Empiricals),
+        (status = OK, description = "Success", body = Factors),
         (status = UNAUTHORIZED, description = "User not authorized.", body = Error),
         (status = NOT_FOUND, description = "Project not founded.", body = Error),
         (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = Error)
@@ -26,7 +27,7 @@ use crate::{ctx::Context, error::Error, model::{empiricals::{ActiveModel, Model}
     security(("fpa-security" = []))
 )]
 pub async fn list(Path(id): Path<Uuid>, context: Option<Context>, state: State<Arc<AppState>>) -> Result<impl IntoResponse, Error> {
-    println!("==> {:<12} - /{id}/list", "EMPIRICALS");
+    println!("==> {:<12} - /{id}/list", "FACTORS");
     let ctx = context.unwrap();
     let db = state.connection(ctx.tenant()).await?;
 
@@ -35,7 +36,7 @@ pub async fn list(Path(id): Path<Uuid>, context: Option<Context>, state: State<A
         None => return Err(Error::NotFound),
     };
 
-    let items = project.find_related(Empiricals).all(&db).await?;
+    let items = project.find_related(Factors).all(&db).await?;
     let mut page: Page<Model> = Page::new();
     page.pages      = 1;
     page.index      = 1;
@@ -46,22 +47,22 @@ pub async fn list(Path(id): Path<Uuid>, context: Option<Context>, state: State<A
     Ok(Json(page))
 }
 
-/// Empirical update params.
+/// Adjustments Factors update params.
 #[derive(Debug, Deserialize, ToSchema)]
-pub struct EmpiricalUpdateParam {
-    /// Empirical`s Factor
-    pub empirical: EmpiricalType,
-    /// Percent of influence for the Empirical`s Factor.
-    pub value: i32,
+pub struct FactorUpdateParam {
+    /// Adjustment Fator for the Project.
+    pub factor: FactorType,
+    /// Influence value for the factor on this project.
+    pub influence: InfluenceType,    
 }
 
-/// Update a Empirical Factor.
+/// Update a adjustement Factor.
 #[utoipa::path(
-    tag = "Empiricals",
+    tag = "Factors",
     put,
-    path = "/api/projects/{id}/empiricals"    ,
+    path = "/api/projects/{id}/factors",
     responses(
-        (status = OK, description = "Success", body = Empirical),
+        (status = OK, description = "Success", body = Factor),
         (status = UNAUTHORIZED, description = "User not authorized.", body = Error),
         (status = NOT_FOUND, description = "Project not founded.", body = Error),
         (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = Error)
@@ -71,35 +72,24 @@ pub struct EmpiricalUpdateParam {
     ),
     security(("fpa-security" = []))
 )]
-pub async fn update(Path(id): Path<Uuid>, context: Option<Context>, state: State<Arc<AppState>>, Json(params): Json<EmpiricalUpdateParam>) -> Result<impl IntoResponse, Error> {
-    println!("==> {:<12} - /{id}/update (Params: {:?})", "EMPIRICALS", params);
-
-    if params.empirical == EmpiricalType::Productivity {
-        if params.value < 1 || params.value > 50 {
-            return Err(Error::ProductivityInvalid);
-        }
-    } else {
-        if params.value < 0 || params.value > 100 {
-            return Err(Error::EmpiricalInvalid);
-        }
-    }
-
+pub async fn update(Path(id): Path<Uuid>, context: Option<Context>, state: State<Arc<AppState>>, Json(params): Json<FactorUpdateParam>) -> Result<impl IntoResponse, Error> {
+    println!("==> {:<12} - /{id}/update (Params: {:?}", "FACTORS", params);
     let ctx = context.unwrap();
     let db = state.connection(ctx.tenant()).await?;    
 
-    let data = match Empiricals::find_by_id((id, params.empirical)).one(&db).await.unwrap() {
+    let data = match Factors::find_by_id((id, params.factor)).one(&db).await.unwrap() {
         Some(v) => v,
         None => return Err(Error::NotFound),
     };
 
     let mut data: ActiveModel = data.into();
-    data.value = Set(params.value);
-    
+    data.influence = Set(params.influence);
+
     let data: Model = data.update(&db).await?;
     match db.commit().await {
         Ok(it) => it,
         Err(_) => return Err(Error::DatabaseTransaction),
-    };
+    }
 
     Ok((StatusCode::OK, Json(data)))
 }
