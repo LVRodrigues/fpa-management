@@ -55,6 +55,7 @@ pub struct EmpiricalUpdateParam {
     pub value: i32,
 }
 
+/// Update a Empirical Factor.
 #[utoipa::path(
     tag = "Empiricals",
     put,

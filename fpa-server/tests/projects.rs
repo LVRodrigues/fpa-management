@@ -5,10 +5,8 @@ use reqwest::StatusCode;
 use sea_orm::prelude::DateTimeWithTimeZone;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use crate::shared::tokens::{self, Tenant};
+use shared::{tokens::{self, Tenant}, URL};
 use serde_json::json;
-
-const URL: &str = "http://localhost:5000/api/projects";
 
 const USERNAME: &str = "user";
 const PASSWORD: &str = "fpa-pass";
