@@ -58,18 +58,19 @@ impl IntoResponse for Error {
                 (   
                     StatusCode::UNAUTHORIZED, 
                     ErrorResponse {
-                        id: Uuid::new_v4(),
+                        id: Uuid::now_v7(),
                         time: Utc::now(),
                         error: "AUTHENTICATION",
                         message: "Authentication error. Request a new Access Token."
                     }
                 )
+                
             }
             // Error::Forbidden => {
             //     (
             //         StatusCode::FORBIDDEN,
             //             ErrorResponse {
-            //             id: Uuid::new_v4(),
+            //             id: Uuid::now_v7(),
             //             time: Utc::now(),
             //             error: "AUTHORIZATION",
             //             message: "Não autorizado para esta operação."
@@ -80,7 +81,7 @@ impl IntoResponse for Error {
                 (
                     StatusCode::NOT_FOUND,
                     ErrorResponse {
-                        id: Uuid::new_v4(),
+                        id: Uuid::now_v7(),
                         time: Utc::now(),
                         error: "NOT_FOUND",
                         message: "Resource not found with the specified parameters."
@@ -91,7 +92,7 @@ impl IntoResponse for Error {
                 (
                     StatusCode::CONFLICT,
                     ErrorResponse {
-                        id: Uuid::new_v4(),
+                        id: Uuid::now_v7(),
                         time: Utc::now(),
                         error: "DATABASE_ERROR",
                         message: "Database in inconsistent state."
@@ -104,7 +105,7 @@ impl IntoResponse for Error {
                 (
                     StatusCode::SERVICE_UNAVAILABLE,
                     ErrorResponse {
-                        id: Uuid::new_v4(),
+                        id: Uuid::now_v7(),
                         time: Utc::now(),
                         error: "SERVICE_ERROR",
                         message: "Service temporarily unavailable."
@@ -114,7 +115,7 @@ impl IntoResponse for Error {
             _ => (
                     StatusCode::INTERNAL_SERVER_ERROR,
                     ErrorResponse {
-                        id: Uuid::new_v4(),
+                        id: Uuid::now_v7(),
                         time: Utc::now(),
                         error: "SERVICE_ERROR",
                         message: "Internal service error."

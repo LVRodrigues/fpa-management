@@ -12,7 +12,9 @@
             "args": [],
             "cwd": "${workspaceFolder}/fpa-server",
             "env": {
-                "RUST_BACKTRACE": "1"
+                "RUST_BACKTRACE": "1",
+                "RUST_LOG":"debug",
+                "axum::rejection":"trace"
             }
         }
 

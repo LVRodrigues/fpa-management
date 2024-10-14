@@ -8,7 +8,7 @@ pub async fn response_mapper(context: Option<Context>, uri: Uri, method: Method,
     println!("==> {:<12} - response_mapper", "MAPPER ");
 
     log::log_request(
-        Uuid::new_v4(),
+        Uuid::now_v7(),
         method,
         uri,
         context,

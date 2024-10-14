@@ -12,7 +12,7 @@ DECLARE
 	t RECORD;
 	i INTEGER;
 	project uuid;
-	factor factor;
+	factor factor_type;
 BEGIN
 	FOR t IN SELECT * FROM tenants LOOP
 		FOR i IN 1..100 LOOP
@@ -24,11 +24,11 @@ BEGIN
 			INSERT INTO empiricals (project, empirical, tenant, value) VALUES 
 				(project, 'PRODUCTIVITY', t.tenant, 14),
 				(project, 'PLANNING', t.tenant, 15),
-				(project, 'COODINATION', t.tenant, 20),
+				(project, 'COORDINATION', t.tenant, 20),
 				(project, 'TESTING', t.tenant, 20),
 				(project, 'DEPLOYMENT', t.tenant, 10);
 
-			FOR factor IN SELECT unnest(enum_range(NULL::factor)) LOOP
+			FOR factor IN SELECT unnest(enum_range(NULL::factor_type)) LOOP
 				INSERT INTO factors (project, factor, tenant, influence)
 				VALUES (project, factor, t.tenant, 'ABSENT');
 			END LOOP;

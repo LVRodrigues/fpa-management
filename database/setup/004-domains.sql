@@ -30,16 +30,16 @@ CREATE TYPE tenant_tier AS ENUM (
     'BRONZE');
 COMMENT ON TYPE tenant_status IS 'Tenant access level on the system.';	
 
-CREATE TYPE influence AS ENUM (
+CREATE TYPE influence_type AS ENUM (
 	'ABSENT', 
 	'MINIMUM', 
 	'MODERATE',
     'AVERAGE',
     'SIGNIFICANT',
     'STRONG');
-COMMENT ON TYPE influence IS 'Influence value for the adjustment factor.';   
+COMMENT ON TYPE influence_type IS 'Influence value for the adjustment factor.';   
     
-CREATE TYPE factor AS ENUM (
+CREATE TYPE factor_type AS ENUM (
 	'DATA_COMMUNICATIONS',
 	'DISTRIBUTED_DATA_PROCESSING',
 	'PERFORMANCE',
@@ -54,15 +54,15 @@ CREATE TYPE factor AS ENUM (
 	'OPERATIONAL_EASE',
 	'FACILITTE_CHANGE',
 	'MULTIPLE_SITES');
-COMMENT ON TYPE factor IS 'Adjustment factor for the Project.';
+COMMENT ON TYPE factor_type IS 'Adjustment factor for the Project.';
 
-CREATE TYPE empirical AS ENUM (
+CREATE TYPE empirical_type AS ENUM (
 	'PRODUCTIVITY',
     'PLANNING',
-    'COODINATION',
+    'COORDINATION',
     'TESTING',
     'DEPLOYMENT');
-COMMENT ON TYPE empirical IS 'Empirical adjustment for the Project.';
+COMMENT ON TYPE empirical_type IS 'Empirical adjustment for the Project.';
 
 CREATE TYPE function_type AS ENUM (
 	'ALI',

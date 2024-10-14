@@ -151,9 +151,9 @@ COMMENT ON INDEX uq_projects_tenant_name IS 'Unique Project Name on a Tenant.';
 
 CREATE TABLE factors (
     project     id,
-    factor      factor NOT NULL,
+    factor      factor_type NOT NULL,
     tenant      id,
-    influence   influence NOT NULL
+    influence   influence_type NOT NULL
 );
 
 COMMENT ON TABLE factors            IS 'Adjustments Factors for the Project.';
@@ -196,7 +196,7 @@ COMMENT ON INDEX ix_factors_influence IS 'Influence value for the Factor`s Type 
 
 CREATE TABLE empiricals (
     project     id,
-    empirical   empirical NOT NULL,
+    empirical   empirical_type NOT NULL,
     tenant      id,
     value       INTEGER NOT NULL
 );
