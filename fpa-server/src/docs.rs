@@ -1,8 +1,5 @@
-
-use std::collections::HashMap;
-
-use serde_json::{json, Value};
-use utoipa::{openapi::{security::{Flow, OAuth2, Password, Scopes, SecurityScheme}, Components}, Modify, OpenApi};
+use serde_json::json;
+use utoipa::{openapi::{extensions::Extensions, security::{Flow, OAuth2, Password, Scopes, SecurityScheme}, Components}, Modify, OpenApi};
 
 
 #[derive(OpenApi)]
@@ -11,6 +8,8 @@ use utoipa::{openapi::{security::{Flow, OAuth2, Password, Scopes, SecurityScheme
         [name = "Status", description = "Check service health."],
         [name = "Projects", description = "FPA Projects management."],
         [name = "Empiricals", description = "Empiricals Adjustments Factors."],
+        [name = "Factors", description = "Adjustments Factors."],
+        [name = "Modules", description = "Analysis frontier modules."],
     ),
     paths(
         crate::handlers::health,
@@ -31,20 +30,14 @@ use utoipa::{openapi::{security::{Flow, OAuth2, Password, Scopes, SecurityScheme
             crate::model::sea_orm_active_enums::InfluenceType,
             crate::model::sea_orm_active_enums::FunctionType,
             crate::model::users::Model,
-            crate::model::page::Users,
             crate::model::projects::Model,
-            crate::model::page::Projects,
             crate::model::empiricals::Model,
-            crate::model::page::Empiricals,
             crate::model::factors::Model,
-            crate::model::page::Factors,
             crate::model::versions::Model,
-            crate::model::page::Versions,
             crate::error::ErrorResponse,
-            crate::handlers::projects::ProjectCreateParam,
-            crate::handlers::projects::ProjectUpdateParam,
-            crate::handlers::empiricals::EmpiricalUpdateParam,
-            crate::handlers::factors::FactorUpdateParam,
+            crate::handlers::projects::ProjectParam,
+            crate::handlers::empiricals::EmpiricalParam,
+            crate::handlers::factors::FactorParam,
         ),
     ),
     modifiers(&SecuritySchemas, &InfoModifier),
@@ -54,14 +47,13 @@ pub struct ApiDoc;
 struct InfoModifier;
 impl Modify for InfoModifier {
     fn modify(&self, openapi: &mut utoipa::openapi::OpenApi) {
-        let mut logo: HashMap<String, Value> = HashMap::new();
         let value = json!({
-            //"url": "https://github.com/LVRodrigues/apf-calc/blob/main/src/assets/logo.png?raw=true", 
             "url": "/assets/logo.png", 
             "backgroundColor": "#FFFFFF"
         });
-        logo.insert("x-logo".to_owned(), value);
-        openapi.info.extensions = Some(logo);
+        openapi.info.extensions = Some(Extensions::builder()
+            .add("x-logo", value)
+            .build());
 
         let desc = r#"
 # Introduction

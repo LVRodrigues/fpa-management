@@ -4,6 +4,7 @@ use sea_orm::entity::prelude::*;
 use serde_derive::Serialize;
 use utoipa::{schema, ToSchema};
 
+/// Project for analysis.
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, ToSchema)]
 #[sea_orm(table_name = "projects")]
 #[schema(as=Project)]

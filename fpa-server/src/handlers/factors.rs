@@ -7,7 +7,7 @@ use serde::Deserialize;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
-use crate::{ctx::Context, error::Error, model::{factors::ActiveModel, factors::Model, page::Page, prelude::{Factors, Projects}, sea_orm_active_enums::{FactorType, InfluenceType}}, state::AppState};
+use crate::{ctx::Context, error::{Error, ErrorResponse}, model::{factors::{self, ActiveModel, Model}, page::Page, prelude::{Factors, Projects}, sea_orm_active_enums::{FactorType, InfluenceType}}, state::AppState};
 
 
 /// Search for a set of Factor´s Adjustment for a Project.
@@ -16,10 +16,10 @@ use crate::{ctx::Context, error::Error, model::{factors::ActiveModel, factors::M
     get,
     path = "/api/projects/{id}/factors",
     responses(
-        (status = OK, description = "Success", body = Factors),
-        (status = UNAUTHORIZED, description = "User not authorized.", body = Error),
-        (status = NOT_FOUND, description = "Project not founded.", body = Error),
-        (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = Error)
+        (status = OK, description = "Success", body = factors::Model),
+        (status = UNAUTHORIZED, description = "User not authorized.", body = ErrorResponse),
+        (status = NOT_FOUND, description = "Project not founded.", body = ErrorResponse),
+        (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = ErrorResponse)
     ),
     params(
         ("id" = Uuid, description = "Project Unique ID.")
@@ -47,9 +47,9 @@ pub async fn list(Path(id): Path<Uuid>, context: Option<Context>, state: State<A
     Ok(Json(page))
 }
 
-/// Adjustments Factors update params.
+/// Adjustments Factors's properties.
 #[derive(Debug, Deserialize, ToSchema)]
-pub struct FactorUpdateParam {
+pub struct FactorParam {
     /// Adjustment Fator for the Project.
     pub factor: FactorType,
     /// Influence value for the factor on this project.
@@ -62,17 +62,17 @@ pub struct FactorUpdateParam {
     put,
     path = "/api/projects/{id}/factors",
     responses(
-        (status = OK, description = "Success", body = Factor),
-        (status = UNAUTHORIZED, description = "User not authorized.", body = Error),
-        (status = NOT_FOUND, description = "Project not founded.", body = Error),
-        (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = Error)
+        (status = OK, description = "Success", body = factors::Model),
+        (status = UNAUTHORIZED, description = "User not authorized.", body = ErrorResponse),
+        (status = NOT_FOUND, description = "Project not founded.", body = ErrorResponse),
+        (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = ErrorResponse)
     ),
     params(
         ("id" = Uuid, description = "Project Unique ID.")
     ),
     security(("fpa-security" = []))
 )]
-pub async fn update(Path(id): Path<Uuid>, context: Option<Context>, state: State<Arc<AppState>>, Json(params): Json<FactorUpdateParam>) -> Result<impl IntoResponse, Error> {
+pub async fn update(Path(id): Path<Uuid>, context: Option<Context>, state: State<Arc<AppState>>, Json(params): Json<FactorParam>) -> Result<impl IntoResponse, Error> {
     println!("==> {:<12} - /{id}/update (Params: {:?}", "FACTORS", params);
     let ctx = context.unwrap();
     let db = state.connection(ctx.tenant()).await?;    

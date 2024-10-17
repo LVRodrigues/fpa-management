@@ -4,6 +4,7 @@ use sea_orm::entity::prelude::*;
 use serde_derive::Serialize;
 use utoipa::ToSchema;
 
+/// Authenticated User who performed the operation.
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, ToSchema)]
 #[sea_orm(table_name = "users")]
 #[schema(as=User)]

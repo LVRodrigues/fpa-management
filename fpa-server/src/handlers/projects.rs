@@ -6,7 +6,7 @@ use sea_orm::{ActiveModelTrait, ColumnTrait, Condition, EntityTrait, ModelTrait,
 use serde_derive::Deserialize;
 use utoipa::ToSchema;
 use uuid::Uuid;
-use crate::{ctx::Context, error::Error, model::{page::{Page, PageParams}, prelude::Projects, projects::{self, ActiveModel, Model}}, state::AppState};
+use crate::{ctx::Context, error::{Error, ErrorResponse}, model::{page::{Page, PageParams}, prelude::Projects, projects::{self, ActiveModel, Model}}, state::AppState};
 
 /// Search for a set of Projects.
 #[utoipa::path(
@@ -14,9 +14,9 @@ use crate::{ctx::Context, error::Error, model::{page::{Page, PageParams}, prelud
     get,
     path = "/api/projects",
     responses(
-        (status = OK, description = "Success.", body = Projects),
-        (status = UNAUTHORIZED, description = "User not authorized.", body = Error),
-        (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = Error)
+        (status = OK, description = "Success.", body = Page<projects::Model>),
+        (status = UNAUTHORIZED, description = "User not authorized.", body = ErrorResponse),
+        (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = ErrorResponse)
     ),
     params(PageParams),
     security(("fpa-security" = []))
@@ -52,10 +52,10 @@ pub async fn list(params: Query<PageParams>, context: Option<Context>, state: St
     get,
     path = "/api/projects/{id}",
     responses(
-        (status = OK, description = "Success.", body = Project),
-        (status = UNAUTHORIZED, description = "User not authorized.", body = Error),
-        (status = NOT_FOUND, description = "Project not founded.", body = Error),
-        (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = Error)
+        (status = OK, description = "Success.", body = projects::Model),
+        (status = UNAUTHORIZED, description = "User not authorized.", body = ErrorResponse),
+        (status = NOT_FOUND, description = "Project not founded.", body = ErrorResponse),
+        (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = ErrorResponse)
     ),
     params(
         ("id" = Uuid, Path, description = "Project Unique ID.")
@@ -74,9 +74,9 @@ pub async fn by_id(Path(id): Path<Uuid>, context: Option<Context>, state: State<
     }
 }
 
-/// Project create params.
+/// Project's properties.
 #[derive(Debug, Deserialize, ToSchema)]
-pub struct ProjectCreateParam {
+pub struct ProjectParam {
     /// New Project's name.
     pub name: String,
     /// New Project's description.
@@ -89,13 +89,13 @@ pub struct ProjectCreateParam {
     post,
     path = "/api/projects",
     responses(
-        (status = CREATED, description = "Success.", body = Project, headers(("Location", description = "New project address."))),
-        (status = UNAUTHORIZED, description = "User not authorized.", body = Error),
-        (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = Error)
+        (status = CREATED, description = "Success.", body = projects::Model, headers(("Location", description = "New project address."))),
+        (status = UNAUTHORIZED, description = "User not authorized.", body = ErrorResponse),
+        (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = ErrorResponse)
     ),
     security(("fpa-security" = []))
 )]
-pub async fn create(context: Option<Context>, state: State<Arc<AppState>>, Json(params): Json<ProjectCreateParam>) -> Result<impl IntoResponse, Error> {
+pub async fn create(context: Option<Context>, state: State<Arc<AppState>>, Json(params): Json<ProjectParam>) -> Result<impl IntoResponse, Error> {
     println!("==> {:<12} - /create (Name: {:?})", "PROJECTS", params);
     let ctx = context.unwrap();
     let db = state.connection(ctx.tenant()).await?;
@@ -136,37 +136,28 @@ pub async fn create(context: Option<Context>, state: State<Arc<AppState>>, Json(
     Ok((StatusCode::CREATED, header, Json(project)))
 }
 
-
-/// Project update params.
-#[derive(Debug, Deserialize, ToSchema)]
-pub struct ProjectUpdateParam {
-    /// Project Unique ID
-    pub id: Uuid,
-    /// New Project's name.
-    pub name: String,
-    /// New Project's description.
-    pub description: Option<String>,
-}
-
 /// Update a existing Project.
 #[utoipa::path(
     tag = "Projects",
     put,
-    path = "/api/projects",
+    path = "/api/projects/{id}",
     responses(
-        (status = OK, description = "Success.", body = Project),
-        (status = UNAUTHORIZED, description = "User not authorized.", body = Error),
-        (status = NOT_FOUND, description = "Project not founded.", body = Error),
-        (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = Error)
+        (status = OK, description = "Success.", body = projects::Model),
+        (status = UNAUTHORIZED, description = "User not authorized.", body = ErrorResponse),
+        (status = NOT_FOUND, description = "Project not founded.", body = ErrorResponse),
+        (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = ErrorResponse)
+    ),
+    params(
+        ("id" = Uuid, Path, description = "Project Unique ID.")
     ),
     security(("fpa-security" = []))
 )]
-pub async fn update(context: Option<Context>, state: State<Arc<AppState>>, Json(params): Json<ProjectUpdateParam>) -> Result<impl IntoResponse, Error> {
+pub async fn update(Path(id): Path<Uuid>, context: Option<Context>, state: State<Arc<AppState>>, Json(params): Json<ProjectParam>) -> Result<impl IntoResponse, Error> {
     println!("==> {:<12} - /update ({:?})", "PROJECTS", params);
     let ctx = context.unwrap();
     let db = state.connection(ctx.tenant()).await?;    
 
-    let data: Option<Model> = Projects::find_by_id(params.id).one(&db).await?;
+    let data: Option<Model> = Projects::find_by_id(id).one(&db).await?;
     let data = match data {
         Some(v) => v,
         None => return Err(Error::NotFound),
@@ -191,9 +182,9 @@ pub async fn update(context: Option<Context>, state: State<Arc<AppState>>, Json(
     path = "/api/projects/{id}",
     responses(
         (status = NO_CONTENT, description = "Success."),
-        (status = UNAUTHORIZED, description = "User not authorized.", body = Error),
-        (status = NOT_FOUND, description = "Project not founded.", body = Error),
-        (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = Error)
+        (status = UNAUTHORIZED, description = "User not authorized.", body = ErrorResponse),
+        (status = NOT_FOUND, description = "Project not founded.", body = ErrorResponse),
+        (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = ErrorResponse)
     ),
     params(
         ("id" = Uuid, Path, description = "Project Unique ID.")

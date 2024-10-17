@@ -7,7 +7,7 @@ use utoipa::ToSchema;
 use uuid::Uuid;
 use axum::{extract::{Path, State}, http::StatusCode, response::IntoResponse, Json};
 
-use crate::{ctx::Context, error::Error, model::{empiricals::{ActiveModel, Model}, page::Page, prelude::{Empiricals, Projects}, sea_orm_active_enums::EmpiricalType}, state::AppState};
+use crate::{ctx::Context, error::{Error, ErrorResponse}, model::{empiricals::{self, ActiveModel, Model}, page::Page, prelude::{Empiricals, Projects}, sea_orm_active_enums::EmpiricalType}, state::AppState};
 
 /// Search for a set of Empirical's Factor for a Project.
 #[utoipa::path(
@@ -15,10 +15,10 @@ use crate::{ctx::Context, error::Error, model::{empiricals::{ActiveModel, Model}
     get,
     path = "/api/projects/{id}/empiricals",
     responses(
-        (status = OK, description = "Success", body = Empiricals),
-        (status = UNAUTHORIZED, description = "User not authorized.", body = Error),
-        (status = NOT_FOUND, description = "Project not founded.", body = Error),
-        (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = Error)
+        (status = OK, description = "Success", body = empiricals::Model),
+        (status = UNAUTHORIZED, description = "User not authorized.", body = ErrorResponse),
+        (status = NOT_FOUND, description = "Project not founded.", body = ErrorResponse),
+        (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = ErrorResponse)
     ),
     params(
         ("id" = Uuid, description = "Project Unique ID.")
@@ -46,9 +46,9 @@ pub async fn list(Path(id): Path<Uuid>, context: Option<Context>, state: State<A
     Ok(Json(page))
 }
 
-/// Empirical update params.
+/// Empirical's properties.
 #[derive(Debug, Deserialize, ToSchema)]
-pub struct EmpiricalUpdateParam {
+pub struct EmpiricalParam {
     /// Empirical`s Factor
     pub empirical: EmpiricalType,
     /// Percent of influence for the Empirical`s Factor.
@@ -59,19 +59,19 @@ pub struct EmpiricalUpdateParam {
 #[utoipa::path(
     tag = "Empiricals",
     put,
-    path = "/api/projects/{id}/empiricals"    ,
+    path = "/api/projects/{id}/empiricals",
     responses(
-        (status = OK, description = "Success", body = Empirical),
-        (status = UNAUTHORIZED, description = "User not authorized.", body = Error),
-        (status = NOT_FOUND, description = "Project not founded.", body = Error),
-        (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = Error)
+        (status = OK, description = "Success", body = empiricals::Model),
+        (status = UNAUTHORIZED, description = "User not authorized.", body = ErrorResponse),
+        (status = NOT_FOUND, description = "Project not founded.", body = ErrorResponse),
+        (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = ErrorResponse)
     ),
     params(
         ("id" = Uuid, description = "Project Unique ID.")
     ),
     security(("fpa-security" = []))
 )]
-pub async fn update(Path(id): Path<Uuid>, context: Option<Context>, state: State<Arc<AppState>>, Json(params): Json<EmpiricalUpdateParam>) -> Result<impl IntoResponse, Error> {
+pub async fn update(Path(id): Path<Uuid>, context: Option<Context>, state: State<Arc<AppState>>, Json(params): Json<EmpiricalParam>) -> Result<impl IntoResponse, Error> {
     println!("==> {:<12} - /{id}/update (Params: {:?})", "EMPIRICALS", params);
 
     if params.empirical == EmpiricalType::Productivity {
