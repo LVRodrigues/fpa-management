@@ -1,6 +1,7 @@
 pub mod projects;
 pub mod empiricals;
 pub mod factors;
+pub mod modules;
 
 use std::{sync::Arc, time::Duration};
 
@@ -59,6 +60,7 @@ pub async fn router(config: Configuration) -> Result<Router, Error> {
                 .put(empiricals::update))
             .route("/projects/:id/factors", get(factors::list)
                 .put(factors::update))
+            .route("/projects/{id}/modules", get(modules::list))
             .route("/health", get(health))
             .layer(middleware::map_response(response_mapper))
             .route_layer(middleware::from_fn_with_state(state.clone(), auth::user_register))

@@ -11,7 +11,7 @@ use utoipa::ToSchema;
 #[schema(as=Empirical)]
 #[serde(rename = "Empirical")] 
 pub struct Model {
-    /// Project identifier.
+    /// Project Unique Identifier.
     #[serde(skip)]
     #[sea_orm(primary_key, auto_increment = false)]
     pub project: Uuid,

@@ -22,6 +22,7 @@ use utoipa::{openapi::{extensions::Extensions, security::{Flow, OAuth2, Password
         crate::handlers::empiricals::update,
         crate::handlers::factors::list,
         crate::handlers::factors::update,
+        crate::handlers::modules::list,
     ),
     components(
         schemas(
@@ -33,6 +34,7 @@ use utoipa::{openapi::{extensions::Extensions, security::{Flow, OAuth2, Password
             crate::model::projects::Model,
             crate::model::empiricals::Model,
             crate::model::factors::Model,
+            crate::model::modules::Model,
             crate::model::versions::Model,
             crate::error::ErrorResponse,
             crate::handlers::projects::ProjectParam,
