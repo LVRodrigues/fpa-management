@@ -5,7 +5,7 @@ use reqwest::StatusCode;
 use sea_orm::prelude::DateTimeWithTimeZone;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use shared::{tokens::{self, Tenant}, URL};
+use shared::{selects::project, tokens::{self, Tenant}, URL};
 use serde_json::json;
 
 const USERNAME: &str = "user";
@@ -109,12 +109,11 @@ async fn find_by_name(token: &String, data: &Data) -> Result<()> {
 
 async fn update(token: &String, data: &Data) -> Result<Data> {
     let body = json!({
-        "id": data.project,
         "name": "Nome Alterado",
         "description": "Descrição alterada...",
     });
     let response = reqwest::Client::new()
-        .put(format!("{}?name={}", URL, PROJECT_NAME))
+        .put(format!("{}/{}", URL, data.project))
         .bearer_auth(token)
         .json(&body)
         .send()

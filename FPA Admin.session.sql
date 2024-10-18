@@ -1,1 +1,1 @@
-select * from projects;
+delete from projects where project = '01929c86-efbb-7712-86c5-81ae2512cb90'
