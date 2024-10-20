@@ -20,3 +20,10 @@ database:
 scheme: HTTP
 authority: oauth-2
 port: 5000
+
+empiricals: 
+  productivity: 14
+  coordination: 20
+  deployment: 10
+  planning: 15
+  testing: 20

@@ -20,12 +20,22 @@ pub struct ConfigurationDatabase {
 }
 
 #[derive(Debug, Clone)]
+pub struct Empiricals {
+    pub productivity: i32,
+    pub coordination: i32,
+    pub deployment: i32,
+    pub planning: i32,
+    pub testing: i32,
+}
+
+#[derive(Debug, Clone)]
 pub struct Configuration {
     pub scheme: Scheme,
     pub authority: String,
     pub port: u16,
     pub jwks: Vec<String>,
     pub database: ConfigurationDatabase,
+    pub empiricals: Empiricals,
 }
 
 pub fn prepare() -> Configuration {
@@ -55,5 +65,12 @@ pub fn prepare() -> Configuration {
             timeout_idle: settings.get("database.timeout_idle").unwrap(),
             lifetime: settings.get("database.lifetime").unwrap(),
         },
+        empiricals: Empiricals {
+            productivity: settings.get("empiricals.productivity").unwrap(),
+            coordination: settings.get("empiricals.coordination").unwrap(),
+            deployment: settings.get("empiricals.deployment").unwrap(),
+            planning: settings.get("empiricals.planning").unwrap(),
+            testing: settings.get("empiricals.testing").unwrap(),
+        }
     }
 }

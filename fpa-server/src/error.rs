@@ -21,7 +21,10 @@ pub enum Error {
     DatabaseTransaction,
     RegisterUser,
     ProjectCreate,
+    ProjectFactorCreate,
+    ProjectEmpiricalCreate,
     ProductivityInvalid,
+    ProjectConstraints,
     EmpiricalInvalid,
 }
 
@@ -100,6 +103,17 @@ impl IntoResponse for Error {
                             message: "Database in inconsistent state."
                         }
                     )
+                }
+            Error::ProjectConstraints => {
+                (
+                    StatusCode::PRECONDITION_FAILED,
+                    ErrorResponse {
+                        id: Uuid::now_v7(),
+                        time: Utc::now(),
+                        error: "PROJECT_ERROR",
+                        message: "Project has related records."
+                    }
+                )
                 }
             Error::JWKSNotFound |
             Error::DatabaseConnection | 

@@ -2,11 +2,11 @@ use std::sync::Arc;
 
 use axum::{extract::{Path, Query, State}, http::{HeaderMap, StatusCode, Uri}, response::IntoResponse, Json};
 use chrono::Utc;
-use sea_orm::{ActiveModelTrait, ColumnTrait, Condition, EntityTrait, ModelTrait, PaginatorTrait, QueryFilter, Set};
+use sea_orm::{ActiveModelTrait, ColumnTrait, Condition, DatabaseTransaction, DbErr, EntityTrait, Iterable, ModelTrait, PaginatorTrait, QueryFilter, Set};
 use serde_derive::Deserialize;
 use utoipa::ToSchema;
 use uuid::Uuid;
-use crate::{ctx::Context, error::{Error, ErrorResponse}, model::{page::{Page, PageParams}, prelude::Projects, projects::{self, ActiveModel, Model}}, state::AppState};
+use crate::{configuration::{Configuration, Empiricals}, ctx::Context, error::{Error, ErrorResponse}, model::{self, empiricals, factors, page::{Page, PageParams}, prelude::Projects, projects::{self, ActiveModel, Model}, sea_orm_active_enums::{EmpiricalType, FactorType, InfluenceType}}, state::AppState};
 
 /// Search for a set of Projects.
 #[utoipa::path(
@@ -99,6 +99,7 @@ pub async fn create(context: Option<Context>, state: State<Arc<AppState>>, Json(
     println!("==> {:<12} - /create (Name: {:?})", "PROJECTS", params);
     let ctx = context.unwrap();
     let db = state.connection(ctx.tenant()).await?;
+    let config = state.configuration();
 
     let project = projects::ActiveModel {
         project: Set(Uuid::now_v7()),
@@ -115,12 +116,22 @@ pub async fn create(context: Option<Context>, state: State<Arc<AppState>>, Json(
         },
         Err(_) => return Err(Error::ProjectCreate),
     };
+    
+    match add_factors(&db, project.project.clone(), ctx.tenant().clone()).await {
+        Ok(_) => (),
+        Err(_) => return Err(Error::ProjectFactorCreate),
+    };
+
+    match add_empiricals(&db, project.project.clone(), ctx.tenant().clone(), config).await {
+        Ok(_) => (),
+        Err(_) => return Err(Error::ProjectEmpiricalCreate),
+    };
+
     match db.commit().await {
         Ok(it) => it,
         Err(_) => return Err(Error::DatabaseTransaction),
     };
 
-    let config = state.configuration();
     let location = Uri::builder()
         .scheme(config.scheme.clone())
         .authority(format!("{}:{}", config.authority.clone(), config.port.clone()))
@@ -134,6 +145,64 @@ pub async fn create(context: Option<Context>, state: State<Arc<AppState>>, Json(
     header.insert("Location", location);
 
     Ok((StatusCode::CREATED, header, Json(project)))
+}
+
+async fn add_factors(db: &DatabaseTransaction, project: Uuid, tenant: Uuid) -> Result<(), DbErr> {
+    for factor_type in FactorType::iter() {
+        let factor = factors::ActiveModel {
+            project: Set(project),
+            tenant: Set(tenant),
+            factor: Set(factor_type),
+            influence: Set(InfluenceType::Absent),
+        };
+        factor.insert(db).await?;
+    }
+    Ok(())
+}
+
+async fn add_empiricals(db: &DatabaseTransaction, project: Uuid, tenant: Uuid, config: &Configuration) -> Result<(), DbErr> {
+    let coordination = empiricals::ActiveModel {
+        project: Set(project),
+        tenant: Set(tenant),
+        empirical: Set(EmpiricalType::Coordination),
+        value: Set(config.empiricals.coordination),
+    };
+    coordination.insert(db).await?;
+
+    let deployment = empiricals::ActiveModel {
+        project: Set(project),
+        tenant: Set(tenant),
+        empirical: Set(EmpiricalType::Deployment),
+        value: Set(config.empiricals.deployment),
+    };
+    deployment.insert(db).await?;
+
+    let planning = empiricals::ActiveModel {
+        project: Set(project),
+        tenant: Set(tenant),
+        empirical: Set(EmpiricalType::Planning),
+        value: Set(config.empiricals.planning),
+    };
+    planning.insert(db).await?;
+
+    let productivity = empiricals::ActiveModel {
+        project: Set(project),
+        tenant: Set(tenant),
+        empirical: Set(EmpiricalType::Productivity),
+        value: Set(config.empiricals.productivity),
+    };
+    productivity.insert(db).await?;
+
+
+    let testing = empiricals::ActiveModel {
+        project: Set(project),
+        tenant: Set(tenant),
+        empirical: Set(EmpiricalType::Testing),
+        value: Set(config.empiricals.testing),
+    };
+    testing.insert(db).await?;
+
+    Ok(())
 }
 
 /// Update a existing Project.
@@ -184,7 +253,8 @@ pub async fn update(Path(id): Path<Uuid>, context: Option<Context>, state: State
         (status = NO_CONTENT, description = "Success."),
         (status = UNAUTHORIZED, description = "User not authorized.", body = ErrorResponse),
         (status = NOT_FOUND, description = "Project not founded.", body = ErrorResponse),
-        (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = ErrorResponse)
+        (status = PRECONDITION_FAILED, description = "Project has related records.", body = ErrorResponse),
+        (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = ErrorResponse),
     ),
     params(
         ("id" = Uuid, Path, description = "Project Unique ID.")
@@ -201,13 +271,26 @@ pub async fn remove(Path(id): Path<Uuid>, context: Option<Context>, state: State
         Some(v) => v,
         None => return Err(Error::NotFound),
     };
+
+    let empiricals = data.find_related(model::prelude::Empiricals).all(&db).await?;
+    for empirical in empiricals {
+        let item: model::empiricals::ActiveModel = empirical.into();
+        item.delete(&db).await?;
+    }
+
+    let factors = data.find_related(model::prelude::Factors).all(&db).await?;
+    for factor in factors {
+        let item: model::factors::ActiveModel = factor.into();
+        item.delete(&db).await?;
+    }
+    
     match data.delete(&db).await {
         Ok(v) => {
             if v.rows_affected != 1 {
                 return Err(Error::MultipleRowsAffected)
             }
         }
-        Err(_) => return Err(Error::NotFound),
+        Err(e) => return Err(Error::ProjectConstraints),
     };
     match db.commit().await {
         Ok(it) => it,
