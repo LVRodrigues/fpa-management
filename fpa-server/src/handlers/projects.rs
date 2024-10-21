@@ -6,7 +6,7 @@ use sea_orm::{ActiveModelTrait, ColumnTrait, Condition, DatabaseTransaction, DbE
 use serde_derive::Deserialize;
 use utoipa::ToSchema;
 use uuid::Uuid;
-use crate::{configuration::{Configuration, Empiricals}, ctx::Context, error::{Error, ErrorResponse}, model::{self, empiricals, factors, page::{Page, PageParams}, prelude::Projects, projects::{self, ActiveModel, Model}, sea_orm_active_enums::{EmpiricalType, FactorType, InfluenceType}}, state::AppState};
+use crate::{configuration::Configuration, ctx::Context, error::{Error, ErrorResponse}, model::{self, empiricals, factors, page::{Page, PageParams}, prelude::Projects, projects::{self, ActiveModel, Model}, sea_orm_active_enums::{EmpiricalType, FactorType, InfluenceType}}, state::AppState};
 
 /// Search for a set of Projects.
 #[utoipa::path(
@@ -290,7 +290,7 @@ pub async fn remove(Path(id): Path<Uuid>, context: Option<Context>, state: State
                 return Err(Error::MultipleRowsAffected)
             }
         }
-        Err(e) => return Err(Error::ProjectConstraints),
+        Err(_) => return Err(Error::ProjectConstraints),
     };
     match db.commit().await {
         Ok(it) => it,

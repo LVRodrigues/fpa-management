@@ -5,7 +5,7 @@ use reqwest::StatusCode;
 use sea_orm::prelude::DateTimeWithTimeZone;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use shared::{selects::project, tokens::{self, Tenant}, URL};
+use shared::{tokens::{self, Tenant}, URL};
 use serde_json::json;
 
 const USERNAME: &str = "user";

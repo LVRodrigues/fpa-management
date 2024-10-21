@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use uuid::Uuid;
 
 use anyhow::Result;
