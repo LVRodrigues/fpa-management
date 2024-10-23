@@ -12,7 +12,6 @@ use utoipa::ToSchema;
 pub struct Model {
     /// Module Unique Identifier.
     #[sea_orm(primary_key, auto_increment = false)]
-    #[serde(skip)]
     pub module: Uuid,
     /// Project owner of the Module.
     #[serde(skip)]
