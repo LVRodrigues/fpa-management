@@ -26,6 +26,7 @@ pub enum Error {
     ProductivityInvalid,
     ProjectConstraints,
     EmpiricalInvalid,
+    ModuleCreate,
 }
 
 impl core::fmt::Display for Error {

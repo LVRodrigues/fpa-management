@@ -77,9 +77,9 @@ pub async fn by_id(Path(id): Path<Uuid>, context: Option<Context>, state: State<
 /// Project's properties.
 #[derive(Debug, Deserialize, ToSchema)]
 pub struct ProjectParam {
-    /// New Project's name.
+    /// Project's name.
     pub name: String,
-    /// New Project's description.
+    /// Project's description.
     pub description: Option<String>,
 }
 
@@ -110,10 +110,7 @@ pub async fn create(context: Option<Context>, state: State<Arc<AppState>>, Json(
         description: Set(params.description.to_owned()),
     };
     let project: projects::Model = match project.insert(&db).await {
-        Ok(v) => {
-            println!(" -> New Project: {:?}", v);
-            v
-        },
+        Ok(v) => v,
         Err(_) => return Err(Error::ProjectCreate),
     };
     

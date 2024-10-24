@@ -1,8 +1,10 @@
 use std::sync::Arc;
 
-use sea_orm::{ColumnTrait, Condition, EntityTrait, PaginatorTrait, QueryFilter};
+use sea_orm::{ActiveModelTrait, ColumnTrait, Condition, EntityTrait, PaginatorTrait, QueryFilter, Set};
+use serde::Deserialize;
+use utoipa::{openapi::path::Parameter, ToSchema};
 use uuid::Uuid;
-use axum::{extract::{Path, Query, State}, http::StatusCode, response::IntoResponse, Json};
+use axum::{extract::{Path, Query, State}, http::{HeaderMap, StatusCode, Uri}, response::IntoResponse, Json};
 
 use crate::{ctx::Context, error::{Error, ErrorResponse}, model::{modules::{self, Model}, page::{Page, PageParams}}, state::AppState};
 use crate::model::prelude::Modules;
@@ -82,3 +84,57 @@ pub async fn by_id(Path(id): Path<Uuid>, Path(module): Path<Uuid>, context: Opti
         None => return Err(Error::NotFound),
     }
 }
+
+/// Module's properties.
+#[derive(Debug, Deserialize, ToSchema)]
+pub struct ModuleParam {
+    /// Module's name.
+    pub name: String,
+    /// Description for the Module.
+    pub description: Option<String>,
+}
+
+/// Create a new Project.
+#[utoipa::path(
+    tag = "Modules",
+    post,
+    path = "/api/projects/{id}/modules",
+    responses(
+        (status = CREATED, description = "Success.", body = modules::Model, headers(("Location", description = "New module address."))),
+        (status = UNAUTHORIZED, description = "User not authorized.", body = ErrorResponse),
+        (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = ErrorResponse)
+    ),
+    security(("fpa-security" = []))
+)]
+pub async fn create(Path(id): Path<Uuid>, context: Option<Context>, state: State<Arc<AppState>>, Json(params): Json<ModuleParam>) -> Result<impl IntoResponse, Error> {
+    println!("==> {:<12} - /{id}/create {:?}", "MODULES", params);
+    let ctx = context.unwrap();
+    let db = state.connection(ctx.tenant()).await?;
+    let config = state.configuration();
+
+    let module = modules::ActiveModel {
+        project: Set(id.clone()),
+        tenant: Set(ctx.tenant().clone()),
+        module: Set(Uuid::now_v7()),
+        name: Set(params.name.to_owned()),
+        description: Set(params.description.to_owned()),
+    };
+    let module = match module.insert(&db).await {
+        Ok(v) => v,
+        Err(_) => return Err(Error::ModuleCreate),
+    };
+
+    let location = Uri::builder()
+        .scheme(config.scheme.clone())
+        .authority(format!("{}:{}", config.authority.clone(), config.port.clone()))
+        .path_and_query(format!("/api/projects/{}/modules/{}", &module.project, module.module))
+        .build()
+        .unwrap()
+        .to_string()
+        .parse()
+        .unwrap();
+    let mut header = HeaderMap::new();
+    header.insert("Location", location);
+
+    Ok((StatusCode::CREATED, header, Json(module)))
+}    

@@ -10,7 +10,7 @@ authors = ["Luciano Vieira Rodrigues <lvrodrigues@gmail.com>"]
 [dependencies]
 axum = "0.7.7"
 chrono = { version = "0.4.38", features = ["serde"] }
-config = "0.14.0"
+config = "0.14.1"
 jsonwebtoken = "9.3.0"
 reqwest = { version = "0.12.5", features = ["json"] }
 sea-orm = { version = "1.1.0", features = ["sqlx-postgres", "runtime-tokio-rustls"] }
@@ -23,10 +23,10 @@ tokio = { version = "1.38.0", features = ["full"] }
 tower = "0.5.1"
 tower-http = { version = "0.6.1", features = ["fs"] }
 url = "2.5.2"
-utoipa = { version = "5.1.1", features = ["axum_extras", "uuid", "chrono", "openapi_extensions", "time"] }
+utoipa = { version = "5.1.2", features = ["axum_extras", "uuid", "chrono", "openapi_extensions", "time"] }
 utoipa-rapidoc = { version = "5.0.0", features = ["axum"] }
 utoipa-redoc = { version = "5.0.0", features = ["axum"] }
-utoipa-swagger-ui = { version = "8.0.1", features = ["axum"] }
+utoipa-swagger-ui = { version = "8.0.3", features = ["axum"] }
 uuid = { version = "1.9.1", features = ["serde", "v4", "v7"] }
 
 [dev-dependencies]
