@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
-use sea_orm::{ActiveModelTrait, ColumnTrait, Condition, EntityTrait, PaginatorTrait, QueryFilter, Set};
+use sea_orm::{ActiveModelTrait, ColumnTrait, Condition, DbErr, EntityTrait, PaginatorTrait, QueryFilter, Set};
 use serde::Deserialize;
-use utoipa::{openapi::path::Parameter, ToSchema};
+use utoipa::ToSchema;
 use uuid::Uuid;
 use axum::{extract::{Path, Query, State}, http::{HeaderMap, StatusCode, Uri}, response::IntoResponse, Json};
 
@@ -94,7 +94,7 @@ pub struct ModuleParam {
     pub description: Option<String>,
 }
 
-/// Create a new Project.
+/// Create a new Module for a selected Project.
 #[utoipa::path(
     tag = "Modules",
     post,
@@ -102,6 +102,7 @@ pub struct ModuleParam {
     responses(
         (status = CREATED, description = "Success.", body = modules::Model, headers(("Location", description = "New module address."))),
         (status = UNAUTHORIZED, description = "User not authorized.", body = ErrorResponse),
+        (status = CONFLICT, description = "The name must be unique for the selected project.", body = ErrorResponse),
         (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = ErrorResponse)
     ),
     security(("fpa-security" = []))
@@ -121,8 +122,18 @@ pub async fn create(Path(id): Path<Uuid>, context: Option<Context>, state: State
     };
     let module = match module.insert(&db).await {
         Ok(v) => v,
-        Err(_) => return Err(Error::ModuleCreate),
+        Err(e) => {
+            match e.sql_err().unwrap() {
+                sea_orm::SqlErr::UniqueConstraintViolation(_) => return Err(Error::ModuleNameDuplicated),
+                _ => return Err(Error::ModuleCreate),
+            };
+        }
     };
+
+    match db.commit().await {
+        Ok(it) => it,
+        Err(_) => return Err(Error::DatabaseTransaction),
+    };    
 
     let location = Uri::builder()
         .scheme(config.scheme.clone())

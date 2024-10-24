@@ -4,11 +4,8 @@ use anyhow::Result;
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use shared::{selects, tokens::{self, Tenant}, URL};
+use shared::{selects, tokens::{self, Tenant}, URL, USERNAME, PASSWORD};
 use uuid::Uuid;
-
-const USERNAME: &str = "user";
-const PASSWORD: &str = "fpa-pass";
 
 const FACTOR: &str = "MultipleSites";
 const INFLUENCE: &str = "Significant";

@@ -5,11 +5,8 @@ use reqwest::StatusCode;
 use sea_orm::prelude::DateTimeWithTimeZone;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use shared::{tokens::{self, Tenant}, URL};
+use shared::{tokens::{self, Tenant}, URL, USERNAME, PASSWORD};
 use serde_json::json;
-
-const USERNAME: &str = "user";
-const PASSWORD: &str = "fpa-pass";
 
 const PROJECT_NAME: &str = "Running-Test";
 const PROJECT_DESCRIPTION: &str = "Long project description for test";

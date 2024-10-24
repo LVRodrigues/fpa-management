@@ -21,12 +21,14 @@ pub enum Error {
     DatabaseTransaction,
     RegisterUser,
     ProjectCreate,
+    ProjectNameDuplicated,
     ProjectFactorCreate,
     ProjectEmpiricalCreate,
     ProductivityInvalid,
     ProjectConstraints,
     EmpiricalInvalid,
     ModuleCreate,
+    ModuleNameDuplicated,
 }
 
 impl core::fmt::Display for Error {
@@ -106,15 +108,15 @@ impl IntoResponse for Error {
                     )
                 }
             Error::ProjectConstraints => {
-                (
-                    StatusCode::PRECONDITION_FAILED,
-                    ErrorResponse {
-                        id: Uuid::now_v7(),
-                        time: Utc::now(),
-                        error: "PROJECT_ERROR",
-                        message: "Project has related records."
-                    }
-                )
+                    (
+                        StatusCode::PRECONDITION_FAILED,
+                        ErrorResponse {
+                            id: Uuid::now_v7(),
+                            time: Utc::now(),
+                            error: "PROJECT_ERROR",
+                            message: "Project has related records."
+                        }
+                    )
                 }
             Error::JWKSNotFound |
             Error::DatabaseConnection | 
@@ -151,6 +153,18 @@ impl IntoResponse for Error {
                         }
                     )
                 }                
+            Error::ProjectNameDuplicated |
+            Error::ModuleNameDuplicated => {
+                    (
+                        StatusCode::CONFLICT,
+                        ErrorResponse {
+                            id: Uuid::now_v7(),
+                            time: Utc::now(),
+                            error: "NAME_DUPLICATED",
+                            message: "The name must be unique for this scope."
+                        }
+                    )
+                }
             _ => (
                     StatusCode::INTERNAL_SERVER_ERROR,
                     ErrorResponse {

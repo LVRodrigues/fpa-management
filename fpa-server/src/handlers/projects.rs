@@ -91,6 +91,7 @@ pub struct ProjectParam {
     responses(
         (status = CREATED, description = "Success.", body = projects::Model, headers(("Location", description = "New project address."))),
         (status = UNAUTHORIZED, description = "User not authorized.", body = ErrorResponse),
+        (status = CONFLICT, description = "The project name must be unique.", body = ErrorResponse),
         (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = ErrorResponse)
     ),
     security(("fpa-security" = []))
@@ -111,7 +112,12 @@ pub async fn create(context: Option<Context>, state: State<Arc<AppState>>, Json(
     };
     let project: projects::Model = match project.insert(&db).await {
         Ok(v) => v,
-        Err(_) => return Err(Error::ProjectCreate),
+        Err(e) => {
+            match e.sql_err().unwrap() {
+                sea_orm::SqlErr::UniqueConstraintViolation(_) => return Err(Error::ProjectNameDuplicated),
+                _ => return Err(Error::ProjectCreate)
+            };
+        }
     };
     
     match add_factors(&db, project.project.clone(), ctx.tenant().clone()).await {
@@ -232,7 +238,16 @@ pub async fn update(Path(id): Path<Uuid>, context: Option<Context>, state: State
     data.name           = Set(params.name);
     data.description    = Set(params.description);
 
-    let data: Model = data.update(&db).await?;
+    let data: Model = match data.update(&db).await {
+        Ok(v) => v,
+        Err(e) => {
+            match e.sql_err().unwrap() {
+                sea_orm::SqlErr::UniqueConstraintViolation(_) => return Err(Error::ProjectNameDuplicated),
+                _ => return Err(Error::ProjectCreate)
+            };
+        }
+    };
+
     match db.commit().await {
         Ok(it) => it,
         Err(_) => return Err(Error::DatabaseTransaction),

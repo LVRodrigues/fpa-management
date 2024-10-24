@@ -274,6 +274,10 @@ CREATE INDEX ix_modules_tenant ON modules (tenant);
 
 COMMENT ON INDEX ix_modules_tenant IS 'Index to management access on tenant scope.';
 
+CREATE UNIQUE INDEX uq_modules_project_name ON modules(project, name);
+
+COMMENT ON INDEX uq_modules_project_name IS 'Unique index for exclusive module`s name on a Project.';
+
 CREATE TABLE functions (
     function    id,
     module      id,
