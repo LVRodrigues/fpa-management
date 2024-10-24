@@ -25,6 +25,8 @@ use utoipa::{openapi::{extensions::Extensions, security::{Flow, OAuth2, Password
         crate::handlers::modules::list,
         crate::handlers::modules::by_id,
         crate::handlers::modules::create,
+        crate::handlers::modules::update,
+        crate::handlers::modules::remove,
     ),
     components(
         schemas(

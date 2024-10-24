@@ -67,6 +67,22 @@ async fn create(token: &String) -> Result<Data> {
     Ok(data)
 }
 
+async fn create_duplicated(token: &String) -> Result<()> {
+    let body = json!({
+        "name": PROJECT_NAME,
+        "description": PROJECT_DESCRIPTION,
+    });
+    let response = reqwest::Client::new()
+        .post(URL)
+        .bearer_auth(token)
+        .json(&body)
+        .send()
+        .await?;
+    assert_eq!(response.status(), StatusCode::CONFLICT);
+
+    Ok(())
+}
+
 async fn find_by_id(token: &String, data: &Data) -> Result<()> { 
     let response = reqwest::Client::new()
         .get(format!("{}/{}", URL, data.project))
@@ -127,6 +143,22 @@ async fn update(token: &String, data: &Data) -> Result<Data> {
     Ok(other)
 }
 
+async fn update_duplicated(token: &String, data: &Data) -> Result<()> {
+    let body = json!({
+        "name": "Project 001",
+        "description": "Descrição alterada...",
+    });
+    let response = reqwest::Client::new()
+        .put(format!("{}/{}", URL, data.project))
+        .bearer_auth(token)
+        .json(&body)
+        .send()
+        .await?;
+    assert_eq!(response.status(), StatusCode::CONFLICT);
+
+    Ok(())
+}
+
 async fn remove(token: &String, data: &Data) -> Result<()> {
     let response = reqwest::Client::new()
         .delete(format!("{}/{}", URL, data.project))
@@ -155,11 +187,13 @@ async fn execute() -> Result<()> {
     list(&token).await?;
 
     let data = create(&token).await?;
+    create_duplicated(&token).await?;
 
     find_by_id(&token, &data).await?;
     find_by_name(&token, &data).await?;
 
     let data = update(&token, &data).await?;
+    update_duplicated(&token, &data).await?;
 
     remove(&token, &data).await?;
 

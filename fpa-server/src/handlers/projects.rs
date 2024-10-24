@@ -217,6 +217,7 @@ async fn add_empiricals(db: &DatabaseTransaction, project: Uuid, tenant: Uuid, c
         (status = OK, description = "Success.", body = projects::Model),
         (status = UNAUTHORIZED, description = "User not authorized.", body = ErrorResponse),
         (status = NOT_FOUND, description = "Project not founded.", body = ErrorResponse),
+        (status = CONFLICT, description = "The project name must be unique.", body = ErrorResponse),
         (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = ErrorResponse)
     ),
     params(
@@ -243,7 +244,7 @@ pub async fn update(Path(id): Path<Uuid>, context: Option<Context>, state: State
         Err(e) => {
             match e.sql_err().unwrap() {
                 sea_orm::SqlErr::UniqueConstraintViolation(_) => return Err(Error::ProjectNameDuplicated),
-                _ => return Err(Error::ProjectCreate)
+                _ => return Err(Error::ProjectUpdate)
             };
         }
     };
@@ -301,7 +302,7 @@ pub async fn remove(Path(id): Path<Uuid>, context: Option<Context>, state: State
             if v.rows_affected != 1 {
                 return Err(Error::MultipleRowsAffected)
             }
-        }
+        },
         Err(_) => return Err(Error::ProjectConstraints),
     };
     match db.commit().await {

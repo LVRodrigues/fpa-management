@@ -1,12 +1,12 @@
-use std::sync::Arc;
+use std::{f64::consts::E, sync::Arc};
 
-use sea_orm::{ActiveModelTrait, ColumnTrait, Condition, DbErr, EntityTrait, PaginatorTrait, QueryFilter, Set};
+use sea_orm::{ActiveModelTrait, ColumnTrait, Condition, DbErr, EntityTrait, ModelTrait, PaginatorTrait, QueryFilter, Set};
 use serde::Deserialize;
 use utoipa::ToSchema;
 use uuid::Uuid;
-use axum::{extract::{Path, Query, State}, http::{HeaderMap, StatusCode, Uri}, response::IntoResponse, Json};
+use axum::{extract::{Path, Query, State}, http::{HeaderMap, Uri, StatusCode}, response::IntoResponse, Json};
 
-use crate::{ctx::Context, error::{Error, ErrorResponse}, model::{modules::{self, Model}, page::{Page, PageParams}}, state::AppState};
+use crate::{ctx::Context, error::{Error, ErrorResponse}, model::{modules::{self, ActiveModel, Model}, page::{Page, PageParams}}, state::AppState};
 use crate::model::prelude::Modules;
 
 /// Search for a set of Modules for a Project.
@@ -149,3 +149,102 @@ pub async fn create(Path(id): Path<Uuid>, context: Option<Context>, state: State
 
     Ok((StatusCode::CREATED, header, Json(module)))
 }    
+
+/// Update a existing Module.
+#[utoipa::path(
+    tag = "Modules",
+    put,
+    path = "/api/projects/{id}/modules/{module}",
+    responses(
+        (status = OK, description = "Success.", body = modules::Model),
+        (status = UNAUTHORIZED, description = "User not authorized.", body = ErrorResponse),
+        (status = NOT_FOUND, description = "Project or Module not founded.", body = ErrorResponse),
+        (status = CONFLICT, description = "The name must be unique for the selected project.", body = ErrorResponse),
+        (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = ErrorResponse)
+    ),
+    params(
+        ("id" = Uuid, Path, description = "Project Unique ID."),
+        ("module" = Uuid, Path, description = "Module Unique ID."),
+    ),
+    security(("fpa-security" = []))
+)]
+pub async fn update(Path(id): Path<Uuid>, Path(module): Path<Uuid>, context: Option<Context>, state: State<Arc<AppState>>, Json(params): Json<ModuleParam>) -> Result<impl IntoResponse, Error> {
+    println!("==> {:<12} - /{id}/update/{module} {:?}", "MODULES", params);
+    let ctx = context.unwrap();
+    let db = state.connection(ctx.tenant()).await?;        
+
+    let mut conditions = Condition::all();
+    conditions = conditions.add(modules::Column::Project.eq(id));
+    conditions = conditions.add(modules::Column::Module.eq(module));
+
+    let data = Modules::find().filter(conditions).one(&db).await?;
+    let data = match data {
+        Some(v) => v,
+        None => return Err(Error::NotFound),
+    };
+
+    let mut data: ActiveModel = data.into();
+    data.name = Set(params.name);
+    data.description = Set(params.description);
+
+    let data: Model = match data.update(&db).await {
+        Ok(v) => v,
+        Err(e) => {
+            match e.sql_err().unwrap() {
+                sea_orm::SqlErr::UniqueConstraintViolation(_) => return Err(Error::ModuleNameDuplicated),
+                _ => return Err(Error::ModuleUpdate)
+            };
+        }
+    };
+
+    Ok((StatusCode::OK, Json(data)))
+}
+
+/// Remove a existing Module.
+#[utoipa::path(
+    tag = "Modules",
+    delete,
+    path = "/api/projects/{id}/modules/{module}",
+    responses(
+        (status = NO_CONTENT, description = "Success."),
+        (status = UNAUTHORIZED, description = "User not authorized.", body = ErrorResponse),
+        (status = NOT_FOUND, description = "Project or Module not founded.", body = ErrorResponse),
+        (status = PRECONDITION_FAILED, description = "Module has related records.", body = ErrorResponse),
+        (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = ErrorResponse),
+    ),
+    params(
+        ("id" = Uuid, Path, description = "Project Unique ID."),
+        ("module" = Uuid, Path, description = "Module Unique ID."),
+    ),
+    security(("fpa-security" = []))
+)]
+pub async fn remove(Path(id): Path<Uuid>, Path(module): Path<Uuid>, context: Option<Context>, state: State<Arc<AppState>>) -> Result<impl IntoResponse, Error> {
+    println!("==> {:<12} - /{id}/remove/{module}", "MODULES");
+    let ctx = context.unwrap();
+    let db = state.connection(ctx.tenant()).await?;   
+
+    let mut conditions = Condition::all();
+    conditions = conditions.add(modules::Column::Project.eq(id));
+    conditions = conditions.add(modules::Column::Module.eq(module));
+
+    let data = Modules::find().filter(conditions).one(&db).await?;
+    let data = match data {
+        Some(v) => v,
+        None => return Err(Error::NotFound),
+    };
+
+    match data.delete(&db).await {
+        Ok(v) => {
+            if v.rows_affected != 1 {
+                return Err(Error::MultipleRowsAffected)
+            }
+        },
+        Err(_) => return Err(Error::ModuleConstraints),
+    };
+    match db.commit().await {
+        Ok(it) => it,
+        Err(_) => return Err(Error::DatabaseTransaction),
+    }
+
+    Ok(StatusCode::NO_CONTENT)
+}

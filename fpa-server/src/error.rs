@@ -26,9 +26,12 @@ pub enum Error {
     ProjectEmpiricalCreate,
     ProductivityInvalid,
     ProjectConstraints,
+    ProjectUpdate,
     EmpiricalInvalid,
     ModuleCreate,
     ModuleNameDuplicated,
+    ModuleUpdate,
+    ModuleConstraints,
 }
 
 impl core::fmt::Display for Error {
@@ -107,14 +110,15 @@ impl IntoResponse for Error {
                         }
                     )
                 }
-            Error::ProjectConstraints => {
+            Error::ProjectConstraints |
+            Error::ModuleConstraints => {
                     (
                         StatusCode::PRECONDITION_FAILED,
                         ErrorResponse {
                             id: Uuid::now_v7(),
                             time: Utc::now(),
-                            error: "PROJECT_ERROR",
-                            message: "Project has related records."
+                            error: "CONSTRAINT_ERROR",
+                            message: "Registry has related data."
                         }
                     )
                 }
