@@ -1,6 +1,6 @@
-use std::{f64::consts::E, sync::Arc};
+use std::sync::Arc;
 
-use sea_orm::{ActiveModelTrait, ColumnTrait, Condition, DbErr, EntityTrait, ModelTrait, PaginatorTrait, QueryFilter, Set};
+use sea_orm::{ActiveModelTrait, ColumnTrait, Condition, EntityTrait, ModelTrait, PaginatorTrait, QueryFilter, Set};
 use serde::Deserialize;
 use utoipa::ToSchema;
 use uuid::Uuid;
@@ -43,10 +43,10 @@ pub async fn list(Path(id): Path<Uuid>, Query(params): Query<PageParams>, contex
 
     let items = paginator.fetch_page(params.page() - 1).await?;
     let mut page: Page<Model> = Page::new();
-    page.pages      = 1;
-    page.index      = 1;
+    page.pages      = paginator.num_pages().await?;
+    page.index      = params.page();
     page.size       = items.len() as u64;
-    page.records    = items.len() as u64;
+    page.records    = paginator.num_items().await?;
     page.items      = items;
 
     Ok(Json(page))
@@ -69,7 +69,7 @@ pub async fn list(Path(id): Path<Uuid>, Query(params): Query<PageParams>, contex
     ),
     security(("fpa-security" = []))    
 )]
-pub async fn by_id(Path(id): Path<Uuid>, Path(module): Path<Uuid>, context: Option<Context>, state: State<Arc<AppState>>) -> Result<impl IntoResponse, Error> {
+pub async fn by_id(Path((id, module)): Path<(Uuid, Uuid)>, context: Option<Context>, state: State<Arc<AppState>>) -> Result<impl IntoResponse, Error> {
     println!("==> {:<12} - /{id}/by_id {module}", "MODULES");
     let ctx = context.unwrap();
     let db = state.connection(ctx.tenant()).await?;
@@ -168,7 +168,7 @@ pub async fn create(Path(id): Path<Uuid>, context: Option<Context>, state: State
     ),
     security(("fpa-security" = []))
 )]
-pub async fn update(Path(id): Path<Uuid>, Path(module): Path<Uuid>, context: Option<Context>, state: State<Arc<AppState>>, Json(params): Json<ModuleParam>) -> Result<impl IntoResponse, Error> {
+pub async fn update(Path((id, module)): Path<(Uuid, Uuid)>, context: Option<Context>, state: State<Arc<AppState>>, Json(params): Json<ModuleParam>) -> Result<impl IntoResponse, Error> {
     println!("==> {:<12} - /{id}/update/{module} {:?}", "MODULES", params);
     let ctx = context.unwrap();
     let db = state.connection(ctx.tenant()).await?;        
@@ -218,7 +218,7 @@ pub async fn update(Path(id): Path<Uuid>, Path(module): Path<Uuid>, context: Opt
     ),
     security(("fpa-security" = []))
 )]
-pub async fn remove(Path(id): Path<Uuid>, Path(module): Path<Uuid>, context: Option<Context>, state: State<Arc<AppState>>) -> Result<impl IntoResponse, Error> {
+pub async fn remove(Path((id, module)): Path<(Uuid, Uuid)>, context: Option<Context>, state: State<Arc<AppState>>) -> Result<impl IntoResponse, Error> {
     println!("==> {:<12} - /{id}/remove/{module}", "MODULES");
     let ctx = context.unwrap();
     let db = state.connection(ctx.tenant()).await?;   
