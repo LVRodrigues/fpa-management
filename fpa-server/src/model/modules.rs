@@ -30,6 +30,10 @@ pub struct Model {
 pub enum Relation {
     #[sea_orm(has_many = "super::functions::Entity")]
     Functions,
+    #[sea_orm(has_many = "super::functions_datas::Entity")]
+    FunctionsDatas,
+    #[sea_orm(has_many = "super::functions_transactions::Entity")]
+    FunctionsTransactions,
     #[sea_orm(
         belongs_to = "super::projects::Entity",
         from = "Column::Project",

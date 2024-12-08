@@ -6,7 +6,7 @@ use axum::async_trait;
 use sea_orm::entity::prelude::*;
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
-#[sea_orm(table_name = "functions_datas")]
+#[sea_orm(table_name = "functions_transactions")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub function: Uuid,
@@ -20,10 +20,8 @@ pub struct Model {
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
-    #[sea_orm(has_many = "super::rlrs::Entity")]
-    Rlrs,
-    #[sea_orm(has_many = "super::rlrs::Entity")]
-    Alrs,    
+    #[sea_orm(has_many = "super::alrs::Entity")]
+    Alrs,
     #[sea_orm(
         belongs_to = "super::modules::Entity",
         from = "Column::Module",
@@ -43,12 +41,6 @@ pub enum Relation {
 }
 
 impl Related<super::rlrs::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::Rlrs.def()
-    }
-}
-
-impl Related<super::alrs::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::Alrs.def()
     }
@@ -71,7 +63,7 @@ impl ActiveModelBehavior for ActiveModel {
     async fn before_save<C>(self, _db: &C, _insert: bool) -> Result<Self, DbErr> where C: ConnectionTrait {
         let test = self.r#type.as_ref();
         match test {
-            FunctionType::EE | FunctionType::CE | FunctionType::SE => Err(DbErr::Custom(String::from("Invalid Type for FunctionData"))),
+            FunctionType::ALI | FunctionType::AIE => Err(DbErr::Custom(String::from("Invalid Type for FunctionTransaction"))),
             _ => Ok(self)
         }
     }

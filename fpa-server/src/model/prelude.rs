@@ -6,6 +6,7 @@ pub use super::empiricals::Entity as Empiricals;
 pub use super::factors::Entity as Factors;
 pub use super::functions::Entity as Functions;
 pub use super::functions_datas::Entity as FunctionsDatas;
+pub use super::functions_datas::Entity as FunctionsTransactions;
 pub use super::modules::Entity as Modules;
 pub use super::projects::Entity as Projects;
 pub use super::rlrs::Entity as Rlrs;
