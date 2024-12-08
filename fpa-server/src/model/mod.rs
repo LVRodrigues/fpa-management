@@ -7,6 +7,7 @@ pub mod ders;
 pub mod empiricals;
 pub mod factors;
 pub mod functions;
+pub mod functions_datas;
 pub mod modules;
 pub mod projects;
 pub mod rlrs;

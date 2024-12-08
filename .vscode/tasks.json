@@ -35,10 +35,13 @@
                 "cwd": "${workspaceFolder}/fpa-server"
             },
             "isBackground": true,
-            "problemMatcher": [
+            "problemMatcher": [ 
                 "$eslint-stylish"
             ],
-            "group": "build"
-        },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
     ]
 }

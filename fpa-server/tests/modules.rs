@@ -81,10 +81,10 @@ async fn list(token: &String, project: &Uuid) -> Result<()> {
     let json = response.json::<serde_json::Value>().await?;
     assert_eq!(json["pages"], json!(1));
     assert_eq!(json["index"], json!(1));
-    assert_eq!(json["size"], json!(1));
-    assert_eq!(json["records"], json!(1));    
+    assert_eq!(json["size"], json!(2));
+    assert_eq!(json["records"], json!(2));    
     assert!(json["items"].is_array());
-    assert_eq!(json["items"].as_array().unwrap().len(), 1);
+    assert_eq!(json["items"].as_array().unwrap().len(), 2);
 
     Ok(())
 }

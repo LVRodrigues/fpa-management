@@ -25,6 +25,8 @@ pub enum Relation {
     Factors,
     #[sea_orm(has_many = "super::functions::Entity")]
     Functions,
+    #[sea_orm(has_many = "super::functions_datas::Entity")]
+    FunctionsDatas,
     #[sea_orm(has_many = "super::modules::Entity")]
     Modules,
     #[sea_orm(has_many = "super::projects::Entity")]
