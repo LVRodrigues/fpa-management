@@ -2,13 +2,15 @@
 
 ```mermaid
 erDiagram
+    functions_datas         ||--o{ rlrs: fk_rlrs_functions_datas
+
     tenants                 ||--o{ users: fk_users_tenant
     tenants                 ||--o{ projects: fk_projects_tenant
     tenants                 ||--o{ modules: fk_modules_tenant
     tenants                 ||--o{ functions: fk_functions_tenant
-    tenants                 ||--o{ ders: fk_ders_tenant
     tenants                 ||--o{ rlrs: fk_rlrs_tenant
     tenants                 ||--o{ alrs: fk_alrs_tenant
+    tenants                 ||--o{ ders: fk_ders_tenant
 
     users                   ||--o{ projects: fk_projects_user
 
@@ -20,10 +22,10 @@ erDiagram
 
     functions               ||--|| functions_datas: inherit
     functions               ||--|| functions_transactions: inherit
-    functions               ||--o{ ders: fk_ders_functions
-    functions_datas         ||--o{ rlrs: fk_rlrs_function
-    functions_datas         ||--o{ alrs: fk_functions_transactions_alr
-    functions_transactions  ||--o{ alrs: fk_functions_transactions_function
+    functions_datas         ||--o{ alrs: fk_alrs_functions_datas
+    rlrs                    ||--o{ ders: fl_ders_rlrs
+    %% functions_transactions  ||--o{ ders: fk_ders_functions_transactions
+    functions_transactions  ||--o{ alrs: fk_alrs_functions_transactions
         
     tenants {
         tenant      id          PK
@@ -97,14 +99,6 @@ erDiagram
     functions_transactions {
     }
 
-    ders {
-        der         id          PK
-        name        brief
-        description description
-        function    id
-        tenant      id
-    }
-
     rlrs {
         rlr         id          PK
         name        brief
@@ -113,9 +107,18 @@ erDiagram
         tenant      id
     }
 
+    ders {
+        der         id          PK
+        name        brief
+        description description
+        rlr         id
+        tenant      id
+    }
+
     alrs {
         function    id          PK
         alr         id          PK
         tenant      id
-    }
+    }    
+
 ```

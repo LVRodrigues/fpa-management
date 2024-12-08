@@ -65,3 +65,11 @@ USING (tenant = current_setting('app.current_tenant')::UUID);
 ALTER TABLE alrs ENABLE ROW LEVEL SECURITY;
 CREATE POLICY alrs_policy ON alrs
 USING (tenant = current_setting('/app.current_tenant')::UUID);
+
+ALTER TABLE rlrs ENABLE ROW LEVEL SECURITY;
+CREATE POLICY rlrs_policy ON rlrs
+USING (tenant = current_setting('/app.current_tenant')::UUID);
+
+ALTER TABLE ders ENABLE ROW LEVEL SECURITY;
+CREATE POLICY ders_policy ON ders
+USING (tenant = current_setting('/app.current_tenant')::UUID);

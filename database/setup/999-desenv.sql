@@ -13,6 +13,13 @@ DECLARE
 	i INTEGER;
 	project uuid;
 	factor factor_type;
+	module uuid;
+	fun_ali uuid;
+	rlr uuid;
+	fun_aie uuid;
+	fun_ce uuid;
+	fun_se uuid;
+	fun_ee uuid;
 BEGIN
 	FOR t IN SELECT * FROM tenants LOOP
 		FOR i IN 1..100 LOOP
@@ -32,6 +39,23 @@ BEGIN
 				INSERT INTO factors (project, factor, tenant, influence)
 				VALUES (project, factor, t.tenant, 'ABSENT');
 			END LOOP;
+
+			module := uuid_generate_v4();
+			INSERT INTO modules (module, project, tenant, name, description) 
+			VALUES (module, project, t.tenant, 'Test', 'Module for test');
+
+			fun_ali := uuid_generate_v4();
+			INSERT INTO functions_datas (function, module, tenant, name, description, type)
+			VALUES(fun_ali, module, t.tenant, 'Function ALI', 'Function ALI for test', 'ALI');
+			rlr := uuid_generate_v4();
+			INSERT INTO rlrs (rlr, function, tenant, name, description) 
+			VALUES (rlr, fun_ali, t.tenant, 'Usuários Locais', null);
+			INSERT INTO ders (der, rlr, tenant, name, description) VALUES 
+				(uuid_generate_v4(), rlr, t.tenant, 'id', null),
+				(uuid_generate_v4(), rlr, t.tenant, 'name', null),
+				(uuid_generate_v4(), rlr, t.tenant, 'email', null),
+				(uuid_generate_v4(), rlr, t.tenant, 'cpf', null),
+				(uuid_generate_v4(), rlr, t.tenant, 'phone', null);
 		END LOOP;
 	END LOOP;
 END;
