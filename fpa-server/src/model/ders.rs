@@ -3,11 +3,11 @@
 use sea_orm::entity::prelude::*;
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
-#[sea_orm(table_name = "rlrs")]
+#[sea_orm(table_name = "ders")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
+    pub der: Uuid,
     pub rlr: Uuid,
-    pub function: Uuid,
     pub tenant: Uuid,
     pub name: String,
     #[sea_orm(column_type = "Text", nullable)]
@@ -16,8 +16,14 @@ pub struct Model {
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
-    #[sea_orm(has_many = "super::ders::Entity")]
-    Ders,
+    #[sea_orm(
+        belongs_to = "super::rlrs::Entity",
+        from = "Column::Rlr",
+        to = "super::rlrs::Column::Rlr",
+        on_update = "NoAction",
+        on_delete = "NoAction"
+    )]
+    Rlrs,
     #[sea_orm(
         belongs_to = "super::tenants::Entity",
         from = "Column::Tenant",
@@ -28,9 +34,9 @@ pub enum Relation {
     Tenants,
 }
 
-impl Related<super::ders::Entity> for Entity {
+impl Related<super::rlrs::Entity> for Entity {
     fn to() -> RelationDef {
-        Relation::Ders.def()
+        Relation::Rlrs.def()
     }
 }
 

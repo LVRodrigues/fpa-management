@@ -3,6 +3,7 @@
 pub mod prelude;
 
 pub mod alrs;
+pub mod ders;
 pub mod empiricals;
 pub mod factors;
 pub mod functions;
