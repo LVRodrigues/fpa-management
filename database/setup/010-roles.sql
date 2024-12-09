@@ -21,6 +21,8 @@ GRANT SELECT                            ON functions                TO "fpa-acce
 GRANT SELECT, INSERT, UPDATE, DELETE    ON functions_datas          TO "fpa-access";
 GRANT SELECT, INSERT, UPDATE, DELETE    ON functions_transactions   TO "fpa-access";
 GRANT SELECT, INSERT, UPDATE, DELETE    ON alrs                     TO "fpa-access";
+GRANT SELECT, INSERT, UPDATE, DELETE    ON rlrs                     TO "fpa-access";
+GRANT SELECT, INSERT, UPDATE, DELETE    ON ders                     TO "fpa-access";
 
 --==============================================================================
 -- Policies (Multi-Tenant)
