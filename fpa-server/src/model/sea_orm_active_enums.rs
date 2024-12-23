@@ -93,8 +93,7 @@ pub enum TenantTier {
     Silver,
 }
 
-/// Type of the Function.
-#[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum, utoipa::ToSchema, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum)]
 #[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "function_type")]
 pub enum FunctionType {
     #[sea_orm(string_value = "ALI")]
