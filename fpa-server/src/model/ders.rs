@@ -6,20 +6,22 @@ use sea_orm::entity::prelude::*;
 #[sea_orm(table_name = "ders")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
-    pub der: Uuid,
-    pub rlr: Uuid,
-    pub tenant: Uuid,
+    pub function: Uuid,
+    #[sea_orm(primary_key, auto_increment = false)]
+    pub rlr: String,
+    #[sea_orm(primary_key, auto_increment = false)]
     pub name: String,
     #[sea_orm(column_type = "Text", nullable)]
     pub description: Option<String>,
+    pub tenant: Uuid,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
     #[sea_orm(
         belongs_to = "super::rlrs::Entity",
-        from = "Column::Rlr",
-        to = "super::rlrs::Column::Rlr",
+        from = "(Column::Function, Column::Rlr)",
+        to = "(super::rlrs::Column::Function, super::rlrs::Column::Name)",
         on_update = "NoAction",
         on_delete = "NoAction"
     )]
@@ -42,7 +44,10 @@ impl Related<super::rlrs::Entity> for Entity {
 
 impl Related<super::tenants::Entity> for Entity {
     fn to() -> RelationDef {
-        Relation::Tenants.def()
+        super::rlrs::Relation::Tenants.def()
+    }
+    fn via() -> Option<RelationDef> {
+        Some(super::rlrs::Relation::Ders.def().rev())
     }
 }
 

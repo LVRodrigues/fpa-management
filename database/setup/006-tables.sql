@@ -453,23 +453,21 @@ CREATE INDEX ix_alrs_tenant ON alrs (tenant);
 COMMENT ON INDEX ix_alrs_tenant IS 'Index to management access on tenant scope.';
 
 CREATE TABLE rlrs (
-    rlr         id,
     function    id,
-    tenant      id,
     name        brief,
-    description description
+    description description,
+    tenant      id
 );
 
 COMMENT ON TABLE rlrs               IS 'Referenced Logical Records.';
-COMMENT ON COLUMN rlrs.rlr          IS 'Unique identifier for a Reference Logical Record.';
 COMMENT ON COLUMN rlrs.function     IS 'Unique identifier for a Function.';
-COMMENT ON COLUMN rlrs.tenant       IS 'Tenant owner of the Function.';
 COMMENT ON COLUMN rlrs.name         IS 'Name of the Referenced Logical Record.';
+COMMENT ON COLUMN rlrs.tenant       IS 'Tenant owner of the Function.';
 COMMENT ON COLUMN rlrs.description  IS 'Description for the Referenced Logical Record.';
 
 ALTER TABLE rlrs ADD
     CONSTRAINT pk_rlrs
-    PRIMARY KEY (rlr);
+    PRIMARY KEY (function, name);
 
 COMMENT ON INDEX pk_rlrs IS 'Primary key for Referenced Logial Records.';
 
@@ -492,32 +490,32 @@ CREATE INDEX ix_rlrs_tenant ON alrs (tenant);
 COMMENT ON INDEX ix_rlrs_tenant IS 'Index to management access on tenant scope.';
 
 CREATE TABLE ders (
-    der         id,
-    rlr         id,
-    tenant      id,
+    function    id,
+    rlr         brief,
     name        brief,
-    description description
+    description description,
+    tenant      id
 );
 
 COMMENT ON TABLE ders               IS 'Referenced Elementary Data.';
-COMMENT ON COLUMN ders.der          IS 'Unique identifier for a Referenced Elementary Data.';
+COMMENT ON COLUMN ders.function     IS 'Unique identifier for a Referenced Elementary Data.';
 COMMENT ON COLUMN ders.rlr          IS 'Identifier for a Referenced Logical Record.';
-COMMENT ON COLUMN ders.tenant       IS 'Tenant owner of the Referenced Elementary Data.';
 COMMENT ON COLUMN ders.name         IS 'Name of the Referenced Elementary Data.';
 COMMENT ON COLUMN ders.description  IS 'Description for the Referenced Elementary Data.';
+COMMENT ON COLUMN ders.tenant       IS 'Tenant owner of the Referenced Elementary Data.';
 
 ALTER TABLE ders ADD
     CONSTRAINT pk_ders
-    PRIMARY KEY (der);
+    PRIMARY KEY (function, rlr, name);
 
 COMMENT ON INDEX pk_ders IS 'Primary key for Referenced Rlementary Data.';
 
 ALTER TABLE ders ADD
     CONSTRAINT fk_ders_rlrs
-    FOREIGN KEY (rlr)
-    REFERENCES rlrs (rlr);
+    FOREIGN KEY (function, rlr)
+    REFERENCES rlrs (function, name);
 
-CREATE INDEX ix_ders_rlr ON ders (rlr);
+CREATE INDEX ix_ders_rlr ON ders (function, rlr);
 
 COMMENT ON INDEX ix_ders_rlr IS 'Reference index to the Referenced Logical Records.';
 

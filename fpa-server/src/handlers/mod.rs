@@ -2,6 +2,7 @@ pub mod projects;
 pub mod empiricals;
 pub mod factors;
 pub mod modules;
+pub mod functions;
 
 use std::{sync::Arc, time::Duration};
 
@@ -53,18 +54,19 @@ pub async fn router(config: Configuration) -> Result<Router, Error> {
             .to_owned()
             .route("/projects", get(projects::list)
                 .post(projects::create))
-            .route("/projects/:id", get(projects::by_id)
+            .route("/projects/:project", get(projects::by_id)
                 .delete(projects::remove)
                 .put(projects::update))
-            .route("/projects/:id/empiricals", get(empiricals::list)
+            .route("/projects/:project/empiricals", get(empiricals::list)
                 .put(empiricals::update))
-            .route("/projects/:id/factors", get(factors::list)
+            .route("/projects/:project/factors", get(factors::list)
                 .put(factors::update))
-            .route("/projects/:id/modules", get(modules::list)
+            .route("/projects/:project/modules", get(modules::list)
                 .post(modules::create))
-            .route("/projects/:id/modules/:module", get(modules::by_id)
+            .route("/projects/:project/modules/:module", get(modules::by_id)
                 .put(modules::update)
                 .delete(modules::remove))
+            .route("/projects/:project/modules/:module/functions", get(functions::list))
             .route("/health", get(health))
             .layer(middleware::map_response(response_mapper))
             .route_layer(middleware::from_fn_with_state(state.clone(), auth::user_register))

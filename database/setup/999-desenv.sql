@@ -47,15 +47,14 @@ BEGIN
 			fun_ali := uuid_generate_v4();
 			INSERT INTO functions_datas (function, module, tenant, name, description, type)
 			VALUES(fun_ali, module, t.tenant, 'Function ALI', 'Function ALI for test', 'ALI');
-			rlr := uuid_generate_v4();
-			INSERT INTO rlrs (rlr, function, tenant, name, description) 
-			VALUES (rlr, fun_ali, t.tenant, 'Usuários Locais', null);
-			INSERT INTO ders (der, rlr, tenant, name, description) VALUES 
-				(uuid_generate_v4(), rlr, t.tenant, 'id', null),
-				(uuid_generate_v4(), rlr, t.tenant, 'name', null),
-				(uuid_generate_v4(), rlr, t.tenant, 'email', null),
-				(uuid_generate_v4(), rlr, t.tenant, 'cpf', null),
-				(uuid_generate_v4(), rlr, t.tenant, 'phone', null);
+			INSERT INTO rlrs (function, name, description, tenant) 
+			VALUES (fun_ali, 'Usuários Locais', null, t.tenant);
+			INSERT INTO ders (function, rlr, tenant, name, description) VALUES 
+				(fun_ali, 'Usuários Locais', t.tenant, 'id', null),
+				(fun_ali, 'Usuários Locais', t.tenant, 'name', null),
+				(fun_ali, 'Usuários Locais', t.tenant, 'email', null),
+				(fun_ali, 'Usuários Locais', t.tenant, 'cpf', null),
+				(fun_ali, 'Usuários Locais', t.tenant, 'phone', null);
 		END LOOP;
 	END LOOP;
 END;

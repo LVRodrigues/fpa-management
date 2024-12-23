@@ -10,6 +10,7 @@ use utoipa::{openapi::{extensions::Extensions, security::{Flow, OAuth2, Password
         [name = "Empiricals", description = "Empiricals Adjustments Factors."],
         [name = "Factors", description = "Adjustments Factors."],
         [name = "Modules", description = "Analysis frontier modules."],
+        [name = "Functions", description = "Function management for analysis."]
     ),
     paths(
         crate::handlers::health,
@@ -27,6 +28,7 @@ use utoipa::{openapi::{extensions::Extensions, security::{Flow, OAuth2, Password
         crate::handlers::modules::create,
         crate::handlers::modules::update,
         crate::handlers::modules::remove,
+        crate::handlers::functions::list,
     ),
     components(
         schemas(
