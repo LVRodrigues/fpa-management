@@ -93,17 +93,23 @@ pub enum TenantTier {
     Silver,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum)]
+/// Type of Function.
+#[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum, utoipa::ToSchema, Serialize, Deserialize)]
 #[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "function_type")]
 pub enum FunctionType {
+    /// Internal Logic File Function
     #[sea_orm(string_value = "ALI")]
     ALI,
+    /// External Interface File Function
     #[sea_orm(string_value = "AIE")]
     AIE,
+    /// External Inquiry Function
     #[sea_orm(string_value = "CE")]
     CE,
+    /// External Input Function
     #[sea_orm(string_value = "EE")]
     EE,
+    /// External Output Function
     #[sea_orm(string_value = "SE")]
     SE,
 }

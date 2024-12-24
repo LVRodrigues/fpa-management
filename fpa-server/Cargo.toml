@@ -9,25 +9,25 @@ authors = ["Luciano Vieira Rodrigues <lvrodrigues@gmail.com>"]
 
 [dependencies]
 axum = "0.7.9"
-chrono = { version = "0.4.38", features = ["serde"] }
-config = "0.14.1"
+chrono = { version = "0.4.39", features = ["serde"] }
+config = "0.15.4"
 jsonwebtoken = "9.3.0"
 reqwest = { version = "0.12.9", features = ["json"] }
 sea-orm = { version = "1.1.2", features = ["sqlx-postgres", "runtime-tokio-rustls"] }
-serde = { version = "1.0.215", features = ["derive"] }
+serde = { version = "1.0.216", features = ["derive"] }
 serde_derive = "1.0.203"
-serde_json = "1.0.133"
+serde_json = "1.0.134"
 serde_with = "3.11.0"
 strum_macros = "0.26.4"
 tokio = { version = "1.42.0", features = ["full"] }
-tower = "0.5.1"
+tower = "0.5.2"
 tower-http = { version = "0.6.2", features = ["fs"] }
 url = "2.5.4"
-utoipa = { version = "5.2.0", features = ["axum_extras", "uuid", "chrono", "openapi_extensions", "time"] }
+utoipa = { version = "5.3.0", features = ["axum_extras", "uuid", "chrono", "openapi_extensions", "time"] }
 utoipa-rapidoc = { version = "5.0.0", features = ["axum"] }
 utoipa-redoc = { version = "5.0.0", features = ["axum"] }
-utoipa-swagger-ui = { version = "8.0.3", features = ["axum"] }
+utoipa-swagger-ui = { version = "8.1.0", features = ["axum"] }
 uuid = { version = "1.9.1", features = ["serde", "v4", "v7"] }
 
 [dev-dependencies]
-anyhow = "1.0.94"
+anyhow = "1.0.95"

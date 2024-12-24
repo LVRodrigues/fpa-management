@@ -35,6 +35,7 @@ use utoipa::{openapi::{extensions::Extensions, security::{Flow, OAuth2, Password
             crate::model::sea_orm_active_enums::EmpiricalType,
             crate::model::sea_orm_active_enums::FactorType,
             crate::model::sea_orm_active_enums::InfluenceType,
+            crate::model::sea_orm_active_enums::FunctionType,
             crate::model::users::Model,
             crate::model::projects::Model,
             crate::model::empiricals::Model,

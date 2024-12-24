@@ -15,7 +15,6 @@ DECLARE
 	factor factor_type;
 	module uuid;
 	fun_ali uuid;
-	rlr uuid;
 	fun_aie uuid;
 	fun_ce uuid;
 	fun_se uuid;
@@ -46,15 +45,44 @@ BEGIN
 
 			fun_ali := uuid_generate_v4();
 			INSERT INTO functions_datas (function, module, tenant, name, description, type)
-			VALUES(fun_ali, module, t.tenant, 'Function ALI', 'Function ALI for test', 'ALI');
+			VALUES (fun_ali, module, t.tenant, 'Function ALI', 'Function ALI for test', 'ALI');
 			INSERT INTO rlrs (function, name, description, tenant) 
-			VALUES (fun_ali, 'Usuários Locais', null, t.tenant);
+			VALUES (fun_ali, 'Local Users', null, t.tenant);
 			INSERT INTO ders (function, rlr, tenant, name, description) VALUES 
-				(fun_ali, 'Usuários Locais', t.tenant, 'id', null),
-				(fun_ali, 'Usuários Locais', t.tenant, 'name', null),
-				(fun_ali, 'Usuários Locais', t.tenant, 'email', null),
-				(fun_ali, 'Usuários Locais', t.tenant, 'cpf', null),
-				(fun_ali, 'Usuários Locais', t.tenant, 'phone', null);
+				(fun_ali, 'Local Users', t.tenant, 'id', null),
+				(fun_ali, 'Local Users', t.tenant, 'name', null),
+				(fun_ali, 'Local Users', t.tenant, 'email', null),
+				(fun_ali, 'Local Users', t.tenant, 'cpf', null),
+				(fun_ali, 'Local Users', t.tenant, 'phone', null);
+
+			fun_aie = uuid_generate_v4();
+			INSERT INTO functions_datas (function, module, tenant, name, description, type)
+			VALUES (fun_aie, module, t.tenant, 'Function AIE', 'Function AIE for test', 'AIE');
+			INSERT INTO rlrs (function, name, description, tenant)
+			VALUES (fun_aie, 'LDAP Users', null, t.tenant);
+			INSERT INTO ders (function, rlr, tenant, name, description) VALUES 
+				(fun_aie, 'LDAP Users', t.tenant, 'id', null),
+				(fun_aie, 'LDAP Users', t.tenant, 'name', null),
+				(fun_aie, 'LDAP Users', t.tenant, 'email', null);
+
+			fun_ee = uuid_generate_v4();
+			INSERT INTO functions_transactions (function, module, tenant, name, description, type)
+			VALUES (fun_ee, module, t.tenant, 'Function EE', 'Function EE for test', 'EE');
+			INSERT INTO alrs (function, tenant, alr) VALUES 
+				(fun_ee, t.tenant, fun_ali);
+
+			fun_ce = uuid_generate_v4();
+			INSERT INTO functions_transactions (function, module, tenant, name, description, type)
+			VALUES (fun_ce, module, t.tenant, 'Function CE', 'Function CE for test', 'CE');
+			INSERT INTO alrs (function, tenant, alr) VALUES 
+				(fun_ce, t.tenant, fun_aie);
+
+			fun_se = uuid_generate_v4();
+			INSERT INTO functions_transactions (function, module, tenant, name, description, type)
+			VALUES (fun_se, module, t.tenant, 'Function SE', 'Function SE for test', 'SE');
+			INSERT INTO alrs (function, tenant, alr) VALUES 
+				(fun_se, t.tenant, fun_ali),
+				(fun_se, t.tenant, fun_aie);
 		END LOOP;
 	END LOOP;
 END;
