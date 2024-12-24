@@ -4,15 +4,16 @@ use axum::{
     extract::{Path, Query, State},
     response::IntoResponse, Json,
 };
-use sea_orm::{ColumnTrait, Condition, EntityTrait, PaginatorTrait, QueryFilter};
+use sea_orm::{ColumnTrait, Condition, DbBackend, EntityTrait, PaginatorTrait, QueryFilter, QuerySelect, QueryTrait, RelationTrait};
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use uuid::Uuid;
 
+use crate::model::prelude::*;
 use crate::{
     ctx::Context,
     error::{Error, ErrorResponse},
-    model::{functions::{self, ActiveModel, Model}, modules, page::{Page, PageParams}, sea_orm_active_enums::FunctionType},
+    model::{functions::{self, Model}, modules, page::{Page, PageParams}, sea_orm_active_enums::FunctionType},
     state::AppState,
 };
 
@@ -106,11 +107,12 @@ pub enum Function {
 )]
 pub async fn list(
     Path((project, module)): Path<(Uuid, Uuid)>,
-    Query((params, ftype)): Query<(PageParams, Option<FunctionType>)>,
+    // Query((params, ftype)): Query<(PageParams, Option<FunctionType>)>,
+    params: Query<PageParams>,
     context: Option<Context>,
     state: State<Arc<AppState>>,
 ) -> Result<impl IntoResponse, Error> {
-    println!("==> {:<12} - /list (Params: {:?} - FunctionType: {:?})", "FUNCTIONS", params, ftype);
+    // println!("==> {:<12} - /list (Params: {:?} - FunctionType: {:?})", "FUNCTIONS", params, ftype);
 
     let mut conditions = Condition::all();
     conditions = conditions.add(modules::Column::Project.eq(project));
@@ -118,24 +120,25 @@ pub async fn list(
     if let Some(name) = params.name() {
         conditions = conditions.add(functions::Column::Name.contains(name));
     }
-    if let Some(ftype) = ftype {
-        conditions = conditions.add(functions::Column::Type.eq(ftype));
-    }
+    // if let Some(ftype) = ftype {
+    //     conditions = conditions.add(functions::Column::Type.eq(ftype));
+    // }
 
     let ctx = context.unwrap();
     let db = state.connection(ctx.tenant()).await?;
-    let paginator = functions::Entity::find()
+    let paginator = Functions::find()
+        .inner_join(modules::Entity)
         .filter(conditions)
         .paginate(&db, params.size());
 
-    let records = paginator.fetch_page(params.page()).await?;
+    let items = paginator.fetch_page(params.page() -1).await?;
     let mut page: Page<Function> = Page::new();
     page.pages = paginator.num_pages().await?;
     page.index = params.page();
-    page.size = records.len() as u64;
+    page.size = items.len() as u64;
     page.records = paginator.num_items().await?;
-    for record in records {
-        page.items.push(translate(record));
+    for item in items {
+        page.items.push(translate(item));
     }
     
     Ok(Json(page))
