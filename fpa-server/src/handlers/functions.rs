@@ -2,18 +2,24 @@ use std::sync::Arc;
 
 use axum::{
     extract::{Path, Query, State},
-    response::IntoResponse, Json,
+    response::IntoResponse,
+    Json,
 };
-use sea_orm::{ColumnTrait, Condition, DbBackend, EntityTrait, PaginatorTrait, QueryFilter, QuerySelect, QueryTrait, RelationTrait};
+use sea_orm::{ColumnTrait, Condition, EntityTrait, PaginatorTrait, QueryFilter};
 use serde::{Deserialize, Serialize};
-use utoipa::ToSchema;
+use utoipa::{IntoParams, ToSchema};
 use uuid::Uuid;
 
 use crate::model::prelude::*;
 use crate::{
     ctx::Context,
     error::{Error, ErrorResponse},
-    model::{functions::{self, Model}, modules, page::{Page, PageParams}, sea_orm_active_enums::FunctionType},
+    model::{
+        functions::{self, Model},
+        modules,
+        page::Page,
+        sea_orm_active_enums::FunctionType,
+    },
     state::AppState,
 };
 
@@ -87,6 +93,58 @@ pub enum Function {
     SE(FunctionSE),
 }
 
+/// Page select params.
+#[derive(Debug, Deserialize, IntoParams)]
+#[into_params(parameter_in = Query)]
+pub struct FunctionsParams {
+    /// Index of page to select.
+    #[param(minimum = 1, default = 1)]
+    page: Option<u64>,
+    /// Page's size (records).
+    #[param(minimum = 1, maximum = 50, default = 10)]
+    size: Option<u64>,
+    /// Filter by name.
+    #[param()]
+    name: Option<String>,
+    /// Filter by Function Type.
+    r#type: Option<FunctionType>,
+}
+
+impl Default for FunctionsParams {
+    fn default() -> Self {
+        Self {
+            page: Some(1),
+            size: Some(10),
+            name: Some(String::new()),
+            r#type: None,
+        }
+    }
+}
+
+impl FunctionsParams {
+    pub fn page(&self) -> u64 {
+        match self.page {
+            Some(v) => v,
+            None => Self::default().page.unwrap(),
+        }
+    }
+
+    pub fn size(&self) -> u64 {
+        match self.size {
+            Some(v) => v,
+            None => Self::default().size.unwrap(),
+        }
+    }
+
+    pub fn name(&self) -> Option<String> {
+        self.name.clone()
+    }
+
+    pub fn r#type(&self) -> Option<FunctionType> {
+        self.r#type.clone()
+    }
+}
+
 #[utoipa::path(
     tag = "Functions",
     get,
@@ -100,19 +158,17 @@ pub enum Function {
     params(
         ("project" = Uuid, description = "Project Unique ID."),
         ("module" = Uuid, Path, description = "Module Unique ID."),
-        PageParams,
-        ("ftype" = Option<FunctionType>, Query, description = "Type of the Function."),
+        FunctionsParams,
     ),
     security(("fpa-security" = []))
 )]
 pub async fn list(
     Path((project, module)): Path<(Uuid, Uuid)>,
-    // Query((params, ftype)): Query<(PageParams, Option<FunctionType>)>,
-    params: Query<PageParams>,
+    params: Query<FunctionsParams>,
     context: Option<Context>,
     state: State<Arc<AppState>>,
 ) -> Result<impl IntoResponse, Error> {
-    // println!("==> {:<12} - /list (Params: {:?} - FunctionType: {:?})", "FUNCTIONS", params, ftype);
+    println!("==> {:<12} - /list (Params: {:?})", "FUNCTIONS", params);
 
     let mut conditions = Condition::all();
     conditions = conditions.add(modules::Column::Project.eq(project));
@@ -120,9 +176,9 @@ pub async fn list(
     if let Some(name) = params.name() {
         conditions = conditions.add(functions::Column::Name.contains(name));
     }
-    // if let Some(ftype) = ftype {
-    //     conditions = conditions.add(functions::Column::Type.eq(ftype));
-    // }
+    if let Some(r#type) = params.r#type() {
+        conditions = conditions.add(functions::Column::Type.eq(r#type));
+    }
 
     let ctx = context.unwrap();
     let db = state.connection(ctx.tenant()).await?;
@@ -131,8 +187,8 @@ pub async fn list(
         .filter(conditions)
         .paginate(&db, params.size());
 
-    let items = paginator.fetch_page(params.page() -1).await?;
-    let mut page: Page<Function> = Page::new();
+    let items = paginator.fetch_page(params.page() - 1).await?;
+    let mut page = Page::<Function>::new();
     page.pages = paginator.num_pages().await?;
     page.index = params.page();
     page.size = items.len() as u64;
@@ -140,7 +196,7 @@ pub async fn list(
     for item in items {
         page.items.push(translate(item));
     }
-    
+
     Ok(Json(page))
 }
 
