@@ -2,7 +2,6 @@ mod shared;
 
 use anyhow::{Ok, Result};
 use shared::{selects, tokens::{self, Tenant}, URL, USERNAME, PASSWORD};
-use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use serde_json::json;
 use reqwest::StatusCode;

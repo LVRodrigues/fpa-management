@@ -22,7 +22,7 @@ pub struct Model {
 pub enum Relation {
     #[sea_orm(has_many = "super::rlrs::Entity")]
     Rlrs,
-    #[sea_orm(has_many = "super::rlrs::Entity")]
+    #[sea_orm(has_many = "super::alrs::Entity")]
     Alrs,    
     #[sea_orm(
         belongs_to = "super::modules::Entity",

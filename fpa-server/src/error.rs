@@ -32,6 +32,7 @@ pub enum Error {
     ModuleNameDuplicated,
     ModuleUpdate,
     ModuleConstraints,
+    NotFunctionData,
 }
 
 impl core::fmt::Display for Error {
@@ -166,6 +167,17 @@ impl IntoResponse for Error {
                             time: Utc::now(),
                             error: "NAME_DUPLICATED",
                             message: "The name must be unique for this scope."
+                        }
+                    )
+                }
+            Error::NotFunctionData => {
+                    (
+                        StatusCode::NOT_ACCEPTABLE,
+                        ErrorResponse {
+                            id: Uuid::now_v7(),
+                            time: Utc::now(),
+                            error: "NOT_ACCEPTABLE",
+                            message: "The data must be a function of data type."
                         }
                     )
                 }
