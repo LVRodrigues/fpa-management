@@ -4,9 +4,12 @@ use anyhow::Result;
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use shared::{selects, tokens::{self, Tenant}, URL, USERNAME, PASSWORD};
+use shared::{
+    selects,
+    tokens::{self, Tenant},
+    PASSWORD, URL, USERNAME,
+};
 use uuid::Uuid;
-
 
 const PROCUCTIVITY: &str = "Productivity";
 const DEPLOYMENT: &str = "Deployment";
@@ -14,7 +17,7 @@ const DEPLOYMENT: &str = "Deployment";
 #[derive(Debug, Serialize, Deserialize)]
 struct Data {
     empirical: String,
-    value: i32
+    value: i32,
 }
 
 async fn list(token: &String, project: &Uuid) -> Result<()> {
@@ -40,7 +43,7 @@ async fn update(token: &String, project: &Uuid) -> Result<()> {
     const VALUE: i32 = 50;
     let body = Data {
         empirical: String::from(DEPLOYMENT),
-        value: VALUE
+        value: VALUE,
     };
     let response = reqwest::Client::new()
         .put(format!("{}/{}/empiricals", URL, &project))
@@ -48,7 +51,7 @@ async fn update(token: &String, project: &Uuid) -> Result<()> {
         .json(&body)
         .send()
         .await?;
-    assert_eq!(response.status(), StatusCode::OK);    
+    assert_eq!(response.status(), StatusCode::OK);
 
     let data = response.json::<Data>().await?;
     assert_eq!(data.empirical, DEPLOYMENT);
@@ -61,7 +64,7 @@ async fn update_productivity_error(token: &String, project: &Uuid) -> Result<()>
     const VALUE: i32 = 60;
     let body = Data {
         empirical: String::from(PROCUCTIVITY),
-        value: VALUE
+        value: VALUE,
     };
     let response = reqwest::Client::new()
         .put(format!("{}/{}/empiricals", URL, &project))
@@ -69,7 +72,7 @@ async fn update_productivity_error(token: &String, project: &Uuid) -> Result<()>
         .json(&body)
         .send()
         .await?;
-    assert_eq!(response.status(), StatusCode::NOT_ACCEPTABLE);    
+    assert_eq!(response.status(), StatusCode::NOT_ACCEPTABLE);
 
     Ok(())
 }
@@ -78,7 +81,7 @@ async fn update_deployment_error(token: &String, project: &Uuid) -> Result<()> {
     const VALUE: i32 = 160;
     let body = Data {
         empirical: String::from(DEPLOYMENT),
-        value: VALUE
+        value: VALUE,
     };
     let response = reqwest::Client::new()
         .put(format!("{}/{}/empiricals", URL, &project))
@@ -86,11 +89,10 @@ async fn update_deployment_error(token: &String, project: &Uuid) -> Result<()> {
         .json(&body)
         .send()
         .await?;
-    assert_eq!(response.status(), StatusCode::NOT_ACCEPTABLE);    
+    assert_eq!(response.status(), StatusCode::NOT_ACCEPTABLE);
 
     Ok(())
 }
-
 
 #[tokio::test]
 async fn execute() -> Result<()> {

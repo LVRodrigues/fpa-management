@@ -4,7 +4,11 @@ use anyhow::Result;
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use shared::{selects, tokens::{self, Tenant}, URL, USERNAME, PASSWORD};
+use shared::{
+    selects,
+    tokens::{self, Tenant},
+    PASSWORD, URL, USERNAME,
+};
 use uuid::Uuid;
 
 const FACTOR: &str = "MultipleSites";
@@ -46,7 +50,7 @@ async fn update(token: &String, project: &Uuid) -> Result<()> {
         .json(&body)
         .send()
         .await?;
-    assert_eq!(response.status(), StatusCode::OK);    
+    assert_eq!(response.status(), StatusCode::OK);
 
     let data = response.json::<Data>().await?;
     assert_eq!(data.factor, FACTOR);

@@ -13,4 +13,3 @@ pub use super::rlrs::Entity as Rlrs;
 pub use super::tenants::Entity as Tenants;
 pub use super::users::Entity as Users;
 pub use super::versions::Entity as Versions;
-

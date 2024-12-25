@@ -8,7 +8,7 @@ use utoipa::ToSchema;
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, ToSchema)]
 #[sea_orm(table_name = "versions")]
 #[schema(as=Version)]
-#[serde(rename = "Version")] 
+#[serde(rename = "Version")]
 pub struct Model {
     /// Version unique identifier.
     #[sea_orm(primary_key, auto_increment = false)]

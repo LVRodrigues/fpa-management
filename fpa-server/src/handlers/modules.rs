@@ -1,13 +1,29 @@
 use std::sync::Arc;
 
-use sea_orm::{ActiveModelTrait, ColumnTrait, Condition, EntityTrait, ModelTrait, PaginatorTrait, QueryFilter, Set};
+use axum::{
+    extract::{Path, Query, State},
+    http::{HeaderMap, StatusCode, Uri},
+    response::IntoResponse,
+    Json,
+};
+use sea_orm::{
+    ActiveModelTrait, ColumnTrait, Condition, EntityTrait, ModelTrait, PaginatorTrait, QueryFilter,
+    Set,
+};
 use serde::Deserialize;
 use utoipa::ToSchema;
 use uuid::Uuid;
-use axum::{extract::{Path, Query, State}, http::{HeaderMap, Uri, StatusCode}, response::IntoResponse, Json};
 
-use crate::{ctx::Context, error::{Error, ErrorResponse}, model::{modules::{self, ActiveModel, Model}, page::{Page, PageParams}}, state::AppState};
 use crate::model::prelude::Modules;
+use crate::{
+    ctx::Context,
+    error::{Error, ErrorResponse},
+    model::{
+        modules::{self, ActiveModel, Model},
+        page::{Page, PageParams},
+    },
+    state::AppState,
+};
 
 /// Search for a set of Modules for a Project.
 #[utoipa::path(
@@ -26,7 +42,12 @@ use crate::model::prelude::Modules;
     ),
     security(("fpa-security" = []))
 )]
-pub async fn list(Path(project): Path<Uuid>, Query(params): Query<PageParams>, context: Option<Context>, state: State<Arc<AppState>>) -> Result<impl IntoResponse, Error> {
+pub async fn list(
+    Path(project): Path<Uuid>,
+    Query(params): Query<PageParams>,
+    context: Option<Context>,
+    state: State<Arc<AppState>>,
+) -> Result<impl IntoResponse, Error> {
     println!("==> {:<12} - /{project}/list", "MODULES");
 
     let mut conditions = Condition::all();
@@ -43,11 +64,11 @@ pub async fn list(Path(project): Path<Uuid>, Query(params): Query<PageParams>, c
 
     let items = paginator.fetch_page(params.page() - 1).await?;
     let mut page: Page<Model> = Page::new();
-    page.pages      = paginator.num_pages().await?;
-    page.index      = params.page();
-    page.size       = items.len() as u64;
-    page.records    = paginator.num_items().await?;
-    page.items      = items;
+    page.pages = paginator.num_pages().await?;
+    page.index = params.page();
+    page.size = items.len() as u64;
+    page.records = paginator.num_items().await?;
+    page.items = items;
 
     Ok(Json(page))
 }
@@ -69,7 +90,11 @@ pub async fn list(Path(project): Path<Uuid>, Query(params): Query<PageParams>, c
     ),
     security(("fpa-security" = []))    
 )]
-pub async fn by_id(Path((project, module)): Path<(Uuid, Uuid)>, context: Option<Context>, state: State<Arc<AppState>>) -> Result<impl IntoResponse, Error> {
+pub async fn by_id(
+    Path((project, module)): Path<(Uuid, Uuid)>,
+    context: Option<Context>,
+    state: State<Arc<AppState>>,
+) -> Result<impl IntoResponse, Error> {
     println!("==> {:<12} - /{project}/by_id {module}", "MODULES");
     let ctx = context.unwrap();
     let db = state.connection(ctx.tenant()).await?;
@@ -107,10 +132,15 @@ pub struct ModuleParam {
     ),
     params(
         ("project" = Uuid, Path, description = "Project Unique ID."),
-    ),    
+    ),
     security(("fpa-security" = []))
 )]
-pub async fn create(Path(project): Path<Uuid>, context: Option<Context>, state: State<Arc<AppState>>, Json(params): Json<ModuleParam>) -> Result<impl IntoResponse, Error> {
+pub async fn create(
+    Path(project): Path<Uuid>,
+    context: Option<Context>,
+    state: State<Arc<AppState>>,
+    Json(params): Json<ModuleParam>,
+) -> Result<impl IntoResponse, Error> {
     println!("==> {:<12} - /{project}/create {:?}", "MODULES", params);
     let ctx = context.unwrap();
     let db = state.connection(ctx.tenant()).await?;
@@ -127,7 +157,9 @@ pub async fn create(Path(project): Path<Uuid>, context: Option<Context>, state: 
         Ok(v) => v,
         Err(e) => {
             match e.sql_err().unwrap() {
-                sea_orm::SqlErr::UniqueConstraintViolation(_) => return Err(Error::ModuleNameDuplicated),
+                sea_orm::SqlErr::UniqueConstraintViolation(_) => {
+                    return Err(Error::ModuleNameDuplicated)
+                }
                 _ => return Err(Error::ModuleCreate),
             };
         }
@@ -136,12 +168,19 @@ pub async fn create(Path(project): Path<Uuid>, context: Option<Context>, state: 
     match db.commit().await {
         Ok(it) => it,
         Err(_) => return Err(Error::DatabaseTransaction),
-    };    
+    };
 
     let location = Uri::builder()
         .scheme(config.scheme.clone())
-        .authority(format!("{}:{}", config.authority.clone(), config.port.clone()))
-        .path_and_query(format!("/api/projects/{}/modules/{}", &module.project, module.module))
+        .authority(format!(
+            "{}:{}",
+            config.authority.clone(),
+            config.port.clone()
+        ))
+        .path_and_query(format!(
+            "/api/projects/{}/modules/{}",
+            &module.project, module.module
+        ))
         .build()
         .unwrap()
         .to_string()
@@ -151,7 +190,7 @@ pub async fn create(Path(project): Path<Uuid>, context: Option<Context>, state: 
     header.insert("Location", location);
 
     Ok((StatusCode::CREATED, header, Json(module)))
-}    
+}
 
 /// Update a existing Module.
 #[utoipa::path(
@@ -171,10 +210,18 @@ pub async fn create(Path(project): Path<Uuid>, context: Option<Context>, state: 
     ),
     security(("fpa-security" = []))
 )]
-pub async fn update(Path((project, module)): Path<(Uuid, Uuid)>, context: Option<Context>, state: State<Arc<AppState>>, Json(params): Json<ModuleParam>) -> Result<impl IntoResponse, Error> {
-    println!("==> {:<12} - /{project}/update/{module} {:?}", "MODULES", params);
+pub async fn update(
+    Path((project, module)): Path<(Uuid, Uuid)>,
+    context: Option<Context>,
+    state: State<Arc<AppState>>,
+    Json(params): Json<ModuleParam>,
+) -> Result<impl IntoResponse, Error> {
+    println!(
+        "==> {:<12} - /{project}/update/{module} {:?}",
+        "MODULES", params
+    );
     let ctx = context.unwrap();
-    let db = state.connection(ctx.tenant()).await?;        
+    let db = state.connection(ctx.tenant()).await?;
 
     let mut conditions = Condition::all();
     conditions = conditions.add(modules::Column::Project.eq(project));
@@ -194,8 +241,10 @@ pub async fn update(Path((project, module)): Path<(Uuid, Uuid)>, context: Option
         Ok(v) => v,
         Err(e) => {
             match e.sql_err().unwrap() {
-                sea_orm::SqlErr::UniqueConstraintViolation(_) => return Err(Error::ModuleNameDuplicated),
-                _ => return Err(Error::ModuleUpdate)
+                sea_orm::SqlErr::UniqueConstraintViolation(_) => {
+                    return Err(Error::ModuleNameDuplicated)
+                }
+                _ => return Err(Error::ModuleUpdate),
             };
         }
     };
@@ -221,10 +270,14 @@ pub async fn update(Path((project, module)): Path<(Uuid, Uuid)>, context: Option
     ),
     security(("fpa-security" = []))
 )]
-pub async fn remove(Path((project, module)): Path<(Uuid, Uuid)>, context: Option<Context>, state: State<Arc<AppState>>) -> Result<impl IntoResponse, Error> {
+pub async fn remove(
+    Path((project, module)): Path<(Uuid, Uuid)>,
+    context: Option<Context>,
+    state: State<Arc<AppState>>,
+) -> Result<impl IntoResponse, Error> {
     println!("==> {:<12} - /{project}/remove/{module}", "MODULES");
     let ctx = context.unwrap();
-    let db = state.connection(ctx.tenant()).await?;   
+    let db = state.connection(ctx.tenant()).await?;
 
     let mut conditions = Condition::all();
     conditions = conditions.add(modules::Column::Project.eq(project));
@@ -239,9 +292,9 @@ pub async fn remove(Path((project, module)): Path<(Uuid, Uuid)>, context: Option
     match data.delete(&db).await {
         Ok(v) => {
             if v.rows_affected != 1 {
-                return Err(Error::MultipleRowsAffected)
+                return Err(Error::MultipleRowsAffected);
             }
-        },
+        }
         Err(_) => return Err(Error::ModuleConstraints),
     };
     match db.commit().await {

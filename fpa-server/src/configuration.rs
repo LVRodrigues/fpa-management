@@ -71,6 +71,6 @@ pub fn prepare() -> Configuration {
             deployment: settings.get("empiricals.deployment").unwrap(),
             planning: settings.get("empiricals.planning").unwrap(),
             testing: settings.get("empiricals.testing").unwrap(),
-        }
+        },
     }
 }

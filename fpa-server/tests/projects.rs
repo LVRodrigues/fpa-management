@@ -4,9 +4,12 @@ use anyhow::Result;
 use reqwest::StatusCode;
 use sea_orm::prelude::DateTimeWithTimeZone;
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
-use shared::{tokens::{self, Tenant}, URL, USERNAME, PASSWORD};
 use serde_json::json;
+use shared::{
+    tokens::{self, Tenant},
+    PASSWORD, URL, USERNAME,
+};
+use uuid::Uuid;
 
 const PROJECT_NAME: &str = "Running-Test";
 const PROJECT_DESCRIPTION: &str = "Long project description for test";
@@ -17,12 +20,15 @@ struct Data {
     name: String,
     description: Option<String>,
     time: DateTimeWithTimeZone,
-    user: Uuid,    
+    user: Uuid,
 }
 
 impl PartialEq for Data {
     fn eq(&self, other: &Self) -> bool {
-        self.project == other.project && self.name == other.name && self.time == other.time && self.user == other.user
+        self.project == other.project
+            && self.name == other.name
+            && self.time == other.time
+            && self.user == other.user
     }
 }
 
@@ -38,7 +44,7 @@ async fn list(token: &String) -> Result<()> {
     assert_eq!(json["pages"], json!(10));
     assert_eq!(json["index"], json!(1));
     assert_eq!(json["size"], json!(10));
-    assert_eq!(json["records"], json!(100));    
+    assert_eq!(json["records"], json!(100));
     assert!(json["items"].is_array());
     assert_eq!(json["items"].as_array().unwrap().len(), 10);
     Ok(())
@@ -83,7 +89,7 @@ async fn create_duplicated(token: &String) -> Result<()> {
     Ok(())
 }
 
-async fn find_by_id(token: &String, data: &Data) -> Result<()> { 
+async fn find_by_id(token: &String, data: &Data) -> Result<()> {
     let response = reqwest::Client::new()
         .get(format!("{}/{}", URL, data.project))
         .bearer_auth(token)
@@ -97,7 +103,7 @@ async fn find_by_id(token: &String, data: &Data) -> Result<()> {
     Ok(())
 }
 
-async fn find_by_name(token: &String, data: &Data) -> Result<()> { 
+async fn find_by_name(token: &String, data: &Data) -> Result<()> {
     let response = reqwest::Client::new()
         .get(format!("{}?name={}", URL, PROJECT_NAME))
         .bearer_auth(token)
@@ -136,7 +142,10 @@ async fn update(token: &String, data: &Data) -> Result<Data> {
     let other = response.json::<Data>().await?;
     assert_eq!(other.project, data.project);
     assert_eq!(other.name, body["name"].as_str().unwrap());
-    assert_eq!(other.description.clone().unwrap().as_str(), body["description"].as_str().unwrap());
+    assert_eq!(
+        other.description.clone().unwrap().as_str(),
+        body["description"].as_str().unwrap()
+    );
     assert_eq!(other.time, data.time);
     assert_eq!(other.user, data.user);
 
@@ -165,7 +174,7 @@ async fn remove(token: &String, data: &Data) -> Result<()> {
         .bearer_auth(token)
         .send()
         .await?;
-    assert_eq!(response.status(), StatusCode::NO_CONTENT); 
+    assert_eq!(response.status(), StatusCode::NO_CONTENT);
     Ok(())
 }
 
@@ -175,7 +184,7 @@ async fn not_found(token: &String, data: &Data) -> Result<()> {
         .bearer_auth(token)
         .send()
         .await?;
-    assert_eq!(response.status(), StatusCode::NOT_FOUND);    
+    assert_eq!(response.status(), StatusCode::NOT_FOUND);
     Ok(())
 }
 

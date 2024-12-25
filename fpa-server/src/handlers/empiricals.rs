@@ -1,12 +1,27 @@
 use std::sync::Arc;
 
+use axum::{
+    extract::{Path, State},
+    http::StatusCode,
+    response::IntoResponse,
+    Json,
+};
 use sea_orm::{ActiveModelTrait, EntityTrait, ModelTrait, Set};
 use serde::Deserialize;
 use utoipa::ToSchema;
 use uuid::Uuid;
-use axum::{extract::{Path, State}, http::StatusCode, response::IntoResponse, Json};
 
-use crate::{ctx::Context, error::{Error, ErrorResponse}, model::{empiricals::{self, ActiveModel, Model}, page::Page, prelude::{Empiricals, Projects}, sea_orm_active_enums::EmpiricalType}, state::AppState};
+use crate::{
+    ctx::Context,
+    error::{Error, ErrorResponse},
+    model::{
+        empiricals::{self, ActiveModel, Model},
+        page::Page,
+        prelude::{Empiricals, Projects},
+        sea_orm_active_enums::EmpiricalType,
+    },
+    state::AppState,
+};
 
 /// Search for a set of Empirical's Factor for a Project.
 #[utoipa::path(
@@ -24,7 +39,11 @@ use crate::{ctx::Context, error::{Error, ErrorResponse}, model::{empiricals::{se
     ),
     security(("fpa-security" = []))
 )]
-pub async fn list(Path(id): Path<Uuid>, context: Option<Context>, state: State<Arc<AppState>>) -> Result<impl IntoResponse, Error> {
+pub async fn list(
+    Path(id): Path<Uuid>,
+    context: Option<Context>,
+    state: State<Arc<AppState>>,
+) -> Result<impl IntoResponse, Error> {
     println!("==> {:<12} - /{id}/list", "EMPIRICALS");
     let ctx = context.unwrap();
     let db = state.connection(ctx.tenant()).await?;
@@ -36,11 +55,11 @@ pub async fn list(Path(id): Path<Uuid>, context: Option<Context>, state: State<A
 
     let items = project.find_related(Empiricals).all(&db).await?;
     let mut page: Page<Model> = Page::new();
-    page.pages      = 1;
-    page.index      = 1;
-    page.size       = items.len() as u64;
-    page.records    = items.len() as u64;
-    page.items      = items;
+    page.pages = 1;
+    page.index = 1;
+    page.size = items.len() as u64;
+    page.records = items.len() as u64;
+    page.items = items;
 
     Ok(Json(page))
 }
@@ -70,8 +89,16 @@ pub struct EmpiricalParam {
     ),
     security(("fpa-security" = []))
 )]
-pub async fn update(Path(id): Path<Uuid>, context: Option<Context>, state: State<Arc<AppState>>, Json(params): Json<EmpiricalParam>) -> Result<impl IntoResponse, Error> {
-    println!("==> {:<12} - /{id}/update (Params: {:?})", "EMPIRICALS", params);
+pub async fn update(
+    Path(id): Path<Uuid>,
+    context: Option<Context>,
+    state: State<Arc<AppState>>,
+    Json(params): Json<EmpiricalParam>,
+) -> Result<impl IntoResponse, Error> {
+    println!(
+        "==> {:<12} - /{id}/update (Params: {:?})",
+        "EMPIRICALS", params
+    );
 
     if params.empirical == EmpiricalType::Productivity {
         if params.value < 1 || params.value > 50 {
@@ -84,16 +111,20 @@ pub async fn update(Path(id): Path<Uuid>, context: Option<Context>, state: State
     }
 
     let ctx = context.unwrap();
-    let db = state.connection(ctx.tenant()).await?;    
+    let db = state.connection(ctx.tenant()).await?;
 
-    let data = match Empiricals::find_by_id((id, params.empirical)).one(&db).await.unwrap() {
+    let data = match Empiricals::find_by_id((id, params.empirical))
+        .one(&db)
+        .await
+        .unwrap()
+    {
         Some(v) => v,
         None => return Err(Error::NotFound),
     };
 
     let mut data: ActiveModel = data.into();
     data.value = Set(params.value);
-    
+
     let data: Model = data.update(&db).await?;
     match db.commit().await {
         Ok(it) => it,

@@ -1,4 +1,3 @@
-
 use serde::Serialize;
 use serde_derive::Deserialize;
 use utoipa::{IntoParams, ToResponse, ToSchema};
@@ -20,7 +19,13 @@ pub struct Page<T: ToSchema> {
 
 impl<T: ToSchema> Page<T> {
     pub fn new() -> Self {
-        Self { pages: 0, index: 0, size: 0, records: 0, items: Vec::<T>::new() }
+        Self {
+            pages: 0,
+            index: 0,
+            size: 0,
+            records: 0,
+            items: Vec::<T>::new(),
+        }
     }
 }
 
@@ -41,7 +46,11 @@ pub struct PageParams {
 
 impl Default for PageParams {
     fn default() -> Self {
-        Self { page: Some(1), size: Some(10), name: Some(String::new()) }
+        Self {
+            page: Some(1),
+            size: Some(10),
+            name: Some(String::new()),
+        }
     }
 }
 

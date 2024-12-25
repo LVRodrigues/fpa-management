@@ -10,7 +10,7 @@ use utoipa::ToSchema;
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, ToSchema)]
 #[sea_orm(table_name = "factors")]
 #[schema(as=Factor)]
-#[serde(rename = "Factor")] 
+#[serde(rename = "Factor")]
 pub struct Model {
     /// Project identifier.
     #[serde(skip)]

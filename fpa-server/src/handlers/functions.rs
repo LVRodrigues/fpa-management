@@ -5,7 +5,10 @@ use axum::{
     response::IntoResponse,
     Json,
 };
-use sea_orm::{ColumnTrait, Condition, DatabaseTransaction, EntityTrait, PaginatorTrait, QueryFilter, QueryTrait};
+use sea_orm::{
+    ColumnTrait, Condition, DatabaseTransaction, EntityTrait, PaginatorTrait, QueryFilter,
+    QueryTrait,
+};
 use serde::{Deserialize, Serialize};
 use utoipa::{IntoParams, ToSchema};
 use uuid::Uuid;
@@ -239,8 +242,6 @@ pub async fn list(
     Ok(Json(page))
 }
 
-// TODO - Add rlrs and ders do functions ALI and AIE
-// TODO - Add alrs to functions EE, CE and SE
 async fn translate(func: Model, db: &DatabaseTransaction) -> Result<Function, Error> {
     let result = match func.r#type {
         FunctionType::ALI => Function::ALI(FunctionALI {
@@ -284,7 +285,8 @@ async fn load_arls(function: Uuid, db: &DatabaseTransaction) -> Result<Vec<Funct
     let alrs: Vec<functions_datas::Model> = FunctionsDatas::find()
         .inner_join(alrs::Entity)
         .filter(Condition::all().add(alrs::Column::Function.eq(function)))
-        .all(db).await?; 
+        .all(db)
+        .await?;
 
     for alr in alrs {
         let data = match alr.r#type {
@@ -306,7 +308,7 @@ async fn load_arls(function: Uuid, db: &DatabaseTransaction) -> Result<Vec<Funct
         result.push(data);
     }
 
-    Ok(result)  
+    Ok(result)
 }
 
 async fn load_rlrs(function: Uuid, db: &DatabaseTransaction) -> Result<Vec<RLR>, Error> {
@@ -314,15 +316,19 @@ async fn load_rlrs(function: Uuid, db: &DatabaseTransaction) -> Result<Vec<RLR>,
 
     let rlrs = Rlrs::find()
         .filter(Condition::all().add(rlrs::Column::Function.eq(function)))
-        .all(db).await?;
+        .all(db)
+        .await?;
 
     for rlr in rlrs {
         let mut ders = Vec::<DER>::new();
         let der = Ders::find()
-            .filter(Condition::all()
-                .add(ders::Column::Function.eq(rlr.function))
-                .add(ders::Column::Rlr.eq(rlr.name.clone()))
-            ).all(db).await?;
+            .filter(
+                Condition::all()
+                    .add(ders::Column::Function.eq(rlr.function))
+                    .add(ders::Column::Rlr.eq(rlr.name.clone())),
+            )
+            .all(db)
+            .await?;
         for d in der {
             ders.push(DER {
                 name: d.name,

@@ -4,7 +4,17 @@ use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
 /// Empirical adjustment for the Project.
-#[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum, utoipa::ToSchema, Serialize, Deserialize)]
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    EnumIter,
+    DeriveActiveEnum,
+    utoipa::ToSchema,
+    Serialize,
+    Deserialize,
+)]
 #[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "empirical_type")]
 pub enum EmpiricalType {
     #[sea_orm(string_value = "COORDINATION")]
@@ -20,7 +30,17 @@ pub enum EmpiricalType {
 }
 
 /// Adjustment factor for the Project.
-#[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum, utoipa::ToSchema, Serialize, Deserialize)]
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    EnumIter,
+    DeriveActiveEnum,
+    utoipa::ToSchema,
+    Serialize,
+    Deserialize,
+)]
 #[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "factor_type")]
 pub enum FactorType {
     #[sea_orm(string_value = "COMPLEX_PROCESSING")]
@@ -54,7 +74,17 @@ pub enum FactorType {
 }
 
 /// Influence value for the adjustment factor.
-#[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum, utoipa::ToSchema, Serialize, Deserialize)]
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    EnumIter,
+    DeriveActiveEnum,
+    utoipa::ToSchema,
+    Serialize,
+    Deserialize,
+)]
 #[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "influence_type")]
 pub enum InfluenceType {
     #[sea_orm(string_value = "ABSENT")]
@@ -94,7 +124,17 @@ pub enum TenantTier {
 }
 
 /// Type of Function.
-#[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum, utoipa::ToSchema, Serialize, Deserialize)]
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    EnumIter,
+    DeriveActiveEnum,
+    utoipa::ToSchema,
+    Serialize,
+    Deserialize,
+)]
 #[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "function_type")]
 pub enum FunctionType {
     /// Internal Logic File Function
