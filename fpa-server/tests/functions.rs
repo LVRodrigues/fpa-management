@@ -47,13 +47,19 @@ async fn list_by_name(token: &String, project: &Uuid, module: &Uuid) -> Result<(
     assert!(items[0].get("ALI").is_some());
     let value = items[0].get("ALI").unwrap();
     assert!(value["name"].as_str().unwrap().contains("ALI"));
+    
+    assert!(value["rlrs"].is_array());
+    assert_eq!(value["rlrs"].as_array().unwrap().len(), 1);
+    
+    let ders = value["rlrs"].as_array().unwrap();
+    assert_eq!(ders[0]["ders"].as_array().unwrap().len(), 5);
 
     Ok(())
 }
 
 async fn list_by_type(token: &String, project: &Uuid, module: &Uuid) -> Result<()> {
     let response = reqwest::Client::new()
-        .get(format!("{}/{}/modules/{}/functions?type=EE", URL, project, module))
+        .get(format!("{}/{}/modules/{}/functions?type=CE", URL, project, module))
         .bearer_auth(token)
         .send()
         .await?;
@@ -69,9 +75,15 @@ async fn list_by_type(token: &String, project: &Uuid, module: &Uuid) -> Result<(
     assert_eq!(json["items"].as_array().unwrap().len(), 1);
     
     let items = json["items"].as_array().unwrap();
-    assert!(items[0].get("EE").is_some());
-    let value = items[0].get("EE").unwrap();
-    assert!(value["name"].as_str().unwrap().contains("EE"));
+    assert!(items[0].get("CE").is_some());
+    let value = items[0].get("CE").unwrap();
+    assert!(value["name"].as_str().unwrap().contains("CE"));
+
+    assert!(value["alrs"].is_array());
+    assert_eq!(value["alrs"].as_array().unwrap().len(), 1);
+    
+    let alrs = value["alrs"].as_array().unwrap();
+    assert!(alrs[0].get("AIE").is_some());
 
     Ok(())
 }
