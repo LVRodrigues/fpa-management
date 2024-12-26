@@ -35,6 +35,7 @@ use utoipa::{
         crate::handlers::modules::update,
         crate::handlers::modules::remove,
         crate::handlers::functions::list,
+        crate::handlers::functions::create,
     ),
     components(
         schemas(
@@ -58,6 +59,8 @@ use utoipa::{
             crate::handlers::functions::FunctionEE,
             crate::handlers::functions::FunctionCE,
             crate::handlers::functions::FunctionSE,
+            crate::handlers::functions::FunctionData,
+            crate::handlers::functions::Function,
         ),
     ),
     modifiers(&SecuritySchemas, &InfoModifier),

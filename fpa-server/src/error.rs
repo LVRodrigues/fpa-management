@@ -36,6 +36,8 @@ pub enum Error {
     ModuleUpdate,
     ModuleConstraints,
     NotFunctionData,
+    NotFunctionTransaction,
+    FunctionCreate,
 }
 
 impl core::fmt::Display for Error {
@@ -152,13 +154,22 @@ impl IntoResponse for Error {
                     message: "The name must be unique for this scope.",
                 },
             ),
-            Error::NotFunctionData => (
+            Error::NotFunctionData  => (
                 StatusCode::NOT_ACCEPTABLE,
                 ErrorResponse {
                     id: Uuid::now_v7(),
                     time: Utc::now(),
                     error: "NOT_ACCEPTABLE",
                     message: "The data must be a function of data type.",
+                },
+            ),
+            Error::NotFunctionTransaction  => (
+                StatusCode::NOT_ACCEPTABLE,
+                ErrorResponse {
+                    id: Uuid::now_v7(),
+                    time: Utc::now(),
+                    error: "NOT_ACCEPTABLE",
+                    message: "The transaction must be a function of transaction type.",
                 },
             ),
             _ => (

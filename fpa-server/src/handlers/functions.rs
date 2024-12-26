@@ -6,14 +6,13 @@ use axum::{
     Json,
 };
 use sea_orm::{
-    ColumnTrait, Condition, DatabaseTransaction, EntityTrait, PaginatorTrait, QueryFilter,
-    QueryTrait,
+    sqlx::database, ActiveModelTrait, ColumnTrait, Condition, DatabaseTransaction, EntityTrait, PaginatorTrait, QueryFilter, Set
 };
 use serde::{Deserialize, Serialize};
 use utoipa::{IntoParams, ToSchema};
-use uuid::Uuid;
+use uuid::{timestamp::context, Uuid};
 
-use crate::model::{alrs, ders, functions_datas, prelude::*, rlrs};
+use crate::model::{alrs, ders, functions_datas, functions_transactions, prelude::*, rlrs};
 use crate::{
     ctx::Context,
     error::{Error, ErrorResponse},
@@ -27,7 +26,7 @@ use crate::{
 };
 
 /// Data Element Reference
-#[derive(Debug, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Serialize, Deserialize, ToSchema, Clone)]
 pub struct DER {
     /// Unique Identifier of the DER.
     pub name: String,
@@ -36,7 +35,7 @@ pub struct DER {
 }
 
 /// Record Layout Reference
-#[derive(Debug, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Serialize, Deserialize, ToSchema, Clone)]
 pub struct RLR {
     /// Unique Identifier of the RLR.
     pub name: String,
@@ -47,7 +46,7 @@ pub struct RLR {
 }
 
 /// Internal Logic File Function
-#[derive(Debug, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Serialize, Deserialize, ToSchema, Clone)]
 pub struct FunctionALI {
     /// Unique Identifier of the Function.
     pub id: Uuid,
@@ -60,7 +59,7 @@ pub struct FunctionALI {
 }
 
 /// External Interface File Function
-#[derive(Debug, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Serialize, Deserialize, ToSchema, Clone)]
 pub struct FunctionAIE {
     /// Unique Identifier of the Function.
     pub id: Uuid,
@@ -73,7 +72,7 @@ pub struct FunctionAIE {
 }
 
 /// Type of the Function of Data Type.
-#[derive(Debug, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Serialize, Deserialize, ToSchema, Clone)]
 pub enum FunctionData {
     /// ALI
     ALI(FunctionALI),
@@ -342,6 +341,214 @@ async fn load_rlrs(function: Uuid, db: &DatabaseTransaction) -> Result<Vec<RLR>,
             ders,
         });
     }
+
+    Ok(result)
+}
+
+/// Create a new Module for a selected Project.
+#[utoipa::path(
+    tag = "Functions",
+    post,
+    path = "/api/projects/{project}/modules/{module}/functions",
+    responses(
+        (status = CREATED, description = "Success.", body = Function, headers(("Location", description = "New function address."))),
+        (status = UNAUTHORIZED, description = "User not authorized.", body = ErrorResponse),
+        (status = NOT_FOUND, description = "Project or Module not founded.", body = ErrorResponse),
+        (status = CONFLICT, description = "Function Type incorrect.", body = ErrorResponse),
+        (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = ErrorResponse)
+    ),
+    params(
+        ("project" = Uuid, Path, description = "Project Unique ID."),
+    ),
+    security(("fpa-security" = []))
+)]
+pub async fn create(
+    Path((project, module)): Path<(Uuid, Uuid)>,
+    context: Option<Context>,
+    state: State<Arc<AppState>>,
+    Json(data): Json<Function>,
+) -> Result<impl IntoResponse, Error> {
+    println!("==> {:<12} - /create (Data: {:?})", "FUNCTIONS", data);
+
+    let ctx = context.unwrap();
+    let db = state.connection(ctx.tenant()).await?;
+    let config = state.configuration();
+
+    // Module must belong to the Project.
+    match Modules::find()
+        .filter(
+            Condition::all()
+                .add(modules::Column::Project.eq(project))
+                .add(modules::Column::Module.eq(module)),
+        )
+        .one(&db)
+        .await
+    {
+        Ok(_) => (),
+        Err(_) => return Err(Error::NotFound),
+    };
+
+    let function = match data {
+        Function::ALI(_) | Function::AIE(_) => {
+            insert_function_data(data, module, &db, &ctx).await?
+        },
+        Function::EE(_) | Function::CE(_) | Function::SE(_) => {
+            insert_function_transaction(data, module, &db, &ctx).await?
+        }
+    };
+
+    // TODO: Make a header location.
+
+    Ok(Json(function))
+}
+
+async fn insert_function_transaction(
+    data: Function,
+    module: Uuid,
+    db: &DatabaseTransaction,
+    ctx: &Context,
+) -> Result<Function, Error> {
+
+    let mut function = functions_transactions::ActiveModel {
+        function: Set(Uuid::now_v7()),
+        module: Set(module),
+        tenant: Set(ctx.tenant().clone()),
+        ..Default::default()
+    };
+
+    let mut alrs = Vec::<FunctionData>::new();
+    match data {
+        Function::EE(data) => {
+            function.r#type = Set(FunctionType::EE);
+            function.name = Set(data.name.to_owned());
+            function.description = Set(data.description.to_owned());
+            alrs = data.alrs;
+        },
+        Function::CE(data) => {
+            function.r#type = Set(FunctionType::CE);
+            function.name = Set(data.name.to_owned());
+            function.description = Set(data.description.to_owned());
+            alrs = data.alrs;
+        },
+        Function::SE(data) => {
+            function.r#type = Set(FunctionType::SE);
+            function.name = Set(data.name.to_owned());
+            function.description = Set(data.description.to_owned());
+            alrs = data.alrs;
+        },
+        _ => return Err(Error::NotFunctionTransaction),
+    };
+    let function = function.insert(db).await?;
+
+    let alrs_clone = alrs.to_vec();
+
+    for alr in alrs {
+        let item = alrs::ActiveModel {
+            function: Set(function.function),
+            tenant: Set(ctx.tenant().clone()),
+            alr: match alr {
+                FunctionData::ALI(v) => Set(v.id),
+                FunctionData::AIE(v) => Set(v.id),
+            }
+        };
+        item.insert(db).await?;
+    }
+
+    let result = match function.r#type {
+        FunctionType::EE => Function::EE(FunctionEE {
+            id: function.function,
+            name: function.name,
+            description: function.description,
+            alrs: alrs_clone,
+        }),
+        FunctionType::CE => Function::CE(FunctionCE {
+            id: function.function,
+            name: function.name,
+            description: function.description,
+            alrs: alrs_clone,
+        }),
+        FunctionType::SE => Function::SE(FunctionSE {
+            id: function.function,
+            name: function.name,
+            description: function.description,
+            alrs: alrs_clone,
+        }),
+        _ => return Err(Error::FunctionCreate),
+    };
+
+    Ok(result)
+}
+
+async fn insert_function_data(
+    data: Function,
+    module: Uuid,
+    db: &DatabaseTransaction,
+    ctx: &Context,
+) -> Result<Function, Error> {
+
+    let mut function = functions_datas::ActiveModel {
+        function: Set(Uuid::now_v7()),
+        module: Set(module),
+        tenant: Set(ctx.tenant().clone()),
+        ..Default::default()
+    };
+
+    let mut rlrs = Vec::<RLR>::new();
+    match data {
+        Function::ALI(data) => {
+            function.r#type = Set(FunctionType::ALI);
+            function.name = Set(data.name.to_owned());
+            function.description = Set(data.description.to_owned());
+            rlrs = data.rlrs;
+        },
+        Function::AIE(data) => {
+            function.r#type = Set(FunctionType::AIE);
+            function.name = Set(data.name.to_owned());
+            function.description = Set(data.description.to_owned());
+            rlrs = data.rlrs;
+        },
+        _ => return Err(Error::NotFunctionData),
+    };
+    let function = function.insert(db).await?;
+
+    let rlrs_clone = rlrs.to_vec();
+
+    for rlr in rlrs {
+        let item = rlrs::ActiveModel {
+            function: Set(function.function),
+            name: Set(rlr.name.clone()),
+            tenant: Set(ctx.tenant().clone()),
+            description: Set(rlr.description),
+        };
+        item.insert(db).await?;
+
+        for der in rlr.ders {
+            let item = ders::ActiveModel {
+                function: Set(function.function),
+                rlr: Set(rlr.name.clone()),
+                name: Set(der.name),
+                tenant: Set(ctx.tenant().clone()),
+                description: Set(der.description),
+            };
+            item.insert(db).await?;
+        }
+    }
+
+    let result = match function.r#type {
+        FunctionType::ALI => Function::ALI(FunctionALI {
+            id: function.function,
+            name: function.name,
+            description: function.description,
+            rlrs: rlrs_clone,
+        }),
+        FunctionType::AIE => Function::AIE(FunctionAIE {
+            id: function.function,
+            name: function.name,
+            description: function.description,
+            rlrs: rlrs_clone,
+        }),
+        _ => return Err(Error::FunctionCreate),
+    };
 
     Ok(result)
 }
