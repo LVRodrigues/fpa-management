@@ -6,11 +6,12 @@ use axum::{
     Json,
 };
 use sea_orm::{
-    sqlx::database, ActiveModelTrait, ColumnTrait, Condition, DatabaseTransaction, EntityTrait, PaginatorTrait, QueryFilter, Set
+    ActiveModelTrait, ColumnTrait, Condition, DatabaseTransaction, EntityTrait, PaginatorTrait,
+    QueryFilter, Set,
 };
 use serde::{Deserialize, Serialize};
 use utoipa::{IntoParams, ToSchema};
-use uuid::{timestamp::context, Uuid};
+use uuid::Uuid;
 
 use crate::model::{alrs, ders, functions_datas, functions_transactions, prelude::*, rlrs};
 use crate::{
@@ -391,7 +392,7 @@ pub async fn create(
     let function = match data {
         Function::ALI(_) | Function::AIE(_) => {
             insert_function_data(data, module, &db, &ctx).await?
-        },
+        }
         Function::EE(_) | Function::CE(_) | Function::SE(_) => {
             insert_function_transaction(data, module, &db, &ctx).await?
         }
@@ -408,7 +409,6 @@ async fn insert_function_transaction(
     db: &DatabaseTransaction,
     ctx: &Context,
 ) -> Result<Function, Error> {
-
     let mut function = functions_transactions::ActiveModel {
         function: Set(Uuid::now_v7()),
         module: Set(module),
@@ -423,19 +423,19 @@ async fn insert_function_transaction(
             function.name = Set(data.name.to_owned());
             function.description = Set(data.description.to_owned());
             alrs = data.alrs;
-        },
+        }
         Function::CE(data) => {
             function.r#type = Set(FunctionType::CE);
             function.name = Set(data.name.to_owned());
             function.description = Set(data.description.to_owned());
             alrs = data.alrs;
-        },
+        }
         Function::SE(data) => {
             function.r#type = Set(FunctionType::SE);
             function.name = Set(data.name.to_owned());
             function.description = Set(data.description.to_owned());
             alrs = data.alrs;
-        },
+        }
         _ => return Err(Error::NotFunctionTransaction),
     };
     let function = function.insert(db).await?;
@@ -449,7 +449,7 @@ async fn insert_function_transaction(
             alr: match alr {
                 FunctionData::ALI(v) => Set(v.id),
                 FunctionData::AIE(v) => Set(v.id),
-            }
+            },
         };
         item.insert(db).await?;
     }
@@ -485,7 +485,6 @@ async fn insert_function_data(
     db: &DatabaseTransaction,
     ctx: &Context,
 ) -> Result<Function, Error> {
-
     let mut function = functions_datas::ActiveModel {
         function: Set(Uuid::now_v7()),
         module: Set(module),
@@ -500,13 +499,13 @@ async fn insert_function_data(
             function.name = Set(data.name.to_owned());
             function.description = Set(data.description.to_owned());
             rlrs = data.rlrs;
-        },
+        }
         Function::AIE(data) => {
             function.r#type = Set(FunctionType::AIE);
             function.name = Set(data.name.to_owned());
             function.description = Set(data.description.to_owned());
             rlrs = data.rlrs;
-        },
+        }
         _ => return Err(Error::NotFunctionData),
     };
     let function = function.insert(db).await?;
