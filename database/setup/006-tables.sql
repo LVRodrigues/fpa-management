@@ -171,7 +171,8 @@ COMMENT ON INDEX pk_factors IS 'Primary key for the Factor`s Types on a Project.
 ALTER TABLE factors ADD
     CONSTRAINT fk_factors_project
     FOREIGN KEY (project)
-    REFERENCES projects (project);
+    REFERENCES projects (project)
+    ON DELETE CASCADE;
 
 CREATE INDEX ix_factors_project ON factors (project);
 
@@ -216,7 +217,8 @@ COMMENT ON INDEX pk_empiricals IS 'Primary key for the Empirical`s Factors on a 
 ALTER TABLE empiricals ADD
     CONSTRAINT fk_empiricals_project
     FOREIGN KEY (project)
-    REFERENCES projects (project);
+    REFERENCES projects (project)
+    ON DELETE CASCADE;
 
 CREATE INDEX ix_empiricals_project ON empiricals (project);
 
@@ -437,7 +439,8 @@ COMMENT ON INDEX ix_alrs_function IS 'Reference index to the functions of type T
 ALTER TABLE alrs ADD
     CONSTRAINT fk_alrs_alr
     FOREIGN KEY (alr)
-    REFERENCES functions_datas (function);
+    REFERENCES functions_datas (function)
+    ON DELETE CASCADE;
 
 CREATE INDEX ix_alrs_alr ON alrs (alr);
 
@@ -474,7 +477,8 @@ COMMENT ON INDEX pk_rlrs IS 'Primary key for Referenced Logial Records.';
 ALTER TABLE rlrs ADD 
     CONSTRAINT fk_rlrs_functions_datas
     FOREIGN KEY (function)
-    REFERENCES functions_datas (function);
+    REFERENCES functions_datas (function)
+    ON DELETE CASCADE;
 
 CREATE INDEX ix_rlrs_function ON rlrs (function);
 
@@ -513,7 +517,8 @@ COMMENT ON INDEX pk_ders IS 'Primary key for Referenced Rlementary Data.';
 ALTER TABLE ders ADD
     CONSTRAINT fk_ders_rlrs
     FOREIGN KEY (function, rlr)
-    REFERENCES rlrs (function, name);
+    REFERENCES rlrs (function, name)
+    ON DELETE CASCADE;
 
 CREATE INDEX ix_ders_rlr ON ders (function, rlr);
 

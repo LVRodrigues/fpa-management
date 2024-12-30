@@ -32,7 +32,7 @@ pub enum Relation {
         from = "Column::Project",
         to = "super::projects::Column::Project",
         on_update = "NoAction",
-        on_delete = "NoAction"
+        on_delete = "Cascade"
     )]
     Projects,
     #[sea_orm(

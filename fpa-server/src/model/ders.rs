@@ -23,7 +23,7 @@ pub enum Relation {
         from = "(Column::Function, Column::Rlr)",
         to = "(super::rlrs::Column::Function, super::rlrs::Column::Name)",
         on_update = "NoAction",
-        on_delete = "NoAction"
+        on_delete = "Cascade"
     )]
     Rlrs,
     #[sea_orm(
