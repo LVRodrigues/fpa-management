@@ -1,10 +1,9 @@
 use std::sync::Arc;
 
 use axum::{
-    extract::{Path, Query, State},
-    response::IntoResponse,
-    Json,
+    extract::{Path, Query, State}, http::{HeaderMap, Uri}, response::IntoResponse, Json
 };
+use reqwest::StatusCode;
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, Condition, DatabaseTransaction, EntityTrait, PaginatorTrait,
     QueryFilter, Set,
@@ -59,11 +58,33 @@ pub struct FunctionALI {
     pub rlrs: Vec<RLR>,
 }
 
+/// Internal Logic File Function for create data.
+#[derive(Debug, Deserialize, ToSchema, Clone)]
+pub struct FunctionALICreate {
+    /// Name of the Function.
+    pub name: String,
+    /// Description of the Function.
+    pub description: Option<String>,
+    /// Set of Record Layout Reference.
+    pub rlrs: Vec<RLR>,
+}
+
 /// External Interface File Function
 #[derive(Debug, Serialize, Deserialize, ToSchema, Clone)]
 pub struct FunctionAIE {
     /// Unique Identifier of the Function.
     pub id: Uuid,
+    /// Name of the Function.
+    pub name: String,
+    /// Description of the Function.
+    pub description: Option<String>,
+    /// Set of Record Layout Reference.
+    pub rlrs: Vec<RLR>,
+}
+
+/// External Interface File Function for create data.
+#[derive(Debug, Deserialize, ToSchema, Clone)]
+pub struct FunctionAIECreate {
     /// Name of the Function.
     pub name: String,
     /// Description of the Function.
@@ -81,7 +102,7 @@ pub enum FunctionData {
     AIE(FunctionAIE),
 }
 
-/// External Input Function
+/// External Input Function.
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct FunctionEE {
     /// Unique Identifier of the Function.
@@ -94,7 +115,18 @@ pub struct FunctionEE {
     pub alrs: Vec<FunctionData>,
 }
 
-/// External Inquiry Function
+/// External Input Function for create data.
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+pub struct FunctionEECreate {
+    /// Name of the Function.
+    pub name: String,
+    /// Description of the Function.
+    pub description: Option<String>,
+    /// Set of Data Functions (ALI and AIE).
+    pub alrs: Vec<FunctionData>,
+}
+
+/// External Inquiry Function.
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct FunctionCE {
     /// Unique Identifier of the Function.
@@ -107,7 +139,18 @@ pub struct FunctionCE {
     pub alrs: Vec<FunctionData>,
 }
 
-/// External Output Function
+/// External Inquiry Function for create data.
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+pub struct FunctionCECreate {
+    /// Name of the Function.
+    pub name: String,
+    /// Description of the Function.
+    pub description: Option<String>,
+    /// Set of Data Functions (ALI and AIE).
+    pub alrs: Vec<FunctionData>,
+}
+
+/// External Output Function.
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct FunctionSE {
     /// Unique Identifier of the Function.
@@ -120,19 +163,45 @@ pub struct FunctionSE {
     pub alrs: Vec<FunctionData>,
 }
 
+/// External Output Function for create data.
+#[derive(Debug, Deserialize, ToSchema)]
+pub struct FunctionSECreate {
+    /// Name of the Function.
+    pub name: String,
+    /// Description of the Function.
+    pub description: Option<String>,
+    /// Set of Data Functions (ALI and AIE).
+    pub alrs: Vec<FunctionData>,
+}
+
 /// Type of the Function.
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub enum Function {
-    /// ALI
+    /// Internal Logic File Function.
     ALI(FunctionALI),
-    /// AIE
+    /// External Interface File Function.
     AIE(FunctionAIE),
-    /// EE
+    /// External Input Function.
     EE(FunctionEE),
-    /// CE
+    /// External Inquiry Function.
     CE(FunctionCE),
-    /// SE
+    /// External Output Function.
     SE(FunctionSE),
+}
+
+/// Type of the Function for create data.
+#[derive(Debug, Deserialize, ToSchema)]
+pub enum FunctionCreate {
+    /// Internal Logic File Function.
+    ALI(FunctionALICreate),
+    /// External Interface File Function.
+    AIE(FunctionAIECreate),
+    /// External Input Function.
+    EE(FunctionEECreate),
+    /// External Inquiry Function.
+    CE(FunctionCECreate),
+    /// External Output Function.
+    SE(FunctionSECreate),
 }
 
 /// Page select params.
@@ -187,6 +256,7 @@ impl FunctionsParams {
     }
 }
 
+/// Search for a set of Functions for a selected Project and Module.
 #[utoipa::path(
     tag = "Functions",
     get,
@@ -346,7 +416,7 @@ async fn load_rlrs(function: Uuid, db: &DatabaseTransaction) -> Result<Vec<RLR>,
     Ok(result)
 }
 
-/// Create a new Module for a selected Project.
+/// Create a new Function for a selected Project and Module.
 #[utoipa::path(
     tag = "Functions",
     post,
@@ -367,7 +437,7 @@ pub async fn create(
     Path((project, module)): Path<(Uuid, Uuid)>,
     context: Option<Context>,
     state: State<Arc<AppState>>,
-    Json(data): Json<Function>,
+    Json(data): Json<FunctionCreate>,
 ) -> Result<impl IntoResponse, Error> {
     println!("==> {:<12} - /create (Data: {:?})", "FUNCTIONS", data);
 
@@ -389,26 +459,48 @@ pub async fn create(
         Err(_) => return Err(Error::NotFound),
     };
 
-    let function = match data {
-        Function::ALI(_) | Function::AIE(_) => {
+    let (id, function) = match data {
+        FunctionCreate::ALI(_) | FunctionCreate::AIE(_) => {
             insert_function_data(data, module, &db, &ctx).await?
         }
-        Function::EE(_) | Function::CE(_) | Function::SE(_) => {
+        FunctionCreate::EE(_) | FunctionCreate::CE(_) | FunctionCreate::SE(_) => {
             insert_function_transaction(data, module, &db, &ctx).await?
         }
     };
 
-    // TODO: Make a header location.
+    match db.commit().await {
+        Ok(it) => it,
+        Err(_) => return Err(Error::DatabaseTransaction),
+    };
 
-    Ok(Json(function))
+    let location = Uri::builder()
+        .scheme(config.scheme.clone())
+        .authority(format!(
+            "{}:{}",
+            config.authority.clone(),
+            config.port.clone()
+        ))
+        .path_and_query(format!(
+            "/api/projects/{}/modules/{}/functions/{}",
+            project, module, id
+        ))
+        .build()
+        .unwrap()
+        .to_string()
+        .parse()
+        .unwrap();
+    let mut header = HeaderMap::new();
+    header.insert("Location", location);
+
+    Ok((StatusCode::CREATED, header, Json(function)))
 }
 
 async fn insert_function_transaction(
-    data: Function,
+    data: FunctionCreate,
     module: Uuid,
     db: &DatabaseTransaction,
     ctx: &Context,
-) -> Result<Function, Error> {
+) -> Result<(Uuid, Function), Error> {
     let mut function = functions_transactions::ActiveModel {
         function: Set(Uuid::now_v7()),
         module: Set(module),
@@ -418,19 +510,19 @@ async fn insert_function_transaction(
 
     let mut alrs = Vec::<FunctionData>::new();
     match data {
-        Function::EE(data) => {
+        FunctionCreate::EE(data) => {
             function.r#type = Set(FunctionType::EE);
             function.name = Set(data.name.to_owned());
             function.description = Set(data.description.to_owned());
             alrs = data.alrs;
         }
-        Function::CE(data) => {
+        FunctionCreate::CE(data) => {
             function.r#type = Set(FunctionType::CE);
             function.name = Set(data.name.to_owned());
             function.description = Set(data.description.to_owned());
             alrs = data.alrs;
         }
-        Function::SE(data) => {
+        FunctionCreate::SE(data) => {
             function.r#type = Set(FunctionType::SE);
             function.name = Set(data.name.to_owned());
             function.description = Set(data.description.to_owned());
@@ -476,15 +568,15 @@ async fn insert_function_transaction(
         _ => return Err(Error::FunctionCreate),
     };
 
-    Ok(result)
+    Ok((function.function, result))
 }
 
 async fn insert_function_data(
-    data: Function,
+    data: FunctionCreate,
     module: Uuid,
     db: &DatabaseTransaction,
     ctx: &Context,
-) -> Result<Function, Error> {
+) -> Result<(Uuid, Function), Error> {
     let mut function = functions_datas::ActiveModel {
         function: Set(Uuid::now_v7()),
         module: Set(module),
@@ -494,13 +586,13 @@ async fn insert_function_data(
 
     let mut rlrs = Vec::<RLR>::new();
     match data {
-        Function::ALI(data) => {
+        FunctionCreate::ALI(data) => {
             function.r#type = Set(FunctionType::ALI);
             function.name = Set(data.name.to_owned());
             function.description = Set(data.description.to_owned());
             rlrs = data.rlrs;
         }
-        Function::AIE(data) => {
+        FunctionCreate::AIE(data) => {
             function.r#type = Set(FunctionType::AIE);
             function.name = Set(data.name.to_owned());
             function.description = Set(data.description.to_owned());
@@ -549,5 +641,5 @@ async fn insert_function_data(
         _ => return Err(Error::FunctionCreate),
     };
 
-    Ok(result)
+    Ok((function.function, result))
 }
