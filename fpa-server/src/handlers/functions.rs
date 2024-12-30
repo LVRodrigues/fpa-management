@@ -96,10 +96,27 @@ pub struct FunctionAIECreate {
 /// Type of the Function of Data Type.
 #[derive(Debug, Serialize, Deserialize, ToSchema, Clone)]
 pub enum FunctionData {
-    /// ALI
+    /// Internal Logical File.
     ALI(FunctionALI),
-    /// AIE
+    /// External Interface File.
     AIE(FunctionAIE),
+}
+
+#[derive(Debug, Deserialize, ToSchema, Clone)]
+pub enum FunctionDataCreate {
+    /// Internal Logical File.
+    ALI,
+    /// External Interface File.
+    AIE,
+}
+
+/// Data Function for association with the Transaction Function.
+#[derive(Debug, Deserialize, ToSchema, Clone)]
+pub struct ALR {
+    /// Function Type.
+    pub r#type: FunctionDataCreate,
+    /// Unique Identifier of the Data Function.
+    pub id: Uuid,
 }
 
 /// External Input Function.
@@ -116,14 +133,14 @@ pub struct FunctionEE {
 }
 
 /// External Input Function for create data.
-#[derive(Debug, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct FunctionEECreate {
     /// Name of the Function.
     pub name: String,
     /// Description of the Function.
     pub description: Option<String>,
     /// Set of Data Functions (ALI and AIE).
-    pub alrs: Vec<FunctionData>,
+    pub alrs: Vec<ALR>,
 }
 
 /// External Inquiry Function.
@@ -140,14 +157,14 @@ pub struct FunctionCE {
 }
 
 /// External Inquiry Function for create data.
-#[derive(Debug, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct FunctionCECreate {
     /// Name of the Function.
     pub name: String,
     /// Description of the Function.
     pub description: Option<String>,
     /// Set of Data Functions (ALI and AIE).
-    pub alrs: Vec<FunctionData>,
+    pub alrs: Vec<ALR>,
 }
 
 /// External Output Function.
@@ -171,7 +188,7 @@ pub struct FunctionSECreate {
     /// Description of the Function.
     pub description: Option<String>,
     /// Set of Data Functions (ALI and AIE).
-    pub alrs: Vec<FunctionData>,
+    pub alrs: Vec<ALR>,
 }
 
 /// Type of the Function.
@@ -508,7 +525,7 @@ async fn insert_function_transaction(
         ..Default::default()
     };
 
-    let mut alrs = Vec::<FunctionData>::new();
+    let mut alrs = Vec::<ALR>::new();
     match data {
         FunctionCreate::EE(data) => {
             function.r#type = Set(FunctionType::EE);
@@ -532,16 +549,11 @@ async fn insert_function_transaction(
     };
     let function = function.insert(db).await?;
 
-    let alrs_clone = alrs.to_vec();
-
     for alr in alrs {
         let item = alrs::ActiveModel {
             function: Set(function.function),
             tenant: Set(ctx.tenant().clone()),
-            alr: match alr {
-                FunctionData::ALI(v) => Set(v.id),
-                FunctionData::AIE(v) => Set(v.id),
-            },
+            alr: Set(alr.id),
         };
         item.insert(db).await?;
     }
@@ -551,19 +563,19 @@ async fn insert_function_transaction(
             id: function.function,
             name: function.name,
             description: function.description,
-            alrs: alrs_clone,
+            alrs: load_arls(function.function, &db).await?,
         }),
         FunctionType::CE => Function::CE(FunctionCE {
             id: function.function,
             name: function.name,
             description: function.description,
-            alrs: alrs_clone,
+            alrs: load_arls(function.function, &db).await?,
         }),
         FunctionType::SE => Function::SE(FunctionSE {
             id: function.function,
             name: function.name,
             description: function.description,
-            alrs: alrs_clone,
+            alrs: load_arls(function.function, &db).await?,
         }),
         _ => return Err(Error::FunctionCreate),
     };
