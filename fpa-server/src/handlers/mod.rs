@@ -80,6 +80,10 @@ pub async fn router(config: Configuration) -> Result<Router, Error> {
                 "/projects/:project/modules/:module/functions",
                 get(functions::list).post(functions::create),
             )
+            .route(
+                "/projects/:project/modules/:module/functions/:function",
+                get(functions::by_id),
+            )
             .route("/health", get(health))
             .layer(middleware::map_response(response_mapper))
             .route_layer(middleware::from_fn_with_state(

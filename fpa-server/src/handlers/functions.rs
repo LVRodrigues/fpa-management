@@ -1,7 +1,10 @@
 use std::sync::Arc;
 
 use axum::{
-    extract::{Path, Query, State}, http::{HeaderMap, Uri}, response::IntoResponse, Json
+    extract::{Path, Query, State},
+    http::{HeaderMap, Uri},
+    response::IntoResponse,
+    Json,
 };
 use reqwest::StatusCode;
 use sea_orm::{
@@ -102,19 +105,9 @@ pub enum FunctionData {
     AIE(FunctionAIE),
 }
 
-#[derive(Debug, Deserialize, ToSchema, Clone)]
-pub enum FunctionDataCreate {
-    /// Internal Logical File.
-    ALI,
-    /// External Interface File.
-    AIE,
-}
-
 /// Data Function for association with the Transaction Function.
 #[derive(Debug, Deserialize, ToSchema, Clone)]
 pub struct ALR {
-    /// Function Type.
-    pub r#type: FunctionDataCreate,
     /// Unique Identifier of the Data Function.
     pub id: Uuid,
 }
@@ -329,6 +322,50 @@ pub async fn list(
     Ok(Json(page))
 }
 
+/// Search for a especific Function for a selected Project and Module.
+#[utoipa::path(
+    tag = "Functions",
+    get,
+    path = "/api/projects/{project}/modules/{module}/functions/{function}",
+    responses(
+        (status = OK, description = "Success", body = Function),
+        (status = UNAUTHORIZED, description = "User not authorized.", body = ErrorResponse),
+        (status = NOT_FOUND, description = "Project not founded.", body = ErrorResponse),
+        (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = ErrorResponse)
+    ),
+    params(
+        ("project" = Uuid, description = "Project Unique ID."),
+        ("module" = Uuid, Path, description = "Module Unique ID."),
+        ("function" = Uuid, Path, description = "Function Unique ID."),
+    ),
+    security(("fpa-security" = []))
+)]
+pub async fn by_id(
+    Path((project, module, function)): Path<(Uuid, Uuid, Uuid)>,
+    context: Option<Context>,
+    state: State<Arc<AppState>>,
+) -> Result<impl IntoResponse, Error> {
+    println!("==> {:<12} - /by_id", "FUNCTIONS");
+
+    let mut conditions = Condition::all();
+    conditions = conditions.add(modules::Column::Project.eq(project));
+    conditions = conditions.add(functions::Column::Module.eq(module));
+    conditions = conditions.add(functions::Column::Function.eq(function));
+
+    let ctx = context.unwrap();
+    let db = state.connection(ctx.tenant()).await?;
+    let data = Functions::find()
+        .inner_join(modules::Entity)
+        .filter(conditions)
+        .one(&db)
+        .await?;
+
+    match data {
+        Some(v) => Ok((StatusCode::OK, Json(translate(v, &db).await?))),
+        None => return Err(Error::NotFound),
+    }
+}
+
 async fn translate(func: Model, db: &DatabaseTransaction) -> Result<Function, Error> {
     let result = match func.r#type {
         FunctionType::ALI => Function::ALI(FunctionALI {
@@ -447,6 +484,7 @@ async fn load_rlrs(function: Uuid, db: &DatabaseTransaction) -> Result<Vec<RLR>,
     ),
     params(
         ("project" = Uuid, Path, description = "Project Unique ID."),
+        ("module" = Uuid, Path, description = "Module Unique ID."),
     ),
     security(("fpa-security" = []))
 )]

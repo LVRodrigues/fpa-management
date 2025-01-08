@@ -389,6 +389,33 @@ async fn create_se(token: &String, project: &Uuid, module: &Uuid, data: &Data) -
     Ok(id)
 }
 
+async fn by_id(token: &String, project: &Uuid, module: &Uuid, function: &Uuid) -> Result<()> {
+    let response = reqwest::Client::new()
+        .get(format!("{}/{}/modules/{}/functions/{}", URL, project, module, function))
+        .bearer_auth(token)
+        .send()
+        .await?;
+    assert_eq!(response.status(), StatusCode::OK);
+
+    let json = response.json::<serde_json::Value>().await?;
+
+    let types = ["ALI", "AIE", "EE", "SE", "CE"];
+    let mut found = false;
+    for t in &types {
+        if let Some(value) = json.get(*t) {
+            found = true;
+            let id = value["id"].as_str().unwrap();
+            assert_eq!(function, &Uuid::parse_str(id).unwrap());
+            break;
+        }
+    }
+    if !found {
+        panic!("Function not found.");
+    }
+
+    Ok(())
+}
+
 #[tokio::test]
 async fn execute() -> Result<()> {
     let token = tokens::request_token(USERNAME, PASSWORD, Tenant::TENANT_DEFAULT).await?;
@@ -409,6 +436,12 @@ async fn execute() -> Result<()> {
     data.function_ee = create_ee(&token, &project, &module, &data).await?;
     data.function_ce = create_ce(&token, &project, &module, &data).await?;
     data.function_se = create_se(&token, &project, &module, &data).await?;
+
+    by_id(&token, &project, &module, &data.function_ali).await?;
+    by_id(&token, &project, &module, &data.function_aie).await?;
+    by_id(&token, &project, &module, &data.function_ee).await?;
+    by_id(&token, &project, &module, &data.function_ce).await?;
+    by_id(&token, &project, &module, &data.function_se).await?;
 
     Ok(())
 }

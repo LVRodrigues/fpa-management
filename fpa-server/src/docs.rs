@@ -35,6 +35,7 @@ use utoipa::{
         crate::handlers::modules::update,
         crate::handlers::modules::remove,
         crate::handlers::functions::list,
+        crate::handlers::functions::by_id,
         crate::handlers::functions::create,
     ),
     components(
