@@ -38,6 +38,9 @@ pub enum Error {
     NotFunctionData,
     NotFunctionTransaction,
     FunctionCreate,
+    FunctionTypeUpdateError,
+    FunctionNameDuplicated,
+    FunctionUpdate,
 }
 
 impl core::fmt::Display for Error {
@@ -145,7 +148,9 @@ impl IntoResponse for Error {
                     message: "Empirical adjustment factors must have a value between 0 and 100.",
                 },
             ),
-            Error::ProjectNameDuplicated | Error::ModuleNameDuplicated => (
+            Error::ProjectNameDuplicated
+            | Error::ModuleNameDuplicated
+            | Error::FunctionNameDuplicated => (
                 StatusCode::CONFLICT,
                 ErrorResponse {
                     id: Uuid::now_v7(),
@@ -154,22 +159,15 @@ impl IntoResponse for Error {
                     message: "The name must be unique for this scope.",
                 },
             ),
-            Error::NotFunctionData  => (
+            Error::NotFunctionData |
+            Error::NotFunctionTransaction |
+            Error::FunctionTypeUpdateError => (
                 StatusCode::NOT_ACCEPTABLE,
                 ErrorResponse {
                     id: Uuid::now_v7(),
                     time: Utc::now(),
                     error: "NOT_ACCEPTABLE",
-                    message: "The data must be a function of data type.",
-                },
-            ),
-            Error::NotFunctionTransaction  => (
-                StatusCode::NOT_ACCEPTABLE,
-                ErrorResponse {
-                    id: Uuid::now_v7(),
-                    time: Utc::now(),
-                    error: "NOT_ACCEPTABLE",
-                    message: "The transaction must be a function of transaction type.",
+                    message: "The Function Type is not valid for this scope.",
                 },
             ),
             _ => (

@@ -61,9 +61,9 @@ pub struct FunctionALI {
     pub rlrs: Vec<RLR>,
 }
 
-/// Internal Logic File Function for create data.
+/// Internal Logic File Function for create or update data.
 #[derive(Debug, Deserialize, ToSchema, Clone)]
-pub struct FunctionALICreate {
+pub struct FunctionALIParam {
     /// Name of the Function.
     pub name: String,
     /// Description of the Function.
@@ -85,9 +85,9 @@ pub struct FunctionAIE {
     pub rlrs: Vec<RLR>,
 }
 
-/// External Interface File Function for create data.
+/// External Interface File Function for create or update data.
 #[derive(Debug, Deserialize, ToSchema, Clone)]
-pub struct FunctionAIECreate {
+pub struct FunctionAIEParam {
     /// Name of the Function.
     pub name: String,
     /// Description of the Function.
@@ -125,9 +125,9 @@ pub struct FunctionEE {
     pub alrs: Vec<FunctionData>,
 }
 
-/// External Input Function for create data.
+/// External Input Function for create or update data.
 #[derive(Debug, Deserialize, ToSchema)]
-pub struct FunctionEECreate {
+pub struct FunctionEEParam {
     /// Name of the Function.
     pub name: String,
     /// Description of the Function.
@@ -149,9 +149,9 @@ pub struct FunctionCE {
     pub alrs: Vec<FunctionData>,
 }
 
-/// External Inquiry Function for create data.
+/// External Inquiry Function for create or update data.
 #[derive(Debug, Deserialize, ToSchema)]
-pub struct FunctionCECreate {
+pub struct FunctionCEParam {
     /// Name of the Function.
     pub name: String,
     /// Description of the Function.
@@ -173,9 +173,9 @@ pub struct FunctionSE {
     pub alrs: Vec<FunctionData>,
 }
 
-/// External Output Function for create data.
+/// External Output Function for create or update data.
 #[derive(Debug, Deserialize, ToSchema)]
-pub struct FunctionSECreate {
+pub struct FunctionSEParam {
     /// Name of the Function.
     pub name: String,
     /// Description of the Function.
@@ -199,19 +199,19 @@ pub enum Function {
     SE(FunctionSE),
 }
 
-/// Type of the Function for create data.
+/// Type of the Function for create or update data.
 #[derive(Debug, Deserialize, ToSchema)]
-pub enum FunctionCreate {
+pub enum FunctionParam {
     /// Internal Logic File Function.
-    ALI(FunctionALICreate),
+    ALI(FunctionALIParam),
     /// External Interface File Function.
-    AIE(FunctionAIECreate),
+    AIE(FunctionAIEParam),
     /// External Input Function.
-    EE(FunctionEECreate),
+    EE(FunctionEEParam),
     /// External Inquiry Function.
-    CE(FunctionCECreate),
+    CE(FunctionCEParam),
     /// External Output Function.
-    SE(FunctionSECreate),
+    SE(FunctionSEParam),
 }
 
 /// Page select params.
@@ -479,7 +479,7 @@ async fn load_rlrs(function: Uuid, db: &DatabaseTransaction) -> Result<Vec<RLR>,
         (status = CREATED, description = "Success.", body = Function, headers(("Location", description = "New function address."))),
         (status = UNAUTHORIZED, description = "User not authorized.", body = ErrorResponse),
         (status = NOT_FOUND, description = "Project or Module not founded.", body = ErrorResponse),
-        (status = CONFLICT, description = "Function Type incorrect.", body = ErrorResponse),
+        (status = NOT_ACCEPTABLE, description = "Function Type incorrect.", body = ErrorResponse),
         (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = ErrorResponse)
     ),
     params(
@@ -492,7 +492,7 @@ pub async fn create(
     Path((project, module)): Path<(Uuid, Uuid)>,
     context: Option<Context>,
     state: State<Arc<AppState>>,
-    Json(data): Json<FunctionCreate>,
+    Json(data): Json<FunctionParam>,
 ) -> Result<impl IntoResponse, Error> {
     println!("==> {:<12} - /create (Data: {:?})", "FUNCTIONS", data);
 
@@ -515,10 +515,10 @@ pub async fn create(
     };
 
     let (id, function) = match data {
-        FunctionCreate::ALI(_) | FunctionCreate::AIE(_) => {
+        FunctionParam::ALI(_) | FunctionParam::AIE(_) => {
             insert_function_data(data, module, &db, &ctx).await?
         }
-        FunctionCreate::EE(_) | FunctionCreate::CE(_) | FunctionCreate::SE(_) => {
+        FunctionParam::EE(_) | FunctionParam::CE(_) | FunctionParam::SE(_) => {
             insert_function_transaction(data, module, &db, &ctx).await?
         }
     };
@@ -551,7 +551,7 @@ pub async fn create(
 }
 
 async fn insert_function_transaction(
-    data: FunctionCreate,
+    data: FunctionParam,
     module: Uuid,
     db: &DatabaseTransaction,
     ctx: &Context,
@@ -565,19 +565,19 @@ async fn insert_function_transaction(
 
     let mut alrs = Vec::<ALR>::new();
     match data {
-        FunctionCreate::EE(data) => {
+        FunctionParam::EE(data) => {
             function.r#type = Set(FunctionType::EE);
             function.name = Set(data.name.to_owned());
             function.description = Set(data.description.to_owned());
             alrs = data.alrs;
         }
-        FunctionCreate::CE(data) => {
+        FunctionParam::CE(data) => {
             function.r#type = Set(FunctionType::CE);
             function.name = Set(data.name.to_owned());
             function.description = Set(data.description.to_owned());
             alrs = data.alrs;
         }
-        FunctionCreate::SE(data) => {
+        FunctionParam::SE(data) => {
             function.r#type = Set(FunctionType::SE);
             function.name = Set(data.name.to_owned());
             function.description = Set(data.description.to_owned());
@@ -622,7 +622,7 @@ async fn insert_function_transaction(
 }
 
 async fn insert_function_data(
-    data: FunctionCreate,
+    data: FunctionParam,
     module: Uuid,
     db: &DatabaseTransaction,
     ctx: &Context,
@@ -636,13 +636,13 @@ async fn insert_function_data(
 
     let mut rlrs = Vec::<RLR>::new();
     match data {
-        FunctionCreate::ALI(data) => {
+        FunctionParam::ALI(data) => {
             function.r#type = Set(FunctionType::ALI);
             function.name = Set(data.name.to_owned());
             function.description = Set(data.description.to_owned());
             rlrs = data.rlrs;
         }
-        FunctionCreate::AIE(data) => {
+        FunctionParam::AIE(data) => {
             function.r#type = Set(FunctionType::AIE);
             function.name = Set(data.name.to_owned());
             function.description = Set(data.description.to_owned());
@@ -652,9 +652,7 @@ async fn insert_function_data(
     };
     let function = function.insert(db).await?;
 
-    let rlrs_clone = rlrs.to_vec();
-
-    for rlr in rlrs {
+    for rlr in rlrs.to_vec() {
         let item = rlrs::ActiveModel {
             function: Set(function.function),
             name: Set(rlr.name.clone()),
@@ -680,16 +678,224 @@ async fn insert_function_data(
             id: function.function,
             name: function.name,
             description: function.description,
-            rlrs: rlrs_clone,
+            rlrs: rlrs,
         }),
         FunctionType::AIE => Function::AIE(FunctionAIE {
             id: function.function,
             name: function.name,
             description: function.description,
-            rlrs: rlrs_clone,
+            rlrs: rlrs,
         }),
         _ => return Err(Error::FunctionCreate),
     };
 
     Ok((function.function, result))
+}
+
+/// Update a existing Function.
+#[utoipa::path(
+    tag = "Functions",
+    put,
+    path = "/api/projects/{project}/modules/{module}/functions/{function}",
+    responses(
+        (status = OK, description = "Success.", body = Function),
+        (status = UNAUTHORIZED, description = "User not authorized.", body = ErrorResponse),
+        (status = NOT_FOUND, description = "Project or Module not founded.", body = ErrorResponse),
+        (status = NOT_ACCEPTABLE, description = "The Function Type cannot be updated.", body = ErrorResponse),
+        (status = CONFLICT, description = "The name must be unique for this scope.", body = ErrorResponse),
+        (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = ErrorResponse)
+    ),
+    params(
+        ("project" = Uuid, Path, description = "Project Unique ID."),
+        ("module" = Uuid, Path, description = "Module Unique ID."),
+        ("function" = Uuid, Path, description = "Functions Unique ID."),
+    ),
+    security(("fpa-security" = []))
+)]
+pub async fn update(
+    Path((project, module, function)): Path<(Uuid, Uuid, Uuid)>,
+    context: Option<Context>,
+    state: State<Arc<AppState>>,
+    Json(params): Json<FunctionParam>,
+) -> Result<impl IntoResponse, Error> {
+    println!(
+        "==> {:<12} - /{project}/update/{module}/functions/{function} {:?}",
+        "MODULES", params
+    );
+
+    let mut conditions = Condition::all();
+    conditions = conditions.add(modules::Column::Project.eq(project));
+    conditions = conditions.add(functions::Column::Module.eq(module));
+    conditions = conditions.add(functions::Column::Function.eq(function));
+
+    let ctx = context.unwrap();
+    let db = state.connection(ctx.tenant()).await?;
+    let data = match Functions::find()
+        .inner_join(modules::Entity)
+        .filter(conditions)
+        .one(&db)
+        .await?
+    {
+        Some(v) => v,
+        None => return Err(Error::NotFound),
+    };
+
+    match params {
+        FunctionParam::ALI(value) => {
+            if data.r#type != FunctionType::ALI {
+                return Err(Error::FunctionTypeUpdateError);
+            }
+            update_function_data(function, value.name, value.description, value.rlrs, &db).await?;
+        }
+        FunctionParam::AIE(value) => {
+            if data.r#type != FunctionType::AIE {
+                return Err(Error::FunctionTypeUpdateError);
+            }
+            update_function_data(function, value.name, value.description, value.rlrs, &db).await?;
+        }
+        FunctionParam::EE(value) => {
+            if data.r#type != FunctionType::EE {
+                return Err(Error::FunctionTypeUpdateError);
+            }
+            update_function_transaction(function, value.name, value.description, value.alrs, &db).await?;
+        }
+        FunctionParam::CE(value) => {
+            if data.r#type != FunctionType::CE {
+                return Err(Error::FunctionTypeUpdateError);
+            }
+            update_function_transaction(function, value.name, value.description, value.alrs, &db).await?;
+        }
+        FunctionParam::SE(value) => {
+            if data.r#type != FunctionType::SE {
+                return Err(Error::FunctionTypeUpdateError);
+            }
+            update_function_transaction(function, value.name, value.description, value.alrs, &db).await?;
+        }
+    }
+
+    match db.commit().await {
+        Ok(it) => it,
+        Err(_) => return Err(Error::DatabaseTransaction),
+    };
+
+    Ok(())
+}
+
+async fn update_function_data(
+    function: Uuid,
+    name: String,
+    description: Option<String>,
+    rlrs: Vec<RLR>,
+    db: &DatabaseTransaction,
+) -> Result<Function, Error> {
+
+    let data = FunctionsDatas::find()
+        .filter(functions_datas::Column::Function.eq(function))
+        .one(db)
+        .await?
+        .unwrap();
+
+    let mut data: functions_datas::ActiveModel = data.into();
+    data.name = Set(name);
+    data.description = Set(description);
+
+    let data: functions_datas::Model = match data.update(db).await {
+        Ok(v) => v,
+        Err(e) => {
+            match e.sql_err().unwrap() {
+                sea_orm::SqlErr::UniqueConstraintViolation(_) => {
+                    return Err(Error::FunctionNameDuplicated)
+                }
+                _ => return Err(Error::FunctionUpdate),
+            };
+        }
+    };
+
+    delete_related_rlrs(function, db).await?;
+
+    for rlr in rlrs {
+        let item = rlrs::ActiveModel {
+            function: Set(function),
+            name: Set(rlr.name.clone()),
+            tenant: Set(data.tenant.clone()),
+            description: Set(rlr.description),
+        };
+        item.insert(db).await?;
+
+        for der in rlr.ders {
+            let item = ders::ActiveModel {
+                function: Set(function),
+                rlr: Set(rlr.name.clone()),
+                name: Set(der.name),
+                tenant: Set(data.tenant.clone()),
+                description: Set(der.description),
+            };
+            item.insert(db).await?;
+        }
+    }
+
+    let data = translate(data.into(), db).await?;
+    Ok(data)
+}
+
+async fn delete_related_rlrs(function: Uuid, db: &DatabaseTransaction) -> Result<(), Error> {
+    Rlrs::delete_many()
+        .filter(rlrs::Column::Function.eq(function))
+        .exec(db)
+        .await?;
+    Ok(())
+}
+
+async fn update_function_transaction(
+    function: Uuid,
+    name: String,
+    description: Option<String>,
+    alrs: Vec<ALR>,
+    db: &DatabaseTransaction,
+) -> Result<Function, Error> {
+    
+    let data: functions_transactions::Model = FunctionsTransactions::find()
+        .filter(functions_transactions::Column::Function.eq(function))
+        .one(db)
+        .await?
+        .unwrap();
+
+    let mut data: functions_transactions::ActiveModel = data.into();
+    data.name = Set(name);
+    data.description = Set(description);
+
+    let data: functions_transactions::Model = match data.update(db).await {
+        Ok(v) => v,
+        Err(e) => {
+            match e.sql_err().unwrap() {
+                sea_orm::SqlErr::UniqueConstraintViolation(_) => {
+                    return Err(Error::FunctionNameDuplicated)
+                }
+                _ => return Err(Error::FunctionUpdate),
+            };
+        }
+    };
+
+    delete_related_alrs(function, db).await?;
+
+    for alr in alrs {
+        let item = alrs::ActiveModel {
+            function: Set(function),
+            tenant: Set(data.tenant.clone()),
+            alr: Set(alr.id),
+        };
+        item.insert(db).await?;
+    }
+
+    let data = translate(data.into(), db).await?;
+    Ok(data)
+
+}
+
+async fn delete_related_alrs(function: Uuid, db: &DatabaseTransaction) -> Result<(), Error> {
+    Alrs::delete_many()
+        .filter(rlrs::Column::Function.eq(function))
+        .exec(db)
+        .await?;
+    Ok(())
 }
