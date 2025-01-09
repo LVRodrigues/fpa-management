@@ -740,45 +740,45 @@ pub async fn update(
         None => return Err(Error::NotFound),
     };
 
-    match params {
+    let data = match params {
         FunctionParam::ALI(value) => {
             if data.r#type != FunctionType::ALI {
                 return Err(Error::FunctionTypeUpdateError);
             }
-            update_function_data(function, value.name, value.description, value.rlrs, &db).await?;
+            update_function_data(function, value.name, value.description, value.rlrs, &db).await?
         }
         FunctionParam::AIE(value) => {
             if data.r#type != FunctionType::AIE {
                 return Err(Error::FunctionTypeUpdateError);
             }
-            update_function_data(function, value.name, value.description, value.rlrs, &db).await?;
+            update_function_data(function, value.name, value.description, value.rlrs, &db).await?
         }
         FunctionParam::EE(value) => {
             if data.r#type != FunctionType::EE {
                 return Err(Error::FunctionTypeUpdateError);
             }
-            update_function_transaction(function, value.name, value.description, value.alrs, &db).await?;
+            update_function_transaction(function, value.name, value.description, value.alrs, &db).await?
         }
         FunctionParam::CE(value) => {
             if data.r#type != FunctionType::CE {
                 return Err(Error::FunctionTypeUpdateError);
             }
-            update_function_transaction(function, value.name, value.description, value.alrs, &db).await?;
+            update_function_transaction(function, value.name, value.description, value.alrs, &db).await?
         }
         FunctionParam::SE(value) => {
             if data.r#type != FunctionType::SE {
                 return Err(Error::FunctionTypeUpdateError);
             }
-            update_function_transaction(function, value.name, value.description, value.alrs, &db).await?;
+            update_function_transaction(function, value.name, value.description, value.alrs, &db).await?
         }
-    }
+    };
 
     match db.commit().await {
         Ok(it) => it,
         Err(_) => return Err(Error::DatabaseTransaction),
     };
 
-    Ok(())
+    Ok(Json(data))
 }
 
 async fn update_function_data(
