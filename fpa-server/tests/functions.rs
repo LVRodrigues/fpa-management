@@ -19,9 +19,12 @@ struct Data {
     function_se: Uuid,
 }
 
-async fn list(token: &String, project: &Uuid, module: &Uuid) -> Result<()> {
+async fn list(token: &String, project: &Uuid, frontier: &Uuid) -> Result<()> {
     let response = reqwest::Client::new()
-        .get(format!("{}/{}/modules/{}/functions", URL, project, module))
+        .get(format!(
+            "{}/{}/frontiers/{}/functions",
+            URL, project, frontier
+        ))
         .bearer_auth(token)
         .send()
         .await?;
@@ -39,11 +42,11 @@ async fn list(token: &String, project: &Uuid, module: &Uuid) -> Result<()> {
     Ok(())
 }
 
-async fn list_by_name(token: &String, project: &Uuid, module: &Uuid) -> Result<()> {
+async fn list_by_name(token: &String, project: &Uuid, frontier: &Uuid) -> Result<()> {
     let response = reqwest::Client::new()
         .get(format!(
-            "{}/{}/modules/{}/functions?name=ALI",
-            URL, project, module
+            "{}/{}/frontiers/{}/functions?name=ALI",
+            URL, project, frontier
         ))
         .bearer_auth(token)
         .send()
@@ -73,11 +76,11 @@ async fn list_by_name(token: &String, project: &Uuid, module: &Uuid) -> Result<(
     Ok(())
 }
 
-async fn list_by_type(token: &String, project: &Uuid, module: &Uuid) -> Result<()> {
+async fn list_by_type(token: &String, project: &Uuid, frontier: &Uuid) -> Result<()> {
     let response = reqwest::Client::new()
         .get(format!(
-            "{}/{}/modules/{}/functions?type=CE",
-            URL, project, module
+            "{}/{}/frontiers/{}/functions?type=CE",
+            URL, project, frontier
         ))
         .bearer_auth(token)
         .send()
@@ -107,7 +110,7 @@ async fn list_by_type(token: &String, project: &Uuid, module: &Uuid) -> Result<(
     Ok(())
 }
 
-async fn create_ali(token: &String, project: &Uuid, module: &Uuid) -> Result<Uuid> {
+async fn create_ali(token: &String, project: &Uuid, frontier: &Uuid) -> Result<Uuid> {
     let body = json!({
         "ALI": {
             "name": "ALI Test Name",
@@ -136,7 +139,10 @@ async fn create_ali(token: &String, project: &Uuid, module: &Uuid) -> Result<Uui
     });
 
     let response = reqwest::Client::new()
-        .post(format!("{}/{}/modules/{}/functions", URL, project, module))
+        .post(format!(
+            "{}/{}/frontiers/{}/functions",
+            URL, project, frontier
+        ))
         .bearer_auth(token)
         .json(&body)
         .send()
@@ -173,7 +179,7 @@ async fn create_ali(token: &String, project: &Uuid, module: &Uuid) -> Result<Uui
     Ok(id)
 }
 
-async fn create_aie(token: &String, project: &Uuid, module: &Uuid) -> Result<Uuid> {
+async fn create_aie(token: &String, project: &Uuid, frontier: &Uuid) -> Result<Uuid> {
     let body = json!({
         "AIE": {
             "name": "AIE Test Name",
@@ -202,7 +208,10 @@ async fn create_aie(token: &String, project: &Uuid, module: &Uuid) -> Result<Uui
     });
 
     let response = reqwest::Client::new()
-        .post(format!("{}/{}/modules/{}/functions", URL, project, module))
+        .post(format!(
+            "{}/{}/frontiers/{}/functions",
+            URL, project, frontier
+        ))
         .bearer_auth(token)
         .json(&body)
         .send()
@@ -239,7 +248,7 @@ async fn create_aie(token: &String, project: &Uuid, module: &Uuid) -> Result<Uui
     Ok(id)
 }
 
-async fn create_ee(token: &String, project: &Uuid, module: &Uuid, data: &Data) -> Result<Uuid> {
+async fn create_ee(token: &String, project: &Uuid, frontier: &Uuid, data: &Data) -> Result<Uuid> {
     let body = json!({
         "EE": {
             "name": "EE Test Name",
@@ -254,7 +263,10 @@ async fn create_ee(token: &String, project: &Uuid, module: &Uuid, data: &Data) -
     });
 
     let response = reqwest::Client::new()
-        .post(format!("{}/{}/modules/{}/functions", URL, project, module))
+        .post(format!(
+            "{}/{}/frontiers/{}/functions",
+            URL, project, frontier
+        ))
         .bearer_auth(token)
         .json(&body)
         .send()
@@ -285,7 +297,7 @@ async fn create_ee(token: &String, project: &Uuid, module: &Uuid, data: &Data) -
     Ok(id)
 }
 
-async fn create_ce(token: &String, project: &Uuid, module: &Uuid, data: &Data) -> Result<Uuid> {
+async fn create_ce(token: &String, project: &Uuid, frontier: &Uuid, data: &Data) -> Result<Uuid> {
     let body = json!({
         "CE": {
             "name": "CE Test Name",
@@ -300,7 +312,10 @@ async fn create_ce(token: &String, project: &Uuid, module: &Uuid, data: &Data) -
     });
 
     let response = reqwest::Client::new()
-        .post(format!("{}/{}/modules/{}/functions", URL, project, module))
+        .post(format!(
+            "{}/{}/frontiers/{}/functions",
+            URL, project, frontier
+        ))
         .bearer_auth(token)
         .json(&body)
         .send()
@@ -331,7 +346,7 @@ async fn create_ce(token: &String, project: &Uuid, module: &Uuid, data: &Data) -
     Ok(id)
 }
 
-async fn create_se(token: &String, project: &Uuid, module: &Uuid, data: &Data) -> Result<Uuid> {
+async fn create_se(token: &String, project: &Uuid, frontier: &Uuid, data: &Data) -> Result<Uuid> {
     let body = json!({
         "SE": {
             "name": "SE Test Name",
@@ -350,7 +365,10 @@ async fn create_se(token: &String, project: &Uuid, module: &Uuid, data: &Data) -
     });
 
     let response = reqwest::Client::new()
-        .post(format!("{}/{}/modules/{}/functions", URL, project, module))
+        .post(format!(
+            "{}/{}/frontiers/{}/functions",
+            URL, project, frontier
+        ))
         .bearer_auth(token)
         .json(&body)
         .send()
@@ -389,9 +407,12 @@ async fn create_se(token: &String, project: &Uuid, module: &Uuid, data: &Data) -
     Ok(id)
 }
 
-async fn by_id(token: &String, project: &Uuid, module: &Uuid, function: &Uuid) -> Result<()> {
+async fn by_id(token: &String, project: &Uuid, frontier: &Uuid, function: &Uuid) -> Result<()> {
     let response = reqwest::Client::new()
-        .get(format!("{}/{}/modules/{}/functions/{}", URL, project, module, function))
+        .get(format!(
+            "{}/{}/frontiers/{}/functions/{}",
+            URL, project, frontier, function
+        ))
         .bearer_auth(token)
         .send()
         .await?;
@@ -416,7 +437,12 @@ async fn by_id(token: &String, project: &Uuid, module: &Uuid, function: &Uuid) -
     Ok(())
 }
 
-async fn update_ali(token: &String, project: &Uuid, module: &Uuid, function: &Uuid) -> Result<()> {
+async fn update_ali(
+    token: &String,
+    project: &Uuid,
+    frontier: &Uuid,
+    function: &Uuid,
+) -> Result<()> {
     let body = json!({
         "ALI": {
             "name": "ALI Test Name Updated",
@@ -454,7 +480,10 @@ async fn update_ali(token: &String, project: &Uuid, module: &Uuid, function: &Uu
         }
     });
     let response = reqwest::Client::new()
-        .put(format!("{}/{}/modules/{}/functions/{}", URL, project, module, function))
+        .put(format!(
+            "{}/{}/frontiers/{}/functions/{}",
+            URL, project, frontier, function
+        ))
         .json(&body)
         .bearer_auth(token)
         .send()
@@ -500,7 +529,12 @@ async fn update_ali(token: &String, project: &Uuid, module: &Uuid, function: &Uu
     Ok(())
 }
 
-async fn update_aie(token: &String, project: &Uuid, module: &Uuid, function: &Uuid) -> Result<()> {
+async fn update_aie(
+    token: &String,
+    project: &Uuid,
+    frontier: &Uuid,
+    function: &Uuid,
+) -> Result<()> {
     let body = json!({
         "AIE": {
             "name": "AIE Test Name Updated",
@@ -520,7 +554,10 @@ async fn update_aie(token: &String, project: &Uuid, module: &Uuid, function: &Uu
         }
     });
     let response = reqwest::Client::new()
-        .put(format!("{}/{}/modules/{}/functions/{}", URL, project, module, function))
+        .put(format!(
+            "{}/{}/frontiers/{}/functions/{}",
+            URL, project, frontier, function
+        ))
         .json(&body)
         .bearer_auth(token)
         .send()
@@ -542,18 +579,24 @@ async fn update_aie(token: &String, project: &Uuid, module: &Uuid, function: &Uu
 
     let rlrs = value["rlrs"].as_array().unwrap();
     assert_eq!(rlrs[0]["name"], json!("RLR Test Name Updated"));
-    assert_eq!(rlrs[0]["description"], json!("RLR Test Description Updated"));
+    assert_eq!(
+        rlrs[0]["description"],
+        json!("RLR Test Description Updated")
+    );
     assert!(rlrs[0]["ders"].is_array());
     assert_eq!(rlrs[0]["ders"].as_array().unwrap().len(), 1);
 
     let ders = rlrs[0]["ders"].as_array().unwrap();
     assert_eq!(ders[0]["name"], json!("DER 01 Test Name Updated"));
-    assert_eq!(ders[0]["description"], json!("DER Test Description Updated"));
+    assert_eq!(
+        ders[0]["description"],
+        json!("DER Test Description Updated")
+    );
 
     Ok(())
 }
 
-async fn update_ee(token: &String, project: &Uuid, module: &Uuid, data: &Data) -> Result<()> {
+async fn update_ee(token: &String, project: &Uuid, frontier: &Uuid, data: &Data) -> Result<()> {
     let body = json!({
         "EE": {
             "name": "EE Test Name Updated",
@@ -568,7 +611,10 @@ async fn update_ee(token: &String, project: &Uuid, module: &Uuid, data: &Data) -
     });
 
     let response = reqwest::Client::new()
-        .put(format!("{}/{}/modules/{}/functions/{}", URL, project, module, data.function_ee))
+        .put(format!(
+            "{}/{}/frontiers/{}/functions/{}",
+            URL, project, frontier, data.function_ee
+        ))
         .bearer_auth(token)
         .json(&body)
         .send()
@@ -597,7 +643,7 @@ async fn update_ee(token: &String, project: &Uuid, module: &Uuid, data: &Data) -
     Ok(())
 }
 
-async fn update_ce(token: &String, project: &Uuid, module: &Uuid, data: &Data) -> Result<()> {
+async fn update_ce(token: &String, project: &Uuid, frontier: &Uuid, data: &Data) -> Result<()> {
     let body = json!({
         "CE": {
             "name": "CE Test Name Updated",
@@ -612,7 +658,10 @@ async fn update_ce(token: &String, project: &Uuid, module: &Uuid, data: &Data) -
     });
 
     let response = reqwest::Client::new()
-        .put(format!("{}/{}/modules/{}/functions/{}", URL, project, module, data.function_ce))
+        .put(format!(
+            "{}/{}/frontiers/{}/functions/{}",
+            URL, project, frontier, data.function_ce
+        ))
         .bearer_auth(token)
         .json(&body)
         .send()
@@ -641,7 +690,7 @@ async fn update_ce(token: &String, project: &Uuid, module: &Uuid, data: &Data) -
     Ok(())
 }
 
-async fn update_se(token: &String, project: &Uuid, module: &Uuid, data: &Data) -> Result<()> {
+async fn update_se(token: &String, project: &Uuid, frontier: &Uuid, data: &Data) -> Result<()> {
     let body = json!({
         "SE": {
             "name": "SE Test Name Updated",
@@ -660,7 +709,10 @@ async fn update_se(token: &String, project: &Uuid, module: &Uuid, data: &Data) -
     });
 
     let response = reqwest::Client::new()
-        .put(format!("{}/{}/modules/{}/functions/{}", URL, project, module, data.function_se))
+        .put(format!(
+            "{}/{}/frontiers/{}/functions/{}",
+            URL, project, frontier, data.function_se
+        ))
         .bearer_auth(token)
         .json(&body)
         .send()
@@ -695,9 +747,12 @@ async fn update_se(token: &String, project: &Uuid, module: &Uuid, data: &Data) -
     Ok(())
 }
 
-async fn remove(token: &String, project: &Uuid, module: &Uuid, function: &Uuid) -> Result<()> { 
+async fn remove(token: &String, project: &Uuid, frontier: &Uuid, function: &Uuid) -> Result<()> {
     let response = reqwest::Client::new()
-        .delete(format!("{}/{}/modules/{}/functions/{}", URL, project, module, function))
+        .delete(format!(
+            "{}/{}/frontiers/{}/functions/{}",
+            URL, project, frontier, function
+        ))
         .bearer_auth(token)
         .send()
         .await?;
@@ -711,37 +766,36 @@ async fn execute() -> Result<()> {
     assert!(!token.is_empty());
 
     let project = selects::project(&token).await?;
-    let module = selects::module(&token, &project).await?;
+    let frontier = selects::frontier(&token, &project).await?;
     let mut data = Data::default();
 
-    list(&token, &project, &module).await?;
-    list_by_name(&token, &project, &module).await?;
-    list_by_type(&token, &project, &module).await?;
+    list(&token, &project, &frontier).await?;
+    list_by_name(&token, &project, &frontier).await?;
+    list_by_type(&token, &project, &frontier).await?;
 
-    data.function_ali = create_ali(&token, &project, &module).await?;
-    data.function_aie = create_aie(&token, &project, &module).await?;
-    data.function_ee = create_ee(&token, &project, &module, &data).await?;
-    data.function_ce = create_ce(&token, &project, &module, &data).await?;
-    data.function_se = create_se(&token, &project, &module, &data).await?;
+    data.function_ali = create_ali(&token, &project, &frontier).await?;
+    data.function_aie = create_aie(&token, &project, &frontier).await?;
+    data.function_ee = create_ee(&token, &project, &frontier, &data).await?;
+    data.function_ce = create_ce(&token, &project, &frontier, &data).await?;
+    data.function_se = create_se(&token, &project, &frontier, &data).await?;
 
-    by_id(&token, &project, &module, &data.function_ali).await?;
-    by_id(&token, &project, &module, &data.function_aie).await?;
-    by_id(&token, &project, &module, &data.function_ee).await?;
-    by_id(&token, &project, &module, &data.function_ce).await?;
-    by_id(&token, &project, &module, &data.function_se).await?;
+    by_id(&token, &project, &frontier, &data.function_ali).await?;
+    by_id(&token, &project, &frontier, &data.function_aie).await?;
+    by_id(&token, &project, &frontier, &data.function_ee).await?;
+    by_id(&token, &project, &frontier, &data.function_ce).await?;
+    by_id(&token, &project, &frontier, &data.function_se).await?;
 
-    update_ali(&token, &project, &module, &data.function_ali).await?;
-    update_aie(&token, &project, &module, &data.function_aie).await?;
-    update_ee(&token, &project, &module, &data).await?;
-    update_ce(&token, &project, &module, &data).await?;
-    update_se(&token, &project, &module, &data).await?;
+    update_ali(&token, &project, &frontier, &data.function_ali).await?;
+    update_aie(&token, &project, &frontier, &data.function_aie).await?;
+    update_ee(&token, &project, &frontier, &data).await?;
+    update_ce(&token, &project, &frontier, &data).await?;
+    update_se(&token, &project, &frontier, &data).await?;
 
-    remove(&token, &project, &module, &data.function_ee).await?;
-    remove(&token, &project, &module, &data.function_ce).await?;
-    remove(&token, &project, &module, &data.function_se).await?;
-    remove(&token, &project, &module, &data.function_ali).await?;
-    remove(&token, &project, &module, &data.function_aie).await?;
-    
+    remove(&token, &project, &frontier, &data.function_ee).await?;
+    remove(&token, &project, &frontier, &data.function_ce).await?;
+    remove(&token, &project, &frontier, &data.function_se).await?;
+    remove(&token, &project, &frontier, &data.function_ali).await?;
+    remove(&token, &project, &frontier, &data.function_aie).await?;
+
     Ok(())
 }
-

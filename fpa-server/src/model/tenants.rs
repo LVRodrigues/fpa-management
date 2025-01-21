@@ -27,8 +27,8 @@ pub enum Relation {
     Functions,
     #[sea_orm(has_many = "super::functions_datas::Entity")]
     FunctionsDatas,
-    #[sea_orm(has_many = "super::modules::Entity")]
-    Modules,
+    #[sea_orm(has_many = "super::frontiers::Entity")]
+    Frontiers,
     #[sea_orm(has_many = "super::projects::Entity")]
     Projects,
     #[sea_orm(has_many = "super::rlrs::Entity")]
@@ -61,9 +61,9 @@ impl Related<super::functions::Entity> for Entity {
     }
 }
 
-impl Related<super::modules::Entity> for Entity {
+impl Related<super::frontiers::Entity> for Entity {
     fn to() -> RelationDef {
-        Relation::Modules.def()
+        Relation::Frontiers.def()
     }
 }
 

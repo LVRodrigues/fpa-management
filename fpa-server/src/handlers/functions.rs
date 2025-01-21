@@ -8,7 +8,8 @@ use axum::{
 };
 use reqwest::StatusCode;
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, Condition, DatabaseTransaction, EntityTrait, ModelTrait, PaginatorTrait, QueryFilter, Set
+    ActiveModelTrait, ColumnTrait, Condition, DatabaseTransaction, EntityTrait, ModelTrait,
+    PaginatorTrait, QueryFilter, Set,
 };
 use serde::{Deserialize, Serialize};
 use utoipa::{IntoParams, ToSchema};
@@ -19,8 +20,8 @@ use crate::{
     ctx::Context,
     error::{Error, ErrorResponse},
     model::{
+        frontiers,
         functions::{self, Model},
-        modules,
         page::Page,
         sea_orm_active_enums::FunctionType,
     },
@@ -265,11 +266,11 @@ impl FunctionsParams {
     }
 }
 
-/// Search for a set of Functions for a selected Project and Module.
+/// Search for a set of Functions for a selected Project and Frontier.
 #[utoipa::path(
     tag = "Functions",
     get,
-    path = "/api/projects/{project}/modules/{module}/functions",
+    path = "/api/projects/{project}/frontiers/{frontier}/functions",
     responses(
         (status = OK, description = "Success", body = Page<Function>),
         (status = UNAUTHORIZED, description = "User not authorized.", body = ErrorResponse),
@@ -278,13 +279,13 @@ impl FunctionsParams {
     ),
     params(
         ("project" = Uuid, description = "Project Unique ID."),
-        ("module" = Uuid, Path, description = "Module Unique ID."),
+        ("frontier" = Uuid, Path, description = "Frontier Unique ID."),
         FunctionsParams,
     ),
     security(("fpa-security" = []))
 )]
 pub async fn list(
-    Path((project, module)): Path<(Uuid, Uuid)>,
+    Path((project, frontier)): Path<(Uuid, Uuid)>,
     params: Query<FunctionsParams>,
     context: Option<Context>,
     state: State<Arc<AppState>>,
@@ -292,8 +293,8 @@ pub async fn list(
     println!("==> {:<12} - /list (Params: {:?})", "FUNCTIONS", params);
 
     let mut conditions = Condition::all();
-    conditions = conditions.add(modules::Column::Project.eq(project));
-    conditions = conditions.add(functions::Column::Module.eq(module));
+    conditions = conditions.add(frontiers::Column::Project.eq(project));
+    conditions = conditions.add(functions::Column::Frontier.eq(frontier));
     if let Some(name) = params.name() {
         conditions = conditions.add(functions::Column::Name.contains(name));
     }
@@ -304,7 +305,7 @@ pub async fn list(
     let ctx = context.unwrap();
     let db = state.connection(ctx.tenant()).await?;
     let paginator = Functions::find()
-        .inner_join(modules::Entity)
+        .inner_join(frontiers::Entity)
         .filter(conditions)
         .paginate(&db, params.size());
 
@@ -321,11 +322,11 @@ pub async fn list(
     Ok(Json(page))
 }
 
-/// Search for a especific Function for a selected Project and Module.
+/// Search for a especific Function for a selected Project and Frontier.
 #[utoipa::path(
     tag = "Functions",
     get,
-    path = "/api/projects/{project}/modules/{module}/functions/{function}",
+    path = "/api/projects/{project}/frontiers/{frontier}/functions/{function}",
     responses(
         (status = OK, description = "Success", body = Function),
         (status = UNAUTHORIZED, description = "User not authorized.", body = ErrorResponse),
@@ -334,27 +335,27 @@ pub async fn list(
     ),
     params(
         ("project" = Uuid, description = "Project Unique ID."),
-        ("module" = Uuid, Path, description = "Module Unique ID."),
+        ("frontier" = Uuid, Path, description = "Frontier Unique ID."),
         ("function" = Uuid, Path, description = "Function Unique ID."),
     ),
     security(("fpa-security" = []))
 )]
 pub async fn by_id(
-    Path((project, module, function)): Path<(Uuid, Uuid, Uuid)>,
+    Path((project, frontier, function)): Path<(Uuid, Uuid, Uuid)>,
     context: Option<Context>,
     state: State<Arc<AppState>>,
 ) -> Result<impl IntoResponse, Error> {
     println!("==> {:<12} - /by_id", "FUNCTIONS");
 
     let mut conditions = Condition::all();
-    conditions = conditions.add(modules::Column::Project.eq(project));
-    conditions = conditions.add(functions::Column::Module.eq(module));
+    conditions = conditions.add(frontiers::Column::Project.eq(project));
+    conditions = conditions.add(functions::Column::Frontier.eq(frontier));
     conditions = conditions.add(functions::Column::Function.eq(function));
 
     let ctx = context.unwrap();
     let db = state.connection(ctx.tenant()).await?;
     let data = Functions::find()
-        .inner_join(modules::Entity)
+        .inner_join(frontiers::Entity)
         .filter(conditions)
         .one(&db)
         .await?;
@@ -469,26 +470,26 @@ async fn load_rlrs(function: Uuid, db: &DatabaseTransaction) -> Result<Vec<RLR>,
     Ok(result)
 }
 
-/// Create a new Function for a selected Project and Module.
+/// Create a new Function for a selected Project and Frontier.
 #[utoipa::path(
     tag = "Functions",
     post,
-    path = "/api/projects/{project}/modules/{module}/functions",
+    path = "/api/projects/{project}/frontiers/{frontier}/functions",
     responses(
         (status = CREATED, description = "Success.", body = Function, headers(("Location", description = "New function address."))),
         (status = UNAUTHORIZED, description = "User not authorized.", body = ErrorResponse),
-        (status = NOT_FOUND, description = "Project or Module not founded.", body = ErrorResponse),
+        (status = NOT_FOUND, description = "Project or Frontier not founded.", body = ErrorResponse),
         (status = NOT_ACCEPTABLE, description = "Function Type incorrect.", body = ErrorResponse),
         (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = ErrorResponse)
     ),
     params(
         ("project" = Uuid, Path, description = "Project Unique ID."),
-        ("module" = Uuid, Path, description = "Module Unique ID."),
+        ("frontier" = Uuid, Path, description = "Frontier Unique ID."),
     ),
     security(("fpa-security" = []))
 )]
 pub async fn create(
-    Path((project, module)): Path<(Uuid, Uuid)>,
+    Path((project, frontier)): Path<(Uuid, Uuid)>,
     context: Option<Context>,
     state: State<Arc<AppState>>,
     Json(data): Json<FunctionParam>,
@@ -499,12 +500,12 @@ pub async fn create(
     let db = state.connection(ctx.tenant()).await?;
     let config = state.configuration();
 
-    // Module must belong to the Project.
-    match Modules::find()
+    // Frontier must belong to the Project.
+    match Frontiers::find()
         .filter(
             Condition::all()
-                .add(modules::Column::Project.eq(project))
-                .add(modules::Column::Module.eq(module)),
+                .add(frontiers::Column::Project.eq(project))
+                .add(frontiers::Column::Frontier.eq(frontier)),
         )
         .one(&db)
         .await
@@ -515,10 +516,10 @@ pub async fn create(
 
     let (id, function) = match data {
         FunctionParam::ALI(_) | FunctionParam::AIE(_) => {
-            insert_function_data(data, module, &db, &ctx).await?
+            insert_function_data(data, frontier, &db, &ctx).await?
         }
         FunctionParam::EE(_) | FunctionParam::CE(_) | FunctionParam::SE(_) => {
-            insert_function_transaction(data, module, &db, &ctx).await?
+            insert_function_transaction(data, frontier, &db, &ctx).await?
         }
     };
 
@@ -535,8 +536,8 @@ pub async fn create(
             config.port.clone()
         ))
         .path_and_query(format!(
-            "/api/projects/{}/modules/{}/functions/{}",
-            project, module, id
+            "/api/projects/{}/frontiers/{}/functions/{}",
+            project, frontier, id
         ))
         .build()
         .unwrap()
@@ -551,13 +552,13 @@ pub async fn create(
 
 async fn insert_function_transaction(
     data: FunctionParam,
-    module: Uuid,
+    frontier: Uuid,
     db: &DatabaseTransaction,
     ctx: &Context,
 ) -> Result<(Uuid, Function), Error> {
     let mut function = functions_transactions::ActiveModel {
         function: Set(Uuid::now_v7()),
-        module: Set(module),
+        frontier: Set(frontier),
         tenant: Set(ctx.tenant().clone()),
         ..Default::default()
     };
@@ -622,13 +623,13 @@ async fn insert_function_transaction(
 
 async fn insert_function_data(
     data: FunctionParam,
-    module: Uuid,
+    frontier: Uuid,
     db: &DatabaseTransaction,
     ctx: &Context,
 ) -> Result<(Uuid, Function), Error> {
     let mut function = functions_datas::ActiveModel {
         function: Set(Uuid::now_v7()),
-        module: Set(module),
+        frontier: Set(frontier),
         tenant: Set(ctx.tenant().clone()),
         ..Default::default()
     };
@@ -695,42 +696,42 @@ async fn insert_function_data(
 #[utoipa::path(
     tag = "Functions",
     put,
-    path = "/api/projects/{project}/modules/{module}/functions/{function}",
+    path = "/api/projects/{project}/frontiers/{frontier}/functions/{function}",
     responses(
         (status = OK, description = "Success.", body = Function),
         (status = UNAUTHORIZED, description = "User not authorized.", body = ErrorResponse),
-        (status = NOT_FOUND, description = "Project or Module not founded.", body = ErrorResponse),
+        (status = NOT_FOUND, description = "Project or Frontier not founded.", body = ErrorResponse),
         (status = NOT_ACCEPTABLE, description = "The Function Type cannot be updated.", body = ErrorResponse),
         (status = CONFLICT, description = "The name must be unique for this scope.", body = ErrorResponse),
         (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = ErrorResponse)
     ),
     params(
         ("project" = Uuid, Path, description = "Project Unique ID."),
-        ("module" = Uuid, Path, description = "Module Unique ID."),
+        ("frontier" = Uuid, Path, description = "Frontier Unique ID."),
         ("function" = Uuid, Path, description = "Functions Unique ID."),
     ),
     security(("fpa-security" = []))
 )]
 pub async fn update(
-    Path((project, module, function)): Path<(Uuid, Uuid, Uuid)>,
+    Path((project, frontier, function)): Path<(Uuid, Uuid, Uuid)>,
     context: Option<Context>,
     state: State<Arc<AppState>>,
     Json(params): Json<FunctionParam>,
 ) -> Result<impl IntoResponse, Error> {
     println!(
-        "==> {:<12} - /{project}/update/{module}/functions/{function} {:?}",
-        "MODULES", params
+        "==> {:<12} - /{project}/update/{frontier}/functions/{function} {:?}",
+        "FUNCTIONS", params
     );
 
     let mut conditions = Condition::all();
-    conditions = conditions.add(modules::Column::Project.eq(project));
-    conditions = conditions.add(functions::Column::Module.eq(module));
+    conditions = conditions.add(frontiers::Column::Project.eq(project));
+    conditions = conditions.add(functions::Column::Frontier.eq(frontier));
     conditions = conditions.add(functions::Column::Function.eq(function));
 
     let ctx = context.unwrap();
     let db = state.connection(ctx.tenant()).await?;
     let data = match Functions::find()
-        .inner_join(modules::Entity)
+        .inner_join(frontiers::Entity)
         .filter(conditions)
         .one(&db)
         .await?
@@ -903,40 +904,40 @@ async fn delete_related_alrs(function: Uuid, db: &DatabaseTransaction) -> Result
 #[utoipa::path(
     tag = "Functions",
     delete,
-    path = "/api/projects/{project}/modules/{module}/functions/{function}",
+    path = "/api/projects/{project}/frontiers/{frontier}/functions/{function}",
     responses(
         (status = NO_CONTENT, description = "Success."),
         (status = UNAUTHORIZED, description = "User not authorized.", body = ErrorResponse),
-        (status = NOT_FOUND, description = "Project or Module not founded.", body = ErrorResponse),
-        (status = PRECONDITION_FAILED, description = "Module has related records.", body = ErrorResponse),
+        (status = NOT_FOUND, description = "Project or Frontier not founded.", body = ErrorResponse),
+        (status = PRECONDITION_FAILED, description = "Frontier has related records.", body = ErrorResponse),
         (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = ErrorResponse),
     ),
     params(
         ("project" = Uuid, Path, description = "Project Unique ID."),
-        ("module" = Uuid, Path, description = "Module Unique ID."),
+        ("frontier" = Uuid, Path, description = "Frontier Unique ID."),
         ("function" = Uuid, Path, description = "Functions Unique ID."),
     ),
     security(("fpa-security" = []))
 )]
 pub async fn remove(
-    Path((project, module, function)): Path<(Uuid, Uuid, Uuid)>,
+    Path((project, frontier, function)): Path<(Uuid, Uuid, Uuid)>,
     context: Option<Context>,
     state: State<Arc<AppState>>,
 ) -> Result<impl IntoResponse, Error> {
     println!(
-        "==> {:<12} - /{project}/remove/{module}/functions/{function}",
+        "==> {:<12} - /{project}/remove/{frontier}/functions/{function}",
         "FUNCTIONS"
     );
 
     let mut conditions = Condition::all();
-    conditions = conditions.add(modules::Column::Project.eq(project));
-    conditions = conditions.add(functions::Column::Module.eq(module));
+    conditions = conditions.add(frontiers::Column::Project.eq(project));
+    conditions = conditions.add(functions::Column::Frontier.eq(frontier));
     conditions = conditions.add(functions::Column::Function.eq(function));
 
     let ctx = context.unwrap();
     let db = state.connection(ctx.tenant()).await?;
     let data = match Functions::find()
-        .inner_join(modules::Entity)
+        .inner_join(frontiers::Entity)
         .filter(conditions)
         .one(&db)
         .await?
@@ -953,8 +954,8 @@ pub async fn remove(
         }
         Err(e) => {
             println!("Error: {:?}", e.sql_err().unwrap());
-            return Err(Error::FunctionConstraints)
-        },
+            return Err(Error::FunctionConstraints);
+        }
     };
     match db.commit().await {
         Ok(it) => it,
