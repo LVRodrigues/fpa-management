@@ -416,6 +416,285 @@ async fn by_id(token: &String, project: &Uuid, module: &Uuid, function: &Uuid) -
     Ok(())
 }
 
+async fn update_ali(token: &String, project: &Uuid, module: &Uuid, function: &Uuid) -> Result<()> {
+    let body = json!({
+        "ALI": {
+            "name": "ALI Test Name Updated",
+            "description": "ALI Test Description Updated",
+            "rlrs": [
+                {
+                    "name": "RLR Test Name",
+                    "description": "RLR Test Description",
+                    "ders": [
+                        {
+                            "name": "DER 01 Test Name",
+                            "description": "DER Test Description",
+                        },
+                        {
+                            "name": "DER 02 Test Name",
+                            "description": "DER Test Description",
+                        },
+                    ]
+                },
+                {
+                    "name": "RLR Test Name 02",
+                    "description": "RLR Test Description 02",
+                    "ders": [
+                        {
+                            "name": "DER 03 Test Name",
+                            "description": "DER Test Description",
+                        },
+                        {
+                            "name": "DER 04 Test Name",
+                            "description": "DER Test Description",
+                        },
+                    ]
+                },
+            ]
+        }
+    });
+    let response = reqwest::Client::new()
+        .put(format!("{}/{}/modules/{}/functions/{}", URL, project, module, function))
+        .json(&body)
+        .bearer_auth(token)
+        .send()
+        .await?;
+    assert_eq!(response.status(), StatusCode::OK);
+
+    let json = response.json::<serde_json::Value>().await?;
+    assert!(json.get("ALI").is_some());
+    let value = json.get("ALI").unwrap();
+
+    assert!(value.get("id").is_some());
+    let id = Uuid::parse_str(value["id"].as_str().unwrap()).unwrap();
+    assert_eq!(function, &id);
+
+    assert_eq!(value["name"], json!("ALI Test Name Updated"));
+    assert_eq!(value["description"], json!("ALI Test Description Updated"));
+    assert!(value["rlrs"].is_array());
+    assert_eq!(value["rlrs"].as_array().unwrap().len(), 2);
+
+    let rlrs = value["rlrs"].as_array().unwrap();
+    assert_eq!(rlrs[0]["name"], json!("RLR Test Name"));
+    assert_eq!(rlrs[0]["description"], json!("RLR Test Description"));
+    assert!(rlrs[0]["ders"].is_array());
+    assert_eq!(rlrs[0]["ders"].as_array().unwrap().len(), 2);
+
+    let ders = rlrs[0]["ders"].as_array().unwrap();
+    assert_eq!(ders[0]["name"], json!("DER 01 Test Name"));
+    assert_eq!(ders[0]["description"], json!("DER Test Description"));
+    assert_eq!(ders[1]["name"], json!("DER 02 Test Name"));
+    assert_eq!(ders[1]["description"], json!("DER Test Description"));
+
+    assert_eq!(rlrs[1]["name"], json!("RLR Test Name 02"));
+    assert_eq!(rlrs[1]["description"], json!("RLR Test Description 02"));
+    assert!(rlrs[1]["ders"].is_array());
+    assert_eq!(rlrs[1]["ders"].as_array().unwrap().len(), 2);
+
+    let ders = rlrs[1]["ders"].as_array().unwrap();
+    assert_eq!(ders[0]["name"], json!("DER 03 Test Name"));
+    assert_eq!(ders[0]["description"], json!("DER Test Description"));
+    assert_eq!(ders[1]["name"], json!("DER 04 Test Name"));
+    assert_eq!(ders[1]["description"], json!("DER Test Description"));
+
+    Ok(())
+}
+
+async fn update_aie(token: &String, project: &Uuid, module: &Uuid, function: &Uuid) -> Result<()> {
+    let body = json!({
+        "AIE": {
+            "name": "AIE Test Name Updated",
+            "description": "AIE Test Description Updated",
+            "rlrs": [
+                {
+                    "name": "RLR Test Name Updated",
+                    "description": "RLR Test Description Updated",
+                    "ders": [
+                        {
+                            "name": "DER 01 Test Name Updated",
+                            "description": "DER Test Description Updated",
+                        },
+                    ]
+                },
+            ]
+        }
+    });
+    let response = reqwest::Client::new()
+        .put(format!("{}/{}/modules/{}/functions/{}", URL, project, module, function))
+        .json(&body)
+        .bearer_auth(token)
+        .send()
+        .await?;
+    assert_eq!(response.status(), StatusCode::OK);
+
+    let json = response.json::<serde_json::Value>().await?;
+    assert!(json.get("AIE").is_some());
+    let value = json.get("AIE").unwrap();
+
+    assert!(value.get("id").is_some());
+    let id = Uuid::parse_str(value["id"].as_str().unwrap()).unwrap();
+    assert_eq!(function, &id);
+
+    assert_eq!(value["name"], json!("AIE Test Name Updated"));
+    assert_eq!(value["description"], json!("AIE Test Description Updated"));
+    assert!(value["rlrs"].is_array());
+    assert_eq!(value["rlrs"].as_array().unwrap().len(), 1);
+
+    let rlrs = value["rlrs"].as_array().unwrap();
+    assert_eq!(rlrs[0]["name"], json!("RLR Test Name Updated"));
+    assert_eq!(rlrs[0]["description"], json!("RLR Test Description Updated"));
+    assert!(rlrs[0]["ders"].is_array());
+    assert_eq!(rlrs[0]["ders"].as_array().unwrap().len(), 1);
+
+    let ders = rlrs[0]["ders"].as_array().unwrap();
+    assert_eq!(ders[0]["name"], json!("DER 01 Test Name Updated"));
+    assert_eq!(ders[0]["description"], json!("DER Test Description Updated"));
+
+    Ok(())
+}
+
+async fn update_ee(token: &String, project: &Uuid, module: &Uuid, data: &Data) -> Result<()> {
+    let body = json!({
+        "EE": {
+            "name": "EE Test Name Updated",
+            "description": "EE Test Description Updated",
+            "alrs": [
+                {
+                    "type": "AIE",
+                    "id": data.function_aie.to_string(),
+                }
+            ]
+        }
+    });
+
+    let response = reqwest::Client::new()
+        .put(format!("{}/{}/modules/{}/functions/{}", URL, project, module, data.function_ee))
+        .bearer_auth(token)
+        .json(&body)
+        .send()
+        .await?;
+    assert_eq!(response.status(), StatusCode::OK);
+
+    let json = response.json::<serde_json::Value>().await?;
+    assert!(json.get("EE").is_some());
+    let value = json.get("EE").unwrap();
+
+    assert!(value.get("id").is_some());
+    let id = Uuid::parse_str(value["id"].as_str().unwrap()).unwrap();
+    assert_eq!(data.function_ee, id);
+
+    assert_eq!(value["name"], json!("EE Test Name Updated"));
+    assert_eq!(value["description"], json!("EE Test Description Updated"));
+    assert!(value["alrs"].is_array());
+    assert_eq!(value["alrs"].as_array().unwrap().len(), 1);
+
+    let alrs = value["alrs"].as_array().unwrap();
+    assert!(alrs[0].get("AIE").is_some());
+    let ali = alrs[0].get("AIE").unwrap();
+
+    assert_eq!(ali["id"], json!(data.function_aie.to_string()));
+
+    Ok(())
+}
+
+async fn update_ce(token: &String, project: &Uuid, module: &Uuid, data: &Data) -> Result<Uuid> {
+    let body = json!({
+        "CE": {
+            "name": "CE Test Name Updated",
+            "description": "CE Test Description Updated",
+            "alrs": [
+                {
+                    "type": "ALI",
+                    "id": data.function_ali.to_string(),
+                }
+            ]
+        }
+    });
+
+    let response = reqwest::Client::new()
+        .put(format!("{}/{}/modules/{}/functions/{}", URL, project, module, data.function_ce))
+        .bearer_auth(token)
+        .json(&body)
+        .send()
+        .await?;
+    assert_eq!(response.status(), StatusCode::OK);
+
+    let json = response.json::<serde_json::Value>().await?;
+    assert!(json.get("CE").is_some());
+    let value = json.get("CE").unwrap();
+
+    assert!(value.get("id").is_some());
+    let id = Uuid::parse_str(value["id"].as_str().unwrap()).unwrap();
+    assert_eq!(data.function_ce, id);
+
+    assert_eq!(value["name"], json!("CE Test Name Updated"));
+    assert_eq!(value["description"], json!("CE Test Description Updated"));
+    assert!(value["alrs"].is_array());
+    assert_eq!(value["alrs"].as_array().unwrap().len(), 1);
+
+    let alrs = value["alrs"].as_array().unwrap();
+    assert!(alrs[0].get("ALI").is_some());
+    let aie = alrs[0].get("ALI").unwrap();
+
+    assert_eq!(aie["id"], json!(data.function_ali.to_string()));
+
+    Ok(id)
+}
+
+async fn update_se(token: &String, project: &Uuid, module: &Uuid, data: &Data) -> Result<Uuid> {
+    let body = json!({
+        "SE": {
+            "name": "SE Test Name Updated",
+            "description": "SE Test Description Updated",
+            "alrs": [
+                {
+                    "type": "AIE",
+                    "id": data.function_aie.to_string(),
+                },
+                {
+                    "type": "ALI",
+                    "id": data.function_ali.to_string(),
+                }
+            ]
+        }
+    });
+
+    let response = reqwest::Client::new()
+        .put(format!("{}/{}/modules/{}/functions/{}", URL, project, module, data.function_se))
+        .bearer_auth(token)
+        .json(&body)
+        .send()
+        .await?;
+    assert_eq!(response.status(), StatusCode::OK);
+
+    let json = response.json::<serde_json::Value>().await?;
+
+    assert!(json.get("SE").is_some());
+    let value = json.get("SE").unwrap();
+
+    assert!(value.get("id").is_some());
+    let id = Uuid::parse_str(value["id"].as_str().unwrap()).unwrap();
+    assert_eq!(data.function_se, id);
+
+    assert_eq!(value["name"], json!("SE Test Name Updated"));
+    assert_eq!(value["description"], json!("SE Test Description Updated"));
+    assert!(value["alrs"].is_array());
+    assert_eq!(value["alrs"].as_array().unwrap().len(), 2);
+
+    let alrs = value["alrs"].as_array().unwrap();
+    for alr in alrs.iter() {
+        if alr.get("AIE").is_some() {
+            let aie = alr.get("AIE").unwrap();
+            assert_eq!(aie["id"], json!(data.function_aie.to_string()));
+        } else if alr.get("ALI").is_some() {
+            let ali = alr.get("ALI").unwrap();
+            assert_eq!(ali["id"], json!(data.function_ali.to_string()));
+        }
+    }
+
+    Ok(id)
+}
+
 #[tokio::test]
 async fn execute() -> Result<()> {
     let token = tokens::request_token(USERNAME, PASSWORD, Tenant::TENANT_DEFAULT).await?;
@@ -426,9 +705,7 @@ async fn execute() -> Result<()> {
     let mut data = Data::default();
 
     list(&token, &project, &module).await?;
-
     list_by_name(&token, &project, &module).await?;
-
     list_by_type(&token, &project, &module).await?;
 
     data.function_ali = create_ali(&token, &project, &module).await?;
@@ -443,5 +720,12 @@ async fn execute() -> Result<()> {
     by_id(&token, &project, &module, &data.function_ce).await?;
     by_id(&token, &project, &module, &data.function_se).await?;
 
+    update_ali(&token, &project, &module, &data.function_ali).await?;
+    update_aie(&token, &project, &module, &data.function_aie).await?;
+    update_ee(&token, &project, &module, &data).await?;
+    update_ce(&token, &project, &module, &data).await?;
+    update_se(&token, &project, &module, &data).await?;
+
     Ok(())
 }
+

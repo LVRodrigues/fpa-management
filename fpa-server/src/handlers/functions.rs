@@ -8,8 +8,7 @@ use axum::{
 };
 use reqwest::StatusCode;
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, Condition, DatabaseTransaction, EntityTrait, PaginatorTrait,
-    QueryFilter, Set,
+    ActiveModelTrait, ColumnTrait, Condition, DatabaseTransaction, EntityTrait, ModelTrait, PaginatorTrait, QueryFilter, Set
 };
 use serde::{Deserialize, Serialize};
 use utoipa::{IntoParams, ToSchema};
@@ -757,19 +756,22 @@ pub async fn update(
             if data.r#type != FunctionType::EE {
                 return Err(Error::FunctionTypeUpdateError);
             }
-            update_function_transaction(function, value.name, value.description, value.alrs, &db).await?
+            update_function_transaction(function, value.name, value.description, value.alrs, &db)
+                .await?
         }
         FunctionParam::CE(value) => {
             if data.r#type != FunctionType::CE {
                 return Err(Error::FunctionTypeUpdateError);
             }
-            update_function_transaction(function, value.name, value.description, value.alrs, &db).await?
+            update_function_transaction(function, value.name, value.description, value.alrs, &db)
+                .await?
         }
         FunctionParam::SE(value) => {
             if data.r#type != FunctionType::SE {
                 return Err(Error::FunctionTypeUpdateError);
             }
-            update_function_transaction(function, value.name, value.description, value.alrs, &db).await?
+            update_function_transaction(function, value.name, value.description, value.alrs, &db)
+                .await?
         }
     };
 
@@ -788,7 +790,6 @@ async fn update_function_data(
     rlrs: Vec<RLR>,
     db: &DatabaseTransaction,
 ) -> Result<Function, Error> {
-
     let data = FunctionsDatas::find()
         .filter(functions_datas::Column::Function.eq(function))
         .one(db)
@@ -853,7 +854,6 @@ async fn update_function_transaction(
     alrs: Vec<ALR>,
     db: &DatabaseTransaction,
 ) -> Result<Function, Error> {
-    
     let data: functions_transactions::Model = FunctionsTransactions::find()
         .filter(functions_transactions::Column::Function.eq(function))
         .one(db)
@@ -889,13 +889,74 @@ async fn update_function_transaction(
 
     let data = translate(data.into(), db).await?;
     Ok(data)
-
 }
 
 async fn delete_related_alrs(function: Uuid, db: &DatabaseTransaction) -> Result<(), Error> {
     Alrs::delete_many()
-        .filter(rlrs::Column::Function.eq(function))
+        .filter(alrs::Column::Function.eq(function))
         .exec(db)
         .await?;
     Ok(())
+}
+
+/// Remove a existing Function.
+#[utoipa::path(
+    tag = "Functions",
+    delete,
+    path = "/api/projects/{project}/modules/{module}/functions/{function}",
+    responses(
+        (status = NO_CONTENT, description = "Success."),
+        (status = UNAUTHORIZED, description = "User not authorized.", body = ErrorResponse),
+        (status = NOT_FOUND, description = "Project or Module not founded.", body = ErrorResponse),
+        (status = PRECONDITION_FAILED, description = "Module has related records.", body = ErrorResponse),
+        (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = ErrorResponse),
+    ),
+    params(
+        ("project" = Uuid, Path, description = "Project Unique ID."),
+        ("module" = Uuid, Path, description = "Module Unique ID."),
+        ("function" = Uuid, Path, description = "Functions Unique ID."),
+    ),
+    security(("fpa-security" = []))
+)]
+pub async fn remove(
+    Path((project, module, function)): Path<(Uuid, Uuid, Uuid)>,
+    context: Option<Context>,
+    state: State<Arc<AppState>>,
+) -> Result<impl IntoResponse, Error> {
+    println!(
+        "==> {:<12} - /{project}/remove/{module}/functions/{function}",
+        "FUNCTIONS"
+    );
+
+    let mut conditions = Condition::all();
+    conditions = conditions.add(modules::Column::Project.eq(project));
+    conditions = conditions.add(functions::Column::Module.eq(module));
+    conditions = conditions.add(functions::Column::Function.eq(function));
+
+    let ctx = context.unwrap();
+    let db = state.connection(ctx.tenant()).await?;
+    let data = match Functions::find()
+        .inner_join(modules::Entity)
+        .filter(conditions)
+        .one(&db)
+        .await?
+    {
+        Some(v) => v,
+        None => return Err(Error::NotFound),
+    };
+
+    match data.delete(&db).await {
+        Ok(v) => {
+            if v.rows_affected != 1 {
+                return Err(Error::MultipleRowsAffected);
+            }
+        }
+        Err(_) => return Err(Error::FunctionConstraints),
+    };
+    match db.commit().await {
+        Ok(it) => it,
+        Err(_) => return Err(Error::DatabaseTransaction),
+    }
+
+    Ok(StatusCode::NO_CONTENT)
 }

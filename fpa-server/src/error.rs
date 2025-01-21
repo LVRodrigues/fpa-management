@@ -41,6 +41,7 @@ pub enum Error {
     FunctionTypeUpdateError,
     FunctionNameDuplicated,
     FunctionUpdate,
+    FunctionConstraints,
 }
 
 impl core::fmt::Display for Error {
@@ -112,7 +113,7 @@ impl IntoResponse for Error {
                     message: "Database in inconsistent state.",
                 },
             ),
-            Error::ProjectConstraints | Error::ModuleConstraints => (
+            Error::ProjectConstraints | Error::ModuleConstraints | Error::FunctionConstraints => (
                 StatusCode::PRECONDITION_FAILED,
                 ErrorResponse {
                     id: Uuid::now_v7(),
@@ -159,9 +160,9 @@ impl IntoResponse for Error {
                     message: "The name must be unique for this scope.",
                 },
             ),
-            Error::NotFunctionData |
-            Error::NotFunctionTransaction |
-            Error::FunctionTypeUpdateError => (
+            Error::NotFunctionData
+            | Error::NotFunctionTransaction
+            | Error::FunctionTypeUpdateError => (
                 StatusCode::NOT_ACCEPTABLE,
                 ErrorResponse {
                     id: Uuid::now_v7(),

@@ -38,6 +38,7 @@ use utoipa::{
         crate::handlers::functions::by_id,
         crate::handlers::functions::create,
         crate::handlers::functions::update,
+        crate::handlers::functions::remove,
     ),
     components(
         schemas(

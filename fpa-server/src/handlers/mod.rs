@@ -82,7 +82,9 @@ pub async fn router(config: Configuration) -> Result<Router, Error> {
             )
             .route(
                 "/projects/:project/modules/:module/functions/:function",
-                get(functions::by_id).put(functions::update),
+                get(functions::by_id)
+                    .put(functions::update)
+                    .delete(functions::remove),
             )
             .route("/health", get(health))
             .layer(middleware::map_response(response_mapper))
