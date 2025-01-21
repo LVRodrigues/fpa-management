@@ -1,8 +1,8 @@
 #![allow(unused)]
 
-use std::{collections::HashMap, error::Error};
 use axum::Json;
 use reqwest::StatusCode;
+use std::{collections::HashMap, error::Error};
 use url::form_urlencoded;
 
 use anyhow::Result;
@@ -17,7 +17,7 @@ struct AccessTokenResponse {
     refresh_expires_in: u64,
     refresh_token: String,
     token_type: String,
-    #[serde(rename="not-before-policy")]
+    #[serde(rename = "not-before-policy")]
     not_before_policy: u64,
     session_state: String,
     scope: String,
@@ -32,9 +32,9 @@ pub enum Tenant {
 
 pub async fn request_token(user: &str, password: &str, tenant: Tenant) -> Result<String> {
     let (realm, secret) = match tenant {
-        Tenant::TENANT_DEFAULT =>   ("default",     "ogIzFgW9nY8kbptdREn5cw2rrn0Cihpv"),
-        Tenant::TENANT_01 =>        ("tenant-01",   "jKQO0Pxb1gFrSz64iUgqlgsoANs86d31"),
-        Tenant::TENANT_02 =>        ("tenant-02",   "mUyu1Jd9VKIWCxrHkl00NauuAxzO7KCP"),
+        Tenant::TENANT_DEFAULT => ("default", "ogIzFgW9nY8kbptdREn5cw2rrn0Cihpv"),
+        Tenant::TENANT_01 => ("tenant-01", "jKQO0Pxb1gFrSz64iUgqlgsoANs86d31"),
+        Tenant::TENANT_02 => ("tenant-02", "mUyu1Jd9VKIWCxrHkl00NauuAxzO7KCP"),
     };
     let mut params = HashMap::new();
     params.insert("grant_type", "password");
@@ -46,7 +46,9 @@ pub async fn request_token(user: &str, password: &str, tenant: Tenant) -> Result
         .extend_pairs(params.iter())
         .finish();
     let response: AccessTokenResponse = reqwest::Client::new()
-        .post(format!("http://oauth-2:8080/realms/{realm}/protocol/openid-connect/token"))
+        .post(format!(
+            "http://oauth-2:8080/realms/{realm}/protocol/openid-connect/token"
+        ))
         .header("Content-Type", "application/x-www-form-urlencoded")
         .body(body)
         .send()

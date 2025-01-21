@@ -19,20 +19,15 @@ pub struct LogRequest {
     request_method: String,
 }
 
-pub async fn log_request(
-    uuid: Uuid,
-    method: Method,
-    uri: Uri,
-    context: Option<Context>,
-) {
-	let line = LogRequest {
-		id: uuid.clone(),
-		time: Utc::now(),
+pub async fn log_request(uuid: Uuid, method: Method, uri: Uri, context: Option<Context>) {
+    let line = LogRequest {
+        id: uuid.clone(),
+        time: Utc::now(),
         user: context.map(|c| c.id().clone()),
 
         request_path: uri.to_string(),
         request_method: method.to_string(),
-	};
+    };
 
-	println!("--->>> log_request: \n{}", json!(line));
+    println!("--->>> log_request: \n{}", json!(line));
 }

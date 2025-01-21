@@ -171,7 +171,8 @@ COMMENT ON INDEX pk_factors IS 'Primary key for the Factor`s Types on a Project.
 ALTER TABLE factors ADD
     CONSTRAINT fk_factors_project
     FOREIGN KEY (project)
-    REFERENCES projects (project);
+    REFERENCES projects (project)
+    ON DELETE CASCADE;
 
 CREATE INDEX ix_factors_project ON factors (project);
 
@@ -216,7 +217,8 @@ COMMENT ON INDEX pk_empiricals IS 'Primary key for the Empirical`s Factors on a 
 ALTER TABLE empiricals ADD
     CONSTRAINT fk_empiricals_project
     FOREIGN KEY (project)
-    REFERENCES projects (project);
+    REFERENCES projects (project)
+    ON DELETE CASCADE;
 
 CREATE INDEX ix_empiricals_project ON empiricals (project);
 
@@ -428,7 +430,8 @@ COMMENT ON INDEX pk_alrs IS 'Index for association between Transaction and Data 
 ALTER TABLE alrs ADD 
     CONSTRAINT fk_alrs_function
     FOREIGN KEY (function)
-    REFERENCES functions_transactions (function);
+    REFERENCES functions_transactions (function)
+    ON DELETE CASCADE;
 
 CREATE INDEX ix_alrs_function ON alrs (function);
 
@@ -437,7 +440,8 @@ COMMENT ON INDEX ix_alrs_function IS 'Reference index to the functions of type T
 ALTER TABLE alrs ADD
     CONSTRAINT fk_alrs_alr
     FOREIGN KEY (alr)
-    REFERENCES functions_datas (function);
+    REFERENCES functions_datas (function)
+    ON DELETE CASCADE;
 
 CREATE INDEX ix_alrs_alr ON alrs (alr);
 
@@ -453,30 +457,29 @@ CREATE INDEX ix_alrs_tenant ON alrs (tenant);
 COMMENT ON INDEX ix_alrs_tenant IS 'Index to management access on tenant scope.';
 
 CREATE TABLE rlrs (
-    rlr         id,
     function    id,
-    tenant      id,
     name        brief,
-    description description
+    description description,
+    tenant      id
 );
 
 COMMENT ON TABLE rlrs               IS 'Referenced Logical Records.';
-COMMENT ON COLUMN rlrs.rlr          IS 'Unique identifier for a Reference Logical Record.';
 COMMENT ON COLUMN rlrs.function     IS 'Unique identifier for a Function.';
-COMMENT ON COLUMN rlrs.tenant       IS 'Tenant owner of the Function.';
 COMMENT ON COLUMN rlrs.name         IS 'Name of the Referenced Logical Record.';
+COMMENT ON COLUMN rlrs.tenant       IS 'Tenant owner of the Function.';
 COMMENT ON COLUMN rlrs.description  IS 'Description for the Referenced Logical Record.';
 
 ALTER TABLE rlrs ADD
     CONSTRAINT pk_rlrs
-    PRIMARY KEY (rlr);
+    PRIMARY KEY (function, name);
 
 COMMENT ON INDEX pk_rlrs IS 'Primary key for Referenced Logial Records.';
 
 ALTER TABLE rlrs ADD 
     CONSTRAINT fk_rlrs_functions_datas
     FOREIGN KEY (function)
-    REFERENCES functions_datas (function);
+    REFERENCES functions_datas (function)
+    ON DELETE CASCADE;
 
 CREATE INDEX ix_rlrs_function ON rlrs (function);
 
@@ -492,32 +495,33 @@ CREATE INDEX ix_rlrs_tenant ON alrs (tenant);
 COMMENT ON INDEX ix_rlrs_tenant IS 'Index to management access on tenant scope.';
 
 CREATE TABLE ders (
-    der         id,
-    rlr         id,
-    tenant      id,
+    function    id,
+    rlr         brief,
     name        brief,
-    description description
+    description description,
+    tenant      id
 );
 
 COMMENT ON TABLE ders               IS 'Referenced Elementary Data.';
-COMMENT ON COLUMN ders.der          IS 'Unique identifier for a Referenced Elementary Data.';
+COMMENT ON COLUMN ders.function     IS 'Unique identifier for a Referenced Elementary Data.';
 COMMENT ON COLUMN ders.rlr          IS 'Identifier for a Referenced Logical Record.';
-COMMENT ON COLUMN ders.tenant       IS 'Tenant owner of the Referenced Elementary Data.';
 COMMENT ON COLUMN ders.name         IS 'Name of the Referenced Elementary Data.';
 COMMENT ON COLUMN ders.description  IS 'Description for the Referenced Elementary Data.';
+COMMENT ON COLUMN ders.tenant       IS 'Tenant owner of the Referenced Elementary Data.';
 
 ALTER TABLE ders ADD
     CONSTRAINT pk_ders
-    PRIMARY KEY (der);
+    PRIMARY KEY (function, rlr, name);
 
 COMMENT ON INDEX pk_ders IS 'Primary key for Referenced Rlementary Data.';
 
 ALTER TABLE ders ADD
     CONSTRAINT fk_ders_rlrs
-    FOREIGN KEY (rlr)
-    REFERENCES rlrs (rlr);
+    FOREIGN KEY (function, rlr)
+    REFERENCES rlrs (function, name)
+    ON DELETE CASCADE;
 
-CREATE INDEX ix_ders_rlr ON ders (rlr);
+CREATE INDEX ix_ders_rlr ON ders (function, rlr);
 
 COMMENT ON INDEX ix_ders_rlr IS 'Reference index to the Referenced Logical Records.';
 

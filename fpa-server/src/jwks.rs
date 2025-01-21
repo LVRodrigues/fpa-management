@@ -1,4 +1,7 @@
-use std::{collections::HashMap, sync::{Arc, Mutex, OnceLock}};
+use std::{
+    collections::HashMap,
+    sync::{Arc, Mutex, OnceLock},
+};
 
 use jsonwebtoken::jwk::Jwk;
 use serde::{Deserialize, Serialize};
@@ -48,7 +51,7 @@ async fn request_jwks(tenant: String) -> Result<Keys, Error> {
 
 pub async fn prepare(config: &Configuration) -> Result<(), Error> {
     println!("==> {:<12} - prepare", "JWKS");
-    
+
     let keys = Arc::new(Mutex::new(HashMap::new()));
 
     for jwks in &config.jwks {

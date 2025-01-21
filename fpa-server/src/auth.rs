@@ -1,11 +1,19 @@
 use std::sync::Arc;
 
 use crate::{
-    ctx::Context, error::Error, jwks, model::{prelude::Users, users}, state::AppState
+    ctx::Context,
+    error::Error,
+    jwks,
+    model::{prelude::Users, users},
+    state::AppState,
 };
 
 use axum::{
-    body::Body, extract::State, http::{header, Request}, middleware::Next, response::Response
+    body::Body,
+    extract::State,
+    http::{header, Request},
+    middleware::Next,
+    response::Response,
 };
 use chrono::Utc;
 use jsonwebtoken::{decode, decode_header, DecodingKey, Validation};
@@ -29,11 +37,20 @@ struct Claims {
 
 impl Claims {
     fn to_context(&self) -> Context {
-        Context::new(self.sub, self.tenant, self.name.to_owned(), self.email.to_owned())
+        Context::new(
+            self.sub,
+            self.tenant,
+            self.name.to_owned(),
+            self.email.to_owned(),
+        )
     }
 }
 
-pub async fn require(State(state): State<Arc<AppState>>, mut request: Request<Body>, next: Next) -> Result<Response, Error> {
+pub async fn require(
+    State(state): State<Arc<AppState>>,
+    mut request: Request<Body>,
+    next: Next,
+) -> Result<Response, Error> {
     println!("==> {:<12} - require", "AUTH");
 
     if !jwks::is_prepared() {
@@ -71,9 +88,12 @@ pub async fn require(State(state): State<Arc<AppState>>, mut request: Request<Bo
     Ok(next.run(request).await)
 }
 
-
-
-pub async fn user_register(context: Option<Context>, State(state): State<Arc<AppState>>, request: Request<Body>, next: Next) -> Result<Response, Error> {
+pub async fn user_register(
+    context: Option<Context>,
+    State(state): State<Arc<AppState>>,
+    request: Request<Body>,
+    next: Next,
+) -> Result<Response, Error> {
     println!("==> {:<12} - user_register", "AUTH");
 
     let ctx = context.unwrap();
@@ -89,11 +109,11 @@ pub async fn user_register(context: Option<Context>, State(state): State<Arc<App
             name: Set(ctx.name().to_string()),
             tenant: Set(ctx.tenant().clone()),
             time: Set(Utc::now().into()),
-            email: Set(ctx.email().to_string())
+            email: Set(ctx.email().to_string()),
         };
         let _ = match u.insert(&db).await {
             Ok(v) => println!(" -> New User: {:?}", v),
-            Err(_) => return Err(Error::RegisterUser)
+            Err(_) => return Err(Error::RegisterUser),
         };
         match db.commit().await {
             Ok(it) => it,

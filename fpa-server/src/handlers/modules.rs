@@ -1,19 +1,35 @@
 use std::sync::Arc;
 
-use sea_orm::{ActiveModelTrait, ColumnTrait, Condition, EntityTrait, ModelTrait, PaginatorTrait, QueryFilter, Set};
+use axum::{
+    extract::{Path, Query, State},
+    http::{HeaderMap, StatusCode, Uri},
+    response::IntoResponse,
+    Json,
+};
+use sea_orm::{
+    ActiveModelTrait, ColumnTrait, Condition, EntityTrait, ModelTrait, PaginatorTrait, QueryFilter,
+    Set,
+};
 use serde::Deserialize;
 use utoipa::ToSchema;
 use uuid::Uuid;
-use axum::{extract::{Path, Query, State}, http::{HeaderMap, Uri, StatusCode}, response::IntoResponse, Json};
 
-use crate::{ctx::Context, error::{Error, ErrorResponse}, model::{modules::{self, ActiveModel, Model}, page::{Page, PageParams}}, state::AppState};
 use crate::model::prelude::Modules;
+use crate::{
+    ctx::Context,
+    error::{Error, ErrorResponse},
+    model::{
+        modules::{self, ActiveModel, Model},
+        page::{Page, PageParams},
+    },
+    state::AppState,
+};
 
 /// Search for a set of Modules for a Project.
 #[utoipa::path(
     tag = "Modules",
     get,
-    path = "/api/projects/{id}/modules",
+    path = "/api/projects/{project}/modules",
     responses(
         (status = OK, description = "Success", body = Page<modules::Model>),
         (status = UNAUTHORIZED, description = "User not authorized.", body = ErrorResponse),
@@ -21,16 +37,21 @@ use crate::model::prelude::Modules;
         (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = ErrorResponse)
     ),
     params(
-        ("id" = Uuid, description = "Project Unique ID."),
+        ("project" = Uuid, description = "Project Unique ID."),
         PageParams,
     ),
     security(("fpa-security" = []))
 )]
-pub async fn list(Path(id): Path<Uuid>, Query(params): Query<PageParams>, context: Option<Context>, state: State<Arc<AppState>>) -> Result<impl IntoResponse, Error> {
-    println!("==> {:<12} - /{id}/list", "MODULES");
+pub async fn list(
+    Path(project): Path<Uuid>,
+    Query(params): Query<PageParams>,
+    context: Option<Context>,
+    state: State<Arc<AppState>>,
+) -> Result<impl IntoResponse, Error> {
+    println!("==> {:<12} - /{project}/list", "MODULES");
 
     let mut conditions = Condition::all();
-    conditions = conditions.add(modules::Column::Project.eq(id));
+    conditions = conditions.add(modules::Column::Project.eq(project));
     if let Some(name) = params.name() {
         conditions = conditions.add(modules::Column::Name.contains(&name));
     }
@@ -43,11 +64,11 @@ pub async fn list(Path(id): Path<Uuid>, Query(params): Query<PageParams>, contex
 
     let items = paginator.fetch_page(params.page() - 1).await?;
     let mut page: Page<Model> = Page::new();
-    page.pages      = paginator.num_pages().await?;
-    page.index      = params.page();
-    page.size       = items.len() as u64;
-    page.records    = paginator.num_items().await?;
-    page.items      = items;
+    page.pages = paginator.num_pages().await?;
+    page.index = params.page();
+    page.size = items.len() as u64;
+    page.records = paginator.num_items().await?;
+    page.items = items;
 
     Ok(Json(page))
 }
@@ -56,7 +77,7 @@ pub async fn list(Path(id): Path<Uuid>, Query(params): Query<PageParams>, contex
 #[utoipa::path(
     tag = "Modules",
     get,
-    path = "/api/projects/{id}/modules/{module}",
+    path = "/api/projects/{project}/modules/{module}",
     responses(
         (status = OK, description = "Success.", body = modules::Model),
         (status = UNAUTHORIZED, description = "User not authorized.", body = ErrorResponse),
@@ -64,18 +85,22 @@ pub async fn list(Path(id): Path<Uuid>, Query(params): Query<PageParams>, contex
         (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = ErrorResponse)
     ),
     params(
-        ("id" = Uuid, Path, description = "Project Unique ID."),
+        ("project" = Uuid, Path, description = "Project Unique ID."),
         ("module" = Uuid, Path, description = "Module Unique ID."),
     ),
     security(("fpa-security" = []))    
 )]
-pub async fn by_id(Path((id, module)): Path<(Uuid, Uuid)>, context: Option<Context>, state: State<Arc<AppState>>) -> Result<impl IntoResponse, Error> {
-    println!("==> {:<12} - /{id}/by_id {module}", "MODULES");
+pub async fn by_id(
+    Path((project, module)): Path<(Uuid, Uuid)>,
+    context: Option<Context>,
+    state: State<Arc<AppState>>,
+) -> Result<impl IntoResponse, Error> {
+    println!("==> {:<12} - /{project}/by_id {module}", "MODULES");
     let ctx = context.unwrap();
     let db = state.connection(ctx.tenant()).await?;
 
     let mut conditions = Condition::all();
-    conditions = conditions.add(modules::Column::Project.eq(id));
+    conditions = conditions.add(modules::Column::Project.eq(project));
     conditions = conditions.add(modules::Column::Module.eq(module));
 
     let data = Modules::find().filter(conditions).one(&db).await?;
@@ -98,23 +123,31 @@ pub struct ModuleParam {
 #[utoipa::path(
     tag = "Modules",
     post,
-    path = "/api/projects/{id}/modules",
+    path = "/api/projects/{project}/modules",
     responses(
         (status = CREATED, description = "Success.", body = modules::Model, headers(("Location", description = "New module address."))),
         (status = UNAUTHORIZED, description = "User not authorized.", body = ErrorResponse),
         (status = CONFLICT, description = "The name must be unique for the selected project.", body = ErrorResponse),
         (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = ErrorResponse)
     ),
+    params(
+        ("project" = Uuid, Path, description = "Project Unique ID."),
+    ),
     security(("fpa-security" = []))
 )]
-pub async fn create(Path(id): Path<Uuid>, context: Option<Context>, state: State<Arc<AppState>>, Json(params): Json<ModuleParam>) -> Result<impl IntoResponse, Error> {
-    println!("==> {:<12} - /{id}/create {:?}", "MODULES", params);
+pub async fn create(
+    Path(project): Path<Uuid>,
+    context: Option<Context>,
+    state: State<Arc<AppState>>,
+    Json(params): Json<ModuleParam>,
+) -> Result<impl IntoResponse, Error> {
+    println!("==> {:<12} - /{project}/create {:?}", "MODULES", params);
     let ctx = context.unwrap();
     let db = state.connection(ctx.tenant()).await?;
     let config = state.configuration();
 
     let module = modules::ActiveModel {
-        project: Set(id.clone()),
+        project: Set(project.clone()),
         tenant: Set(ctx.tenant().clone()),
         module: Set(Uuid::now_v7()),
         name: Set(params.name.to_owned()),
@@ -124,7 +157,9 @@ pub async fn create(Path(id): Path<Uuid>, context: Option<Context>, state: State
         Ok(v) => v,
         Err(e) => {
             match e.sql_err().unwrap() {
-                sea_orm::SqlErr::UniqueConstraintViolation(_) => return Err(Error::ModuleNameDuplicated),
+                sea_orm::SqlErr::UniqueConstraintViolation(_) => {
+                    return Err(Error::ModuleNameDuplicated)
+                }
                 _ => return Err(Error::ModuleCreate),
             };
         }
@@ -133,12 +168,19 @@ pub async fn create(Path(id): Path<Uuid>, context: Option<Context>, state: State
     match db.commit().await {
         Ok(it) => it,
         Err(_) => return Err(Error::DatabaseTransaction),
-    };    
+    };
 
     let location = Uri::builder()
         .scheme(config.scheme.clone())
-        .authority(format!("{}:{}", config.authority.clone(), config.port.clone()))
-        .path_and_query(format!("/api/projects/{}/modules/{}", &module.project, module.module))
+        .authority(format!(
+            "{}:{}",
+            config.authority.clone(),
+            config.port.clone()
+        ))
+        .path_and_query(format!(
+            "/api/projects/{}/modules/{}",
+            &module.project, module.module
+        ))
         .build()
         .unwrap()
         .to_string()
@@ -148,13 +190,13 @@ pub async fn create(Path(id): Path<Uuid>, context: Option<Context>, state: State
     header.insert("Location", location);
 
     Ok((StatusCode::CREATED, header, Json(module)))
-}    
+}
 
 /// Update a existing Module.
 #[utoipa::path(
     tag = "Modules",
     put,
-    path = "/api/projects/{id}/modules/{module}",
+    path = "/api/projects/{project}/modules/{module}",
     responses(
         (status = OK, description = "Success.", body = modules::Model),
         (status = UNAUTHORIZED, description = "User not authorized.", body = ErrorResponse),
@@ -163,18 +205,26 @@ pub async fn create(Path(id): Path<Uuid>, context: Option<Context>, state: State
         (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = ErrorResponse)
     ),
     params(
-        ("id" = Uuid, Path, description = "Project Unique ID."),
+        ("project" = Uuid, Path, description = "Project Unique ID."),
         ("module" = Uuid, Path, description = "Module Unique ID."),
     ),
     security(("fpa-security" = []))
 )]
-pub async fn update(Path((id, module)): Path<(Uuid, Uuid)>, context: Option<Context>, state: State<Arc<AppState>>, Json(params): Json<ModuleParam>) -> Result<impl IntoResponse, Error> {
-    println!("==> {:<12} - /{id}/update/{module} {:?}", "MODULES", params);
+pub async fn update(
+    Path((project, module)): Path<(Uuid, Uuid)>,
+    context: Option<Context>,
+    state: State<Arc<AppState>>,
+    Json(params): Json<ModuleParam>,
+) -> Result<impl IntoResponse, Error> {
+    println!(
+        "==> {:<12} - /{project}/update/{module} {:?}",
+        "MODULES", params
+    );
     let ctx = context.unwrap();
-    let db = state.connection(ctx.tenant()).await?;        
+    let db = state.connection(ctx.tenant()).await?;
 
     let mut conditions = Condition::all();
-    conditions = conditions.add(modules::Column::Project.eq(id));
+    conditions = conditions.add(modules::Column::Project.eq(project));
     conditions = conditions.add(modules::Column::Module.eq(module));
 
     let data = Modules::find().filter(conditions).one(&db).await?;
@@ -191,8 +241,10 @@ pub async fn update(Path((id, module)): Path<(Uuid, Uuid)>, context: Option<Cont
         Ok(v) => v,
         Err(e) => {
             match e.sql_err().unwrap() {
-                sea_orm::SqlErr::UniqueConstraintViolation(_) => return Err(Error::ModuleNameDuplicated),
-                _ => return Err(Error::ModuleUpdate)
+                sea_orm::SqlErr::UniqueConstraintViolation(_) => {
+                    return Err(Error::ModuleNameDuplicated)
+                }
+                _ => return Err(Error::ModuleUpdate),
             };
         }
     };
@@ -204,7 +256,7 @@ pub async fn update(Path((id, module)): Path<(Uuid, Uuid)>, context: Option<Cont
 #[utoipa::path(
     tag = "Modules",
     delete,
-    path = "/api/projects/{id}/modules/{module}",
+    path = "/api/projects/{project}/modules/{module}",
     responses(
         (status = NO_CONTENT, description = "Success."),
         (status = UNAUTHORIZED, description = "User not authorized.", body = ErrorResponse),
@@ -213,18 +265,22 @@ pub async fn update(Path((id, module)): Path<(Uuid, Uuid)>, context: Option<Cont
         (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = ErrorResponse),
     ),
     params(
-        ("id" = Uuid, Path, description = "Project Unique ID."),
+        ("project" = Uuid, Path, description = "Project Unique ID."),
         ("module" = Uuid, Path, description = "Module Unique ID."),
     ),
     security(("fpa-security" = []))
 )]
-pub async fn remove(Path((id, module)): Path<(Uuid, Uuid)>, context: Option<Context>, state: State<Arc<AppState>>) -> Result<impl IntoResponse, Error> {
-    println!("==> {:<12} - /{id}/remove/{module}", "MODULES");
+pub async fn remove(
+    Path((project, module)): Path<(Uuid, Uuid)>,
+    context: Option<Context>,
+    state: State<Arc<AppState>>,
+) -> Result<impl IntoResponse, Error> {
+    println!("==> {:<12} - /{project}/remove/{module}", "MODULES");
     let ctx = context.unwrap();
-    let db = state.connection(ctx.tenant()).await?;   
+    let db = state.connection(ctx.tenant()).await?;
 
     let mut conditions = Condition::all();
-    conditions = conditions.add(modules::Column::Project.eq(id));
+    conditions = conditions.add(modules::Column::Project.eq(project));
     conditions = conditions.add(modules::Column::Module.eq(module));
 
     let data = Modules::find().filter(conditions).one(&db).await?;
@@ -236,9 +292,9 @@ pub async fn remove(Path((id, module)): Path<(Uuid, Uuid)>, context: Option<Cont
     match data.delete(&db).await {
         Ok(v) => {
             if v.rows_affected != 1 {
-                return Err(Error::MultipleRowsAffected)
+                return Err(Error::MultipleRowsAffected);
             }
-        },
+        }
         Err(_) => return Err(Error::ModuleConstraints),
     };
     match db.commit().await {

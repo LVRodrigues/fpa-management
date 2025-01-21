@@ -17,7 +17,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE    ON projects                 TO "fpa-acce
 GRANT SELECT, INSERT, UPDATE, DELETE    ON empiricals               TO "fpa-access";
 GRANT SELECT, INSERT, UPDATE, DELETE    ON factors                  TO "fpa-access";
 GRANT SELECT, INSERT, UPDATE, DELETE    ON modules                  TO "fpa-access";
-GRANT SELECT                            ON functions                TO "fpa-access";
+GRANT SELECT, INSERT, UPDATE, DELETE    ON functions                TO "fpa-access";
 GRANT SELECT, INSERT, UPDATE, DELETE    ON functions_datas          TO "fpa-access";
 GRANT SELECT, INSERT, UPDATE, DELETE    ON functions_transactions   TO "fpa-access";
 GRANT SELECT, INSERT, UPDATE, DELETE    ON alrs                     TO "fpa-access";
@@ -66,12 +66,12 @@ USING (tenant = current_setting('app.current_tenant')::UUID);
 
 ALTER TABLE alrs ENABLE ROW LEVEL SECURITY;
 CREATE POLICY alrs_policy ON alrs
-USING (tenant = current_setting('/app.current_tenant')::UUID);
+USING (tenant = current_setting('app.current_tenant')::UUID);
 
 ALTER TABLE rlrs ENABLE ROW LEVEL SECURITY;
 CREATE POLICY rlrs_policy ON rlrs
-USING (tenant = current_setting('/app.current_tenant')::UUID);
+USING (tenant = current_setting('app.current_tenant')::UUID);
 
 ALTER TABLE ders ENABLE ROW LEVEL SECURITY;
 CREATE POLICY ders_policy ON ders
-USING (tenant = current_setting('/app.current_tenant')::UUID);
+USING (tenant = current_setting('app.current_tenant')::UUID);

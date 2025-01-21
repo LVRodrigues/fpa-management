@@ -8,12 +8,17 @@ pub struct Context {
     id: Uuid,
     tenant: Uuid,
     name: String,
-    email: String
+    email: String,
 }
 
 impl Context {
     pub fn new(id: Uuid, tenant: Uuid, name: String, email: String) -> Self {
-        Self { id, tenant, name, email }
+        Self {
+            id,
+            tenant,
+            name,
+            email,
+        }
     }
 
     pub fn id(&self) -> &Uuid {
@@ -35,18 +40,18 @@ impl Context {
 
 #[async_trait]
 impl<S: Send + Sync> FromRequestParts<S> for Context {
-	type Rejection = Error;
+    type Rejection = Error;
 
-	async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Error> {
-		println!("==> {:<12} - Context", "EXTRACTOR");
+    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Error> {
+        println!("==> {:<12} - Context", "EXTRACTOR");
 
-		let context = parts
-			.extensions
-			.get::<Context>()
+        let context = parts
+            .extensions
+            .get::<Context>()
             .ok_or(Error::ContextInvalid)
             .unwrap()
             .clone();
 
         Ok(context)
-	}
+    }
 }

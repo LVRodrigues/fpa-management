@@ -19,7 +19,7 @@ pub enum Relation {
         from = "Column::Function",
         to = "super::functions_transactions::Column::Function",
         on_update = "NoAction",
-        on_delete = "NoAction"
+        on_delete = "Cascade"
     )]
     FunctionsTransactions,
     #[sea_orm(
@@ -27,7 +27,7 @@ pub enum Relation {
         from = "Column::Alr",
         to = "super::functions_datas::Column::Function",
         on_update = "NoAction",
-        on_delete = "NoAction"
+        on_delete = "Cascade"
     )]
     FunctionsDatas,
     #[sea_orm(

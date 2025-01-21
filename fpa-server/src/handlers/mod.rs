@@ -1,25 +1,24 @@
-pub mod projects;
 pub mod empiricals;
 pub mod factors;
+pub mod functions;
 pub mod modules;
+pub mod projects;
 
 use std::{sync::Arc, time::Duration};
 
 use axum::{
     extract::State, http::StatusCode, middleware, response::IntoResponse, routing::get, Router,
 };
-use sea_orm::{DatabaseConnection, ConnectOptions, Database};
+use sea_orm::{ConnectOptions, Database, DatabaseConnection};
 
 use crate::{
-    auth,
-    configuration::Configuration,
-    ctx::Context,
-    error::Error,
-    state::AppState, mapper::response_mapper,
+    auth, configuration::Configuration, ctx::Context, error::Error, mapper::response_mapper,
+    state::AppState,
 };
 
 async fn prepare_connection(config: &Configuration) -> Result<DatabaseConnection, Error> {
-    let dburl = format!("{}://{}:{}@{}:{}/{}",
+    let dburl = format!(
+        "{}://{}:{}@{}:{}/{}",
         &config.database.engine,
         &config.database.username,
         &config.database.password,
@@ -28,7 +27,8 @@ async fn prepare_connection(config: &Configuration) -> Result<DatabaseConnection
         &config.database.name,
     );
     let mut options = ConnectOptions::new(dburl);
-    options.max_connections(config.database.connections_max)
+    options
+        .max_connections(config.database.connections_max)
         .min_connections(config.database.connections_min)
         .connect_timeout(Duration::from_secs(config.database.timeout_connect))
         .acquire_timeout(Duration::from_secs(config.database.timeout_acquire))
@@ -37,7 +37,7 @@ async fn prepare_connection(config: &Configuration) -> Result<DatabaseConnection
     let conn = Database::connect(options.clone()).await;
     let conn = match conn {
         Ok(v) => v,
-        Err(_) => return Err(Error::DatabaseConnection)
+        Err(_) => return Err(Error::DatabaseConnection),
     };
 
     Ok(conn)
@@ -51,28 +51,51 @@ pub async fn router(config: Configuration) -> Result<Router, Error> {
         "/api",
         Router::new()
             .to_owned()
-            .route("/projects", get(projects::list)
-                .post(projects::create))
-            .route("/projects/:id", get(projects::by_id)
-                .delete(projects::remove)
-                .put(projects::update))
-            .route("/projects/:id/empiricals", get(empiricals::list)
-                .put(empiricals::update))
-            .route("/projects/:id/factors", get(factors::list)
-                .put(factors::update))
-            .route("/projects/:id/modules", get(modules::list)
-                .post(modules::create))
-            .route("/projects/:id/modules/:module", get(modules::by_id)
-                .put(modules::update)
-                .delete(modules::remove))
+            .route("/projects", get(projects::list).post(projects::create))
+            .route(
+                "/projects/:project",
+                get(projects::by_id)
+                    .delete(projects::remove)
+                    .put(projects::update),
+            )
+            .route(
+                "/projects/:project/empiricals",
+                get(empiricals::list).put(empiricals::update),
+            )
+            .route(
+                "/projects/:project/factors",
+                get(factors::list).put(factors::update),
+            )
+            .route(
+                "/projects/:project/modules",
+                get(modules::list).post(modules::create),
+            )
+            .route(
+                "/projects/:project/modules/:module",
+                get(modules::by_id)
+                    .put(modules::update)
+                    .delete(modules::remove),
+            )
+            .route(
+                "/projects/:project/modules/:module/functions",
+                get(functions::list).post(functions::create),
+            )
+            .route(
+                "/projects/:project/modules/:module/functions/:function",
+                get(functions::by_id)
+                    .put(functions::update)
+                    .delete(functions::remove),
+            )
             .route("/health", get(health))
             .layer(middleware::map_response(response_mapper))
-            .route_layer(middleware::from_fn_with_state(state.clone(), auth::user_register))
+            .route_layer(middleware::from_fn_with_state(
+                state.clone(),
+                auth::user_register,
+            ))
             .route_layer(middleware::from_fn_with_state(state.clone(), auth::require))
-            .with_state(state)
+            .with_state(state),
     ))
 }
-
 
 /// Checks system health.
 #[utoipa::path(
@@ -90,6 +113,6 @@ pub async fn health(context: Option<Context>, state: State<Arc<AppState>>) -> im
     println!("==> {:<12} - /health", "HANDLER");
     let _ = match state.connection(context.unwrap().tenant()).await {
         Ok(_) => return StatusCode::NO_CONTENT,
-        Err(_) => return StatusCode::SERVICE_UNAVAILABLE
+        Err(_) => return StatusCode::SERVICE_UNAVAILABLE,
     };
 }

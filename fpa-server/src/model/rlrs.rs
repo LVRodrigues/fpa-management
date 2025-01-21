@@ -6,12 +6,12 @@ use sea_orm::entity::prelude::*;
 #[sea_orm(table_name = "rlrs")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
-    pub rlr: Uuid,
     pub function: Uuid,
-    pub tenant: Uuid,
+    #[sea_orm(primary_key, auto_increment = false)]
     pub name: String,
     #[sea_orm(column_type = "Text", nullable)]
     pub description: Option<String>,
+    pub tenant: Uuid,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
@@ -31,7 +31,7 @@ pub enum Relation {
         from = "Column::Function",
         to = "super::functions_datas::Column::Function",
         on_update = "NoAction",
-        on_delete = "NoAction"
+        on_delete = "Cascade"
     )]
     FunctionsDatas,
 }

@@ -1,11 +1,15 @@
 mod shared;
 
 use anyhow::{Ok, Result};
-use shared::{selects, tokens::{self, Tenant}, URL, USERNAME, PASSWORD};
-use serde::{Deserialize, Serialize};
-use uuid::Uuid;
-use serde_json::json;
 use reqwest::StatusCode;
+use serde::{Deserialize, Serialize};
+use serde_json::json;
+use shared::{
+    selects,
+    tokens::{self, Tenant},
+    PASSWORD, URL, USERNAME,
+};
+use uuid::Uuid;
 
 const MODULE_NAME: &str = "Module Test";
 const MODULE_DESCRIPTION: &str = "Descrição longa do novo módulo de teste.";
@@ -59,13 +63,12 @@ async fn by_id(token: &String, project: &Uuid, data: &Data) -> Result<()> {
         .bearer_auth(token)
         .send()
         .await?;
-    assert_eq!(response.status(), StatusCode::OK); 
-
+    assert_eq!(response.status(), StatusCode::OK);
 
     let json = response.json::<Data>().await?;
     assert_eq!(json.module, data.module);
     assert_eq!(json.name, data.name);
-    assert_eq!(json.description, data.description);  
+    assert_eq!(json.description, data.description);
 
     Ok(())
 }
@@ -76,13 +79,13 @@ async fn list(token: &String, project: &Uuid) -> Result<()> {
         .bearer_auth(token)
         .send()
         .await?;
-    assert_eq!(response.status(), StatusCode::OK); 
+    assert_eq!(response.status(), StatusCode::OK);
 
     let json = response.json::<serde_json::Value>().await?;
     assert_eq!(json["pages"], json!(1));
     assert_eq!(json["index"], json!(1));
     assert_eq!(json["size"], json!(2));
-    assert_eq!(json["records"], json!(2));    
+    assert_eq!(json["records"], json!(2));
     assert!(json["items"].is_array());
     assert_eq!(json["items"].as_array().unwrap().len(), 2);
 
@@ -124,7 +127,7 @@ async fn remove(token: &String, project: &Uuid, module: &Uuid) -> Result<()> {
 #[tokio::test]
 async fn execute() -> Result<()> {
     let token = tokens::request_token(USERNAME, PASSWORD, Tenant::TENANT_DEFAULT).await?;
-    assert!(!token.is_empty());    
+    assert!(!token.is_empty());
 
     let project = selects::project(&token).await?;
 
@@ -138,6 +141,6 @@ async fn execute() -> Result<()> {
     update(&token, &project, &data).await?;
 
     remove(&token, &project, &data.module).await?;
-    
+
     Ok(())
 }

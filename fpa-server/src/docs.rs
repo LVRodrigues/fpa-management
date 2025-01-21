@@ -1,6 +1,12 @@
 use serde_json::json;
-use utoipa::{openapi::{extensions::Extensions, security::{Flow, OAuth2, Password, Scopes, SecurityScheme}, Components}, Modify, OpenApi};
-
+use utoipa::{
+    openapi::{
+        extensions::Extensions,
+        security::{Flow, OAuth2, Password, Scopes, SecurityScheme},
+        Components,
+    },
+    Modify, OpenApi,
+};
 
 #[derive(OpenApi)]
 #[openapi(
@@ -10,6 +16,7 @@ use utoipa::{openapi::{extensions::Extensions, security::{Flow, OAuth2, Password
         [name = "Empiricals", description = "Empiricals Adjustments Factors."],
         [name = "Factors", description = "Adjustments Factors."],
         [name = "Modules", description = "Analysis frontier modules."],
+        [name = "Functions", description = "Function management for analysis."]
     ),
     paths(
         crate::handlers::health,
@@ -27,6 +34,11 @@ use utoipa::{openapi::{extensions::Extensions, security::{Flow, OAuth2, Password
         crate::handlers::modules::create,
         crate::handlers::modules::update,
         crate::handlers::modules::remove,
+        crate::handlers::functions::list,
+        crate::handlers::functions::by_id,
+        crate::handlers::functions::create,
+        crate::handlers::functions::update,
+        crate::handlers::functions::remove,
     ),
     components(
         schemas(
@@ -45,22 +57,33 @@ use utoipa::{openapi::{extensions::Extensions, security::{Flow, OAuth2, Password
             crate::handlers::empiricals::EmpiricalParam,
             crate::handlers::factors::FactorParam,
             crate::handlers::modules::ModuleParam,
+            crate::handlers::functions::FunctionALI,
+            crate::handlers::functions::FunctionALIParam,
+            crate::handlers::functions::FunctionAIE,
+            crate::handlers::functions::FunctionAIEParam,
+            crate::handlers::functions::FunctionEE,
+            crate::handlers::functions::FunctionEEParam,
+            crate::handlers::functions::FunctionCE,
+            crate::handlers::functions::FunctionCEParam,
+            crate::handlers::functions::FunctionSE,
+            crate::handlers::functions::FunctionSEParam,
+            crate::handlers::functions::FunctionData,
+            crate::handlers::functions::Function,
+            crate::handlers::functions::FunctionParam,
         ),
     ),
     modifiers(&SecuritySchemas, &InfoModifier),
 )]
-pub struct ApiDoc;    
+pub struct ApiDoc;
 
 struct InfoModifier;
 impl Modify for InfoModifier {
     fn modify(&self, openapi: &mut utoipa::openapi::OpenApi) {
         let value = json!({
-            "url": "/assets/logo.png", 
+            "url": "/assets/logo.png",
             "backgroundColor": "#FFFFFF"
         });
-        openapi.info.extensions = Some(Extensions::builder()
-            .add("x-logo", value)
-            .build());
+        openapi.info.extensions = Some(Extensions::builder().add("x-logo", value).build());
 
         let desc = r#"
 # Introduction
@@ -90,11 +113,12 @@ impl Modify for SecuritySchemas {
             None => {
                 openapi.components = Some(Components::new());
                 openapi.components.as_mut().unwrap()
-            },
+            }
         };
-        let flows = [Flow::Password(
-            Password::new("http://localhost:8080/realms/default/protocol/openid-connect/token", Scopes::default())
-        )];
+        let flows = [Flow::Password(Password::new(
+            "http://localhost:8080/realms/default/protocol/openid-connect/token",
+            Scopes::default(),
+        ))];
         let oauth2 = OAuth2::new(flows);
         let scheme = SecurityScheme::OAuth2(oauth2);
         components.add_security_scheme("fpa-security", scheme);

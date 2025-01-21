@@ -100,18 +100,17 @@ erDiagram
     }
 
     rlrs {
-        rlr         id          PK
-        name        brief
+        function    id          PK
+        name        brief       PK
         description description
-        function    id
         tenant      id
     }
 
     ders {
-        der         id          PK
-        name        brief
+        function    id          PK
+        rlr         brief       PK
+        name        brief       PK
         description description
-        rlr         id
         tenant      id
     }
 

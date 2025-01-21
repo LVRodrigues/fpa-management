@@ -8,7 +8,7 @@ use utoipa::ToSchema;
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, ToSchema)]
 #[sea_orm(table_name = "modules")]
 #[schema(as=Module)]
-#[serde(rename = "Module")] 
+#[serde(rename = "Module")]
 pub struct Model {
     /// Module Unique Identifier.
     #[sea_orm(primary_key, auto_increment = false)]
