@@ -17,7 +17,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE    ON projects                 TO "fpa-acce
 GRANT SELECT, INSERT, UPDATE, DELETE    ON empiricals               TO "fpa-access";
 GRANT SELECT, INSERT, UPDATE, DELETE    ON factors                  TO "fpa-access";
 GRANT SELECT, INSERT, UPDATE, DELETE    ON modules                  TO "fpa-access";
-GRANT SELECT                            ON functions                TO "fpa-access";
+GRANT SELECT, INSERT, UPDATE, DELETE    ON functions                TO "fpa-access";
 GRANT SELECT, INSERT, UPDATE, DELETE    ON functions_datas          TO "fpa-access";
 GRANT SELECT, INSERT, UPDATE, DELETE    ON functions_transactions   TO "fpa-access";
 GRANT SELECT, INSERT, UPDATE, DELETE    ON alrs                     TO "fpa-access";

@@ -951,7 +951,10 @@ pub async fn remove(
                 return Err(Error::MultipleRowsAffected);
             }
         }
-        Err(_) => return Err(Error::FunctionConstraints),
+        Err(e) => {
+            println!("Error: {:?}", e.sql_err().unwrap());
+            return Err(Error::FunctionConstraints)
+        },
     };
     match db.commit().await {
         Ok(it) => it,

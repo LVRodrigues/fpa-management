@@ -430,7 +430,8 @@ COMMENT ON INDEX pk_alrs IS 'Index for association between Transaction and Data 
 ALTER TABLE alrs ADD 
     CONSTRAINT fk_alrs_function
     FOREIGN KEY (function)
-    REFERENCES functions_transactions (function);
+    REFERENCES functions_transactions (function)
+    ON DELETE CASCADE;
 
 CREATE INDEX ix_alrs_function ON alrs (function);
 

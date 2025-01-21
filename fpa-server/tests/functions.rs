@@ -597,7 +597,7 @@ async fn update_ee(token: &String, project: &Uuid, module: &Uuid, data: &Data) -
     Ok(())
 }
 
-async fn update_ce(token: &String, project: &Uuid, module: &Uuid, data: &Data) -> Result<Uuid> {
+async fn update_ce(token: &String, project: &Uuid, module: &Uuid, data: &Data) -> Result<()> {
     let body = json!({
         "CE": {
             "name": "CE Test Name Updated",
@@ -638,10 +638,10 @@ async fn update_ce(token: &String, project: &Uuid, module: &Uuid, data: &Data) -
 
     assert_eq!(aie["id"], json!(data.function_ali.to_string()));
 
-    Ok(id)
+    Ok(())
 }
 
-async fn update_se(token: &String, project: &Uuid, module: &Uuid, data: &Data) -> Result<Uuid> {
+async fn update_se(token: &String, project: &Uuid, module: &Uuid, data: &Data) -> Result<()> {
     let body = json!({
         "SE": {
             "name": "SE Test Name Updated",
@@ -692,7 +692,17 @@ async fn update_se(token: &String, project: &Uuid, module: &Uuid, data: &Data) -
         }
     }
 
-    Ok(id)
+    Ok(())
+}
+
+async fn remove(token: &String, project: &Uuid, module: &Uuid, function: &Uuid) -> Result<()> { 
+    let response = reqwest::Client::new()
+        .delete(format!("{}/{}/modules/{}/functions/{}", URL, project, module, function))
+        .bearer_auth(token)
+        .send()
+        .await?;
+    assert_eq!(response.status(), StatusCode::NO_CONTENT);
+    Ok(())
 }
 
 #[tokio::test]
@@ -726,6 +736,12 @@ async fn execute() -> Result<()> {
     update_ce(&token, &project, &module, &data).await?;
     update_se(&token, &project, &module, &data).await?;
 
+    remove(&token, &project, &module, &data.function_ee).await?;
+    remove(&token, &project, &module, &data.function_ce).await?;
+    remove(&token, &project, &module, &data.function_se).await?;
+    remove(&token, &project, &module, &data.function_ali).await?;
+    remove(&token, &project, &module, &data.function_aie).await?;
+    
     Ok(())
 }
 
