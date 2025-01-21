@@ -22,9 +22,9 @@ pub async fn project(token: &String) -> Result<Uuid> {
     Ok(result)
 }
 
-pub async fn module(token: &String, project: &Uuid) -> Result<Uuid> {
+pub async fn frontier(token: &String, project: &Uuid) -> Result<Uuid> {
     let response = reqwest::Client::new()
-        .get(format!("{}/{}/modules", URL, project))
+        .get(format!("{}/{}/frontiers", URL, project))
         .bearer_auth(token)
         .send()
         .await?;
@@ -32,7 +32,7 @@ pub async fn module(token: &String, project: &Uuid) -> Result<Uuid> {
 
     let json = response.json::<serde_json::Value>().await?;
     let result = json["items"].as_array().unwrap()[0].clone();
-    let result = Uuid::parse_str(result["module"].as_str().unwrap()).unwrap();
+    let result = Uuid::parse_str(result["frontier"].as_str().unwrap()).unwrap();
 
     Ok(result)
 }

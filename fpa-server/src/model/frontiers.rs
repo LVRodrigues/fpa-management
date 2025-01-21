@@ -4,24 +4,24 @@ use sea_orm::entity::prelude::*;
 use serde::Serialize;
 use utoipa::ToSchema;
 
-/// Project's Module.
+/// Project's Frontier.
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, ToSchema)]
-#[sea_orm(table_name = "modules")]
+#[sea_orm(table_name = "frontiers")]
 #[schema(as=Module)]
-#[serde(rename = "Module")]
+#[serde(rename = "Frontier")]
 pub struct Model {
-    /// Module Unique Identifier.
+    /// Frontier Unique Identifier.
     #[sea_orm(primary_key, auto_increment = false)]
-    pub module: Uuid,
-    /// Project owner of the Module.
+    pub frontier: Uuid,
+    /// Project owner of the Frontier.
     #[serde(skip)]
     pub project: Uuid,
     /// Tenant owner of the Project.
     #[serde(skip)]
     pub tenant: Uuid,
-    /// Module's name.
+    /// Frontier's name.
     pub name: String,
-    /// Description for the Module.
+    /// Description for the Frontier.
     #[sea_orm(column_type = "Text", nullable)]
     pub description: Option<String>,
 }

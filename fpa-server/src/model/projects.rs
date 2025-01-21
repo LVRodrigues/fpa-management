@@ -34,8 +34,8 @@ pub enum Relation {
     Empiricals,
     #[sea_orm(has_many = "super::factors::Entity")]
     Factors,
-    #[sea_orm(has_many = "super::modules::Entity")]
-    Modules,
+    #[sea_orm(has_many = "super::frontiers::Entity")]
+    Frontiers,
     #[sea_orm(
         belongs_to = "super::tenants::Entity",
         from = "Column::Tenant",
@@ -66,9 +66,9 @@ impl Related<super::factors::Entity> for Entity {
     }
 }
 
-impl Related<super::modules::Entity> for Entity {
+impl Related<super::frontiers::Entity> for Entity {
     fn to() -> RelationDef {
-        Relation::Modules.def()
+        Relation::Frontiers.def()
     }
 }
 

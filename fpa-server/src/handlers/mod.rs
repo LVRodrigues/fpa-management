@@ -1,7 +1,7 @@
 pub mod empiricals;
 pub mod factors;
+pub mod frontiers;
 pub mod functions;
-pub mod modules;
 pub mod projects;
 
 use std::{sync::Arc, time::Duration};
@@ -67,21 +67,21 @@ pub async fn router(config: Configuration) -> Result<Router, Error> {
                 get(factors::list).put(factors::update),
             )
             .route(
-                "/projects/:project/modules",
-                get(modules::list).post(modules::create),
+                "/projects/:project/frontiers",
+                get(frontiers::list).post(frontiers::create),
             )
             .route(
-                "/projects/:project/modules/:module",
-                get(modules::by_id)
-                    .put(modules::update)
-                    .delete(modules::remove),
+                "/projects/:project/frontiers/:frontier",
+                get(frontiers::by_id)
+                    .put(frontiers::update)
+                    .delete(frontiers::remove),
             )
             .route(
-                "/projects/:project/modules/:module/functions",
+                "/projects/:project/frontiers/:frontier/functions",
                 get(functions::list).post(functions::create),
             )
             .route(
-                "/projects/:project/modules/:module/functions/:function",
+                "/projects/:project/frontiers/:frontier/functions/:function",
                 get(functions::by_id)
                     .put(functions::update)
                     .delete(functions::remove),

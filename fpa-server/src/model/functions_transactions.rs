@@ -9,7 +9,7 @@ use sea_orm::entity::prelude::*;
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub function: Uuid,
-    pub module: Uuid,
+    pub frontier: Uuid,
     pub tenant: Uuid,
     pub r#type: FunctionType,
     pub name: String,
@@ -22,13 +22,13 @@ pub enum Relation {
     #[sea_orm(has_many = "super::alrs::Entity")]
     Alrs,
     #[sea_orm(
-        belongs_to = "super::modules::Entity",
-        from = "Column::Module",
-        to = "super::modules::Column::Module",
+        belongs_to = "super::frontiers::Entity",
+        from = "Column::Frontier",
+        to = "super::frontiers::Column::Frontier",
         on_update = "NoAction",
         on_delete = "NoAction"
     )]
-    Modules,
+    Frontiers,
     #[sea_orm(
         belongs_to = "super::tenants::Entity",
         from = "Column::Tenant",
@@ -45,9 +45,9 @@ impl Related<super::rlrs::Entity> for Entity {
     }
 }
 
-impl Related<super::modules::Entity> for Entity {
+impl Related<super::frontiers::Entity> for Entity {
     fn to() -> RelationDef {
-        Relation::Modules.def()
+        Relation::Frontiers.def()
     }
 }
 

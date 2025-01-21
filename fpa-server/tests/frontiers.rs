@@ -11,22 +11,22 @@ use shared::{
 };
 use uuid::Uuid;
 
-const MODULE_NAME: &str = "Module Test";
-const MODULE_DESCRIPTION: &str = "Descrição longa do novo módulo de teste.";
+const FRONTIER_NAME: &str = "Module Test";
+const FRONTIER_DESCRIPTION: &str = "Descrição longa do novo módulo de teste.";
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Data {
-    module: Uuid,
+    frontier: Uuid,
     name: String,
     description: Option<String>,
 }
 
 async fn create(token: &String, project: &Uuid) -> Result<Data> {
     let body = json!({
-        "name": MODULE_NAME
+        "name": FRONTIER_NAME
     });
     let response = reqwest::Client::new()
-        .post(format!("{}/{}/modules", URL, project))
+        .post(format!("{}/{}/frontiers", URL, project))
         .bearer_auth(token)
         .json(&body)
         .send()
@@ -35,8 +35,8 @@ async fn create(token: &String, project: &Uuid) -> Result<Data> {
     assert!(response.headers().get("location").is_some());
 
     let data = response.json::<Data>().await?;
-    assert!(!data.module.is_nil());
-    assert_eq!(data.name, MODULE_NAME);
+    assert!(!data.frontier.is_nil());
+    assert_eq!(data.name, FRONTIER_NAME);
     assert_eq!(data.description, None);
 
     Ok(data)
@@ -44,10 +44,10 @@ async fn create(token: &String, project: &Uuid) -> Result<Data> {
 
 async fn create_duplicate(token: &String, project: &Uuid) -> Result<()> {
     let body = json!({
-        "name": MODULE_NAME
+        "name": FRONTIER_NAME
     });
     let response = reqwest::Client::new()
-        .post(format!("{}/{}/modules", URL, project))
+        .post(format!("{}/{}/frontiers", URL, project))
         .bearer_auth(token)
         .json(&body)
         .send()
@@ -59,14 +59,14 @@ async fn create_duplicate(token: &String, project: &Uuid) -> Result<()> {
 
 async fn by_id(token: &String, project: &Uuid, data: &Data) -> Result<()> {
     let response = reqwest::Client::new()
-        .get(format!("{}/{}/modules/{}", URL, project, data.module))
+        .get(format!("{}/{}/frontiers/{}", URL, project, data.frontier))
         .bearer_auth(token)
         .send()
         .await?;
     assert_eq!(response.status(), StatusCode::OK);
 
     let json = response.json::<Data>().await?;
-    assert_eq!(json.module, data.module);
+    assert_eq!(json.frontier, data.frontier);
     assert_eq!(json.name, data.name);
     assert_eq!(json.description, data.description);
 
@@ -75,7 +75,7 @@ async fn by_id(token: &String, project: &Uuid, data: &Data) -> Result<()> {
 
 async fn list(token: &String, project: &Uuid) -> Result<()> {
     let response = reqwest::Client::new()
-        .get(format!("{}/{}/modules", URL, project))
+        .get(format!("{}/{}/frontiers", URL, project))
         .bearer_auth(token)
         .send()
         .await?;
@@ -95,10 +95,10 @@ async fn list(token: &String, project: &Uuid) -> Result<()> {
 async fn update(token: &String, project: &Uuid, data: &Data) -> Result<()> {
     let body = json!({
         "name": data.name.clone(),
-        "description": Some(String::from(MODULE_DESCRIPTION)),
+        "description": Some(String::from(FRONTIER_DESCRIPTION)),
     });
     let response = reqwest::Client::new()
-        .put(format!("{}/{}/modules/{}", URL, project, data.module))
+        .put(format!("{}/{}/frontiers/{}", URL, project, data.frontier))
         .bearer_auth(token)
         .json(&body)
         .send()
@@ -106,16 +106,16 @@ async fn update(token: &String, project: &Uuid, data: &Data) -> Result<()> {
     assert_eq!(response.status(), StatusCode::OK);
 
     let json = response.json::<Data>().await?;
-    assert!(!json.module.is_nil());
-    assert_eq!(json.name, MODULE_NAME);
-    assert_eq!(json.description.unwrap(), MODULE_DESCRIPTION);
+    assert!(!json.frontier.is_nil());
+    assert_eq!(json.name, FRONTIER_NAME);
+    assert_eq!(json.description.unwrap(), FRONTIER_DESCRIPTION);
 
     Ok(())
 }
 
-async fn remove(token: &String, project: &Uuid, module: &Uuid) -> Result<()> {
+async fn remove(token: &String, project: &Uuid, frontier: &Uuid) -> Result<()> {
     let response = reqwest::Client::new()
-        .delete(format!("{}/{}/modules/{}", URL, project, module))
+        .delete(format!("{}/{}/frontiers/{}", URL, project, frontier))
         .bearer_auth(token)
         .send()
         .await?;
@@ -140,7 +140,7 @@ async fn execute() -> Result<()> {
 
     update(&token, &project, &data).await?;
 
-    remove(&token, &project, &data.module).await?;
+    remove(&token, &project, &data.frontier).await?;
 
     Ok(())
 }
