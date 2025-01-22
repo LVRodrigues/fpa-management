@@ -6,7 +6,7 @@ erDiagram
 
     tenants                 ||--o{ users: fk_users_tenant
     tenants                 ||--o{ projects: fk_projects_tenant
-    tenants                 ||--o{ modules: fk_modules_tenant
+    tenants                 ||--o{ frontiers: fk_frontiers_tenant
     tenants                 ||--o{ functions: fk_functions_tenant
     tenants                 ||--o{ rlrs: fk_rlrs_tenant
     tenants                 ||--o{ alrs: fk_alrs_tenant
@@ -14,17 +14,16 @@ erDiagram
 
     users                   ||--o{ projects: fk_projects_user
 
-    projects                ||--o{ factors: fk_factors_project
     projects                ||--o{ empiricals: fk_empiricals_project
-    projects                ||--o{ modules: fk_modules_project
+    projects                ||--o{ frontiers: fk_frontiers_project
 
-    modules                 ||--o{ functions: fk_functions_module
+    frontiers               ||--o{ functions: fk_functions_frontier
+    frontiers               ||--o{ factors: fk_factors_frontier
 
     functions               ||--|| functions_datas: inherit
     functions               ||--|| functions_transactions: inherit
     functions_datas         ||--o{ alrs: fk_alrs_functions_datas
     rlrs                    ||--o{ ders: fl_ders_rlrs
-    %% functions_transactions  ||--o{ ders: fk_ders_functions_transactions
     functions_transactions  ||--o{ alrs: fk_alrs_functions_transactions
         
     tenants {
@@ -62,13 +61,6 @@ erDiagram
         version     integer
     }
 
-    factors {
-        project     id          PK
-        factor      factor      PK
-        tenant      id
-        influence   influence
-    }
-
     empiricals {
         project     id          PK
         empirical   empirical   PK
@@ -76,12 +68,19 @@ erDiagram
         value       integer
     }
 
-    modules {
-        module      id          PK
+    frontiers {
+        frontier    id          PK
         name        brief
         description description
         project     id
         tenant      id
+    }
+
+    factors {
+        frontier    id          PK
+        factor      factor      PK
+        tenant      id
+        influence   influence
     }
 
     functions {
@@ -89,7 +88,7 @@ erDiagram
         name        brief
         description description
         type        function_type
-        module      id
+        frontier    id
         tenant      id
     }
 

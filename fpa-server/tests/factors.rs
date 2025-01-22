@@ -20,9 +20,9 @@ struct Data {
     influence: String,
 }
 
-async fn list(token: &String, project: &Uuid) -> Result<()> {
+async fn list(token: &String, project: &Uuid, frontier: &Uuid) -> Result<()> {
     let response = reqwest::Client::new()
-        .get(format!("{}/{}/factors", URL, project))
+        .get(format!("{}/{}/frontiers/{}/factors", URL, project, frontier))
         .bearer_auth(&token)
         .send()
         .await?;
@@ -39,13 +39,13 @@ async fn list(token: &String, project: &Uuid) -> Result<()> {
     Ok(())
 }
 
-async fn update(token: &String, project: &Uuid) -> Result<()> {
+async fn update(token: &String, project: &Uuid, frontier: &Uuid) -> Result<()> {
     let body = Data {
         factor: String::from(FACTOR),
         influence: String::from(INFLUENCE),
     };
     let response = reqwest::Client::new()
-        .put(format!("{}/{}/factors", URL, project))
+        .put(format!("{}/{}/frontiers/{}/factors", URL, project, frontier))
         .bearer_auth(&token)
         .json(&body)
         .send()
@@ -64,10 +64,11 @@ async fn execute() -> Result<()> {
     assert!(!token.is_empty());
 
     let project = selects::project(&token).await?;
+    let frontier = selects::frontier(&token, &project).await?;
 
-    list(&token, &project).await?;
+    list(&token, &project, &frontier).await?;
 
-    update(&token, &project).await?;
+    update(&token, &project, &frontier).await?;
 
     Ok(())
 }

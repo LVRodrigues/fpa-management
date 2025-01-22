@@ -34,14 +34,14 @@ BEGIN
 				(project, 'TESTING', t.tenant, 20),
 				(project, 'DEPLOYMENT', t.tenant, 10);
 
-			FOR factor IN SELECT unnest(enum_range(NULL::factor_type)) LOOP
-				INSERT INTO factors (project, factor, tenant, influence)
-				VALUES (project, factor, t.tenant, 'ABSENT');
-			END LOOP;
-
 			frontier := uuid_generate_v4();
 			INSERT INTO frontiers (frontier, project, tenant, name, description) 
 			VALUES (frontier, project, t.tenant, 'Test', 'Frontier for test');
+
+			FOR factor IN SELECT unnest(enum_range(NULL::factor_type)) LOOP
+				INSERT INTO factors (frontier, factor, tenant, influence)
+				VALUES (frontier, factor, t.tenant, 'ABSENT');
+			END LOOP;
 
 			fun_ali := uuid_generate_v4();
 			INSERT INTO functions_datas (function, frontier, tenant, name, description, type)

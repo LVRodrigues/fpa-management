@@ -149,52 +149,6 @@ CREATE UNIQUE INDEX uq_projects_tenant_name ON projects(tenant, name);
 
 COMMENT ON INDEX uq_projects_tenant_name IS 'Unique Project Name on a Tenant.';
 
-CREATE TABLE factors (
-    project     id,
-    factor      factor_type NOT NULL,
-    tenant      id,
-    influence   influence_type NOT NULL
-);
-
-COMMENT ON TABLE factors            IS 'Adjustments Factors for the Project.';
-COMMENT ON COLUMN factors.factor    IS 'Adjustment Fator for the Project.';
-COMMENT ON COLUMN factors.tenant    IS 'Tenant owner of the Project.';
-COMMENT ON COLUMN factors.project   IS 'Project identifier.';
-COMMENT ON COLUMN factors.influence	IS 'Influence value for the factor on this project.';
-
-ALTER TABLE factors ADD
-    CONSTRAINT pk_factors
-    PRIMARY KEY (project, factor);
-
-COMMENT ON INDEX pk_factors IS 'Primary key for the Factor`s Types on a Project.';
-
-ALTER TABLE factors ADD
-    CONSTRAINT fk_factors_project
-    FOREIGN KEY (project)
-    REFERENCES projects (project)
-    ON DELETE CASCADE;
-
-CREATE INDEX ix_factors_project ON factors (project);
-
-COMMENT ON INDEX ix_factors_project IS 'Index to relate to Project.';
-
-CREATE INDEX ix_factors_factor ON factors (factor);
-
-COMMENT ON INDEX ix_factors_factor IS 'Index to relate to Fator`s Types.';
-
-ALTER TABLE factors ADD
-    CONSTRAINT fk_factors_tenant
-    FOREIGN KEY (tenant)
-    REFERENCES tenants (tenant);
-
-CREATE INDEX ix_factors_tenant ON factors (tenant);
-
-COMMENT ON INDEX ix_factors_tenant IS 'Index to management access on tenant scope.';
-
-CREATE INDEX ix_factors_influence ON factors (influence);
-
-COMMENT ON INDEX ix_factors_influence IS 'Influence value for the Factor`s Type on this Project.';
-
 CREATE TABLE empiricals (
     project     id,
     empirical   empirical_type NOT NULL,
@@ -279,6 +233,52 @@ COMMENT ON INDEX ix_frontiers_tenant IS 'Index to management access on tenant sc
 CREATE UNIQUE INDEX uq_frontiers_project_name ON frontiers (project, name);
 
 COMMENT ON INDEX uq_frontiers_project_name IS 'Unique index for exclusive frontiers`s name on a Project.';
+
+CREATE TABLE factors (
+    frontier    id,
+    factor      factor_type NOT NULL,
+    tenant      id,
+    influence   influence_type NOT NULL
+);
+
+COMMENT ON TABLE factors            IS 'Adjustments Factors for the Frontire.';
+COMMENT ON COLUMN factors.factor    IS 'Adjustment Fator for the Frontier.';
+COMMENT ON COLUMN factors.tenant    IS 'Tenant owner of the Frontier.';
+COMMENT ON COLUMN factors.frontier  IS 'Frontier identifier.';
+COMMENT ON COLUMN factors.influence	IS 'Influence value for the factor on this Frontier.';
+
+ALTER TABLE factors ADD
+    CONSTRAINT pk_factors
+    PRIMARY KEY (frontier, factor);
+
+COMMENT ON INDEX pk_factors IS 'Primary key for the Factor`s Types on a Frontier.';
+
+ALTER TABLE factors ADD
+    CONSTRAINT fk_factors_frontier
+    FOREIGN KEY (frontier)
+    REFERENCES frontiers (frontier)
+    ON DELETE CASCADE;
+
+CREATE INDEX ix_factors_frontier ON factors (frontier);
+
+COMMENT ON INDEX ix_factors_frontier IS 'Index to relate to Frontier.';
+
+CREATE INDEX ix_factors_factor ON factors (factor);
+
+COMMENT ON INDEX ix_factors_factor IS 'Index to relate to Fator`s Types.';
+
+ALTER TABLE factors ADD
+    CONSTRAINT fk_factors_tenant
+    FOREIGN KEY (tenant)
+    REFERENCES tenants (tenant);
+
+CREATE INDEX ix_factors_tenant ON factors (tenant);
+
+COMMENT ON INDEX ix_factors_tenant IS 'Index to management access on tenant scope.';
+
+CREATE INDEX ix_factors_influence ON factors (influence);
+
+COMMENT ON INDEX ix_factors_influence IS 'Influence value for the Factor`s Type on this Project.';
 
 CREATE TABLE functions (
     function    id,

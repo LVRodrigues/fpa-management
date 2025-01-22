@@ -154,11 +154,6 @@ pub async fn create(
         }
     };
 
-    match add_factors(&db, project.project.clone(), ctx.tenant().clone()).await {
-        Ok(_) => (),
-        Err(_) => return Err(Error::ProjectFactorCreate),
-    };
-
     match add_empiricals(&db, project.project.clone(), ctx.tenant().clone(), config).await {
         Ok(_) => (),
         Err(_) => return Err(Error::ProjectEmpiricalCreate),
@@ -186,19 +181,6 @@ pub async fn create(
     header.insert("Location", location);
 
     Ok((StatusCode::CREATED, header, Json(project)))
-}
-
-async fn add_factors(db: &DatabaseTransaction, project: Uuid, tenant: Uuid) -> Result<(), DbErr> {
-    for factor_type in FactorType::iter() {
-        let factor = factors::ActiveModel {
-            project: Set(project),
-            tenant: Set(tenant),
-            factor: Set(factor_type),
-            influence: Set(InfluenceType::Absent),
-        };
-        factor.insert(db).await?;
-    }
-    Ok(())
 }
 
 async fn add_empiricals(
@@ -344,12 +326,6 @@ pub async fn remove(
         .await?;
     for empirical in empiricals {
         let item: model::empiricals::ActiveModel = empirical.into();
-        item.delete(&db).await?;
-    }
-
-    let factors = data.find_related(model::prelude::Factors).all(&db).await?;
-    for factor in factors {
-        let item: model::factors::ActiveModel = factor.into();
         item.delete(&db).await?;
     }
 

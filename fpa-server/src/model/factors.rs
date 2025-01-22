@@ -12,10 +12,10 @@ use utoipa::ToSchema;
 #[schema(as=Factor)]
 #[serde(rename = "Factor")]
 pub struct Model {
-    /// Project identifier.
+    /// Frontier identifier.
     #[serde(skip)]
     #[sea_orm(primary_key, auto_increment = false)]
-    pub project: Uuid,
+    pub frontier: Uuid,
     /// Adjustment Fator for the Project.
     #[sea_orm(primary_key, auto_increment = false)]
     pub factor: FactorType,
@@ -29,13 +29,13 @@ pub struct Model {
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
     #[sea_orm(
-        belongs_to = "super::projects::Entity",
-        from = "Column::Project",
-        to = "super::projects::Column::Project",
+        belongs_to = "super::frontiers::Entity",
+        from = "Column::Frontier",
+        to = "super::frontiers::Column::Frontier",
         on_update = "NoAction",
         on_delete = "Cascade"
     )]
-    Projects,
+    Frontiers,
     #[sea_orm(
         belongs_to = "super::tenants::Entity",
         from = "Column::Tenant",
@@ -46,9 +46,9 @@ pub enum Relation {
     Tenants,
 }
 
-impl Related<super::projects::Entity> for Entity {
+impl Related<super::frontiers::Entity> for Entity {
     fn to() -> RelationDef {
-        Relation::Projects.def()
+        Relation::Frontiers.def()
     }
 }
 

@@ -7,14 +7,13 @@ use axum::{
     Json,
 };
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, Condition, EntityTrait, ModelTrait, PaginatorTrait, QueryFilter,
-    Set,
+    ActiveModelTrait, ColumnTrait, Condition, DatabaseTransaction, DbErr, EntityTrait, Iterable, ModelTrait, PaginatorTrait, QueryFilter, Set
 };
 use serde::Deserialize;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
-use crate::model::prelude::Frontiers;
+use crate::model::{factors, prelude::Frontiers, sea_orm_active_enums::{FactorType, InfluenceType}};
 use crate::{
     ctx::Context,
     error::{Error, ErrorResponse},
@@ -165,6 +164,11 @@ pub async fn create(
         }
     };
 
+    match add_factors(&db, module.frontier.clone(), ctx.tenant().clone()).await {
+        Ok(_) => (),
+        Err(_) => return Err(Error::ProjectFactorCreate),
+    };
+
     match db.commit().await {
         Ok(it) => it,
         Err(_) => return Err(Error::DatabaseTransaction),
@@ -190,6 +194,19 @@ pub async fn create(
     header.insert("Location", location);
 
     Ok((StatusCode::CREATED, header, Json(module)))
+}
+
+async fn add_factors(db: &DatabaseTransaction, frontier: Uuid, tenant: Uuid) -> Result<(), DbErr> {
+    for factor_type in FactorType::iter() {
+        let factor = factors::ActiveModel {
+            frontier: Set(frontier),
+            tenant: Set(tenant),
+            factor: Set(factor_type),
+            influence: Set(InfluenceType::Absent),
+        };
+        factor.insert(db).await?;
+    }
+    Ok(())
 }
 
 /// Update a existing Frontier.
