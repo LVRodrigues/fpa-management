@@ -20,9 +20,9 @@ struct Data {
     value: i32,
 }
 
-async fn list(token: &String, project: &Uuid) -> Result<()> {
+async fn list(token: &String, project: &Uuid, frontier: &Uuid) -> Result<()> {
     let response = reqwest::Client::new()
-        .get(format!("{}/{}/empiricals", URL, &project))
+        .get(format!("{}/{}/frontiers/{}/empiricals", URL, project, frontier))
         .bearer_auth(&token)
         .send()
         .await?;
@@ -39,14 +39,14 @@ async fn list(token: &String, project: &Uuid) -> Result<()> {
     Ok(())
 }
 
-async fn update(token: &String, project: &Uuid) -> Result<()> {
+async fn update(token: &String, project: &Uuid, frontier: &Uuid) -> Result<()> {
     const VALUE: i32 = 50;
     let body = Data {
         empirical: String::from(DEPLOYMENT),
         value: VALUE,
     };
     let response = reqwest::Client::new()
-        .put(format!("{}/{}/empiricals", URL, &project))
+        .put(format!("{}/{}/frontiers/{}/empiricals", URL, project, frontier))
         .bearer_auth(&token)
         .json(&body)
         .send()
@@ -60,14 +60,14 @@ async fn update(token: &String, project: &Uuid) -> Result<()> {
     Ok(())
 }
 
-async fn update_productivity_error(token: &String, project: &Uuid) -> Result<()> {
+async fn update_productivity_error(token: &String, project: &Uuid, frontier: &Uuid) -> Result<()> {
     const VALUE: i32 = 60;
     let body = Data {
         empirical: String::from(PROCUCTIVITY),
         value: VALUE,
     };
     let response = reqwest::Client::new()
-        .put(format!("{}/{}/empiricals", URL, &project))
+        .put(format!("{}/{}/frontiers/{}/empiricals", URL, project, frontier))
         .bearer_auth(&token)
         .json(&body)
         .send()
@@ -77,14 +77,14 @@ async fn update_productivity_error(token: &String, project: &Uuid) -> Result<()>
     Ok(())
 }
 
-async fn update_deployment_error(token: &String, project: &Uuid) -> Result<()> {
+async fn update_deployment_error(token: &String, project: &Uuid, frontier: &Uuid) -> Result<()> {
     const VALUE: i32 = 160;
     let body = Data {
         empirical: String::from(DEPLOYMENT),
         value: VALUE,
     };
     let response = reqwest::Client::new()
-        .put(format!("{}/{}/empiricals", URL, &project))
+        .put(format!("{}/{}/frontiers/{}/empiricals", URL, project, frontier))
         .bearer_auth(&token)
         .json(&body)
         .send()
@@ -100,12 +100,13 @@ async fn execute() -> Result<()> {
     assert!(!token.is_empty());
 
     let project = selects::project(&token).await?;
+    let frontier = selects::frontier(&token, &project).await?;
 
-    list(&token, &project).await?;
+    list(&token, &project, &frontier).await?;
 
-    update(&token, &project).await?;
-    update_productivity_error(&token, &project).await?;
-    update_deployment_error(&token, &project).await?;
+    update(&token, &project, &frontier).await?;
+    update_productivity_error(&token, &project, &frontier).await?;
+    update_deployment_error(&token, &project, &frontier).await?;
 
     Ok(())
 }

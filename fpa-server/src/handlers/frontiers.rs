@@ -13,7 +13,7 @@ use serde::Deserialize;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
-use crate::model::{factors, prelude::Frontiers, sea_orm_active_enums::{FactorType, InfluenceType}};
+use crate::{configuration::Configuration, model::{self, factors, prelude::Frontiers, sea_orm_active_enums::{EmpiricalType, FactorType, InfluenceType}}};
 use crate::{
     ctx::Context,
     error::{Error, ErrorResponse},
@@ -23,6 +23,8 @@ use crate::{
     },
     state::AppState,
 };
+
+use super::empiricals;
 
 /// Search for a set of Modules for a Project.
 #[utoipa::path(
@@ -169,6 +171,11 @@ pub async fn create(
         Err(_) => return Err(Error::ProjectFactorCreate),
     };
 
+    match add_empiricals(&db, module.frontier.clone(), ctx.tenant().clone(), config).await {
+        Ok(_) => (),
+        Err(_) => return Err(Error::ProjectEmpiricalCreate),
+    };
+
     match db.commit().await {
         Ok(it) => it,
         Err(_) => return Err(Error::DatabaseTransaction),
@@ -206,6 +213,55 @@ async fn add_factors(db: &DatabaseTransaction, frontier: Uuid, tenant: Uuid) -> 
         };
         factor.insert(db).await?;
     }
+    Ok(())
+}
+
+async fn add_empiricals(
+    db: &DatabaseTransaction,
+    frontier: Uuid,
+    tenant: Uuid,
+    config: &Configuration,
+) -> Result<(), DbErr> {
+    let coordination = model::empiricals::ActiveModel {
+        frontier: Set(frontier),
+        tenant: Set(tenant),
+        empirical: Set(EmpiricalType::Coordination),
+        value: Set(config.empiricals.coordination),
+    };
+    coordination.insert(db).await?;
+
+    let deployment = model::empiricals::ActiveModel {
+        frontier: Set(frontier),
+        tenant: Set(tenant),
+        empirical: Set(EmpiricalType::Deployment),
+        value: Set(config.empiricals.deployment),
+    };
+    deployment.insert(db).await?;
+
+    let planning = model::empiricals::ActiveModel {
+        frontier: Set(frontier),
+        tenant: Set(tenant),
+        empirical: Set(EmpiricalType::Planning),
+        value: Set(config.empiricals.planning),
+    };
+    planning.insert(db).await?;
+
+    let productivity = model::empiricals::ActiveModel {
+        frontier: Set(frontier),
+        tenant: Set(tenant),
+        empirical: Set(EmpiricalType::Productivity),
+        value: Set(config.empiricals.productivity),
+    };
+    productivity.insert(db).await?;
+
+    let testing = model::empiricals::ActiveModel {
+        frontier: Set(frontier),
+        tenant: Set(tenant),
+        empirical: Set(EmpiricalType::Testing),
+        value: Set(config.empiricals.testing),
+    };
+    testing.insert(db).await?;
+
     Ok(())
 }
 

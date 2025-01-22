@@ -59,10 +59,6 @@ pub async fn router(config: Configuration) -> Result<Router, Error> {
                     .put(projects::update),
             )
             .route(
-                "/projects/:project/empiricals",
-                get(empiricals::list).put(empiricals::update),
-            )
-            .route(
                 "/projects/:project/frontiers",
                 get(frontiers::list).post(frontiers::create),
             )
@@ -75,6 +71,10 @@ pub async fn router(config: Configuration) -> Result<Router, Error> {
             .route(
                 "/projects/:project/frontiers/:frontier/factors",
                 get(factors::list).put(factors::update),
+            )
+            .route(
+                "/projects/:project/frontiers/:frontier/empiricals",
+                get(empiricals::list).put(empiricals::update),
             )
             .route(
                 "/projects/:project/frontiers/:frontier/functions",

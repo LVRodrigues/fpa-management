@@ -27,13 +27,6 @@ BEGIN
 			INSERT INTO projects (project, tenant, "user", name, description, time)
 			VALUES (project, t.tenant, uuid_nil(), 'Project ' || TO_CHAR(i, 'fm000'), 'Long description for the Project ' || TO_CHAR(i, 'fm000'), CURRENT_TIMESTAMP);
 
-			INSERT INTO empiricals (project, empirical, tenant, value) VALUES 
-				(project, 'PRODUCTIVITY', t.tenant, 14),
-				(project, 'PLANNING', t.tenant, 15),
-				(project, 'COORDINATION', t.tenant, 20),
-				(project, 'TESTING', t.tenant, 20),
-				(project, 'DEPLOYMENT', t.tenant, 10);
-
 			frontier := uuid_generate_v4();
 			INSERT INTO frontiers (frontier, project, tenant, name, description) 
 			VALUES (frontier, project, t.tenant, 'Test', 'Frontier for test');
@@ -42,6 +35,13 @@ BEGIN
 				INSERT INTO factors (frontier, factor, tenant, influence)
 				VALUES (frontier, factor, t.tenant, 'ABSENT');
 			END LOOP;
+
+			INSERT INTO empiricals (frontier, empirical, tenant, value) VALUES 
+				(frontier, 'PRODUCTIVITY', t.tenant, 14),
+				(frontier, 'PLANNING', t.tenant, 15),
+				(frontier, 'COORDINATION', t.tenant, 20),
+				(frontier, 'TESTING', t.tenant, 20),
+				(frontier, 'DEPLOYMENT', t.tenant, 10);
 
 			fun_ali := uuid_generate_v4();
 			INSERT INTO functions_datas (function, frontier, tenant, name, description, type)

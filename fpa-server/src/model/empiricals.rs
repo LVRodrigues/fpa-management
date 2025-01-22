@@ -5,20 +5,20 @@ use sea_orm::entity::prelude::*;
 use serde_derive::Serialize;
 use utoipa::ToSchema;
 
-/// Empirical Adjusts Factors for the Project.
+/// Empirical Adjusts Factors for the Frontier.
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, ToSchema)]
 #[sea_orm(table_name = "empiricals")]
 #[schema(as=Empirical)]
 #[serde(rename = "Empirical")]
 pub struct Model {
-    /// Project Unique Identifier.
+    /// Frontier Unique Identifier.
     #[serde(skip)]
     #[sea_orm(primary_key, auto_increment = false)]
-    pub project: Uuid,
+    pub frontier: Uuid,
     /// Empirical`s Factor
     #[sea_orm(primary_key, auto_increment = false)]
     pub empirical: EmpiricalType,
-    /// Tenant owner of the Project.
+    /// Tenant owner of the Empirical.
     #[serde(skip)]
     pub tenant: Uuid,
     /// Percent of influence for the Empirical`s Factor.
@@ -28,13 +28,13 @@ pub struct Model {
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
     #[sea_orm(
-        belongs_to = "super::projects::Entity",
-        from = "Column::Project",
-        to = "super::projects::Column::Project",
+        belongs_to = "super::frontiers::Entity",
+        from = "Column::Frontier",
+        to = "super::frontiers::Column::Frontier",
         on_update = "NoAction",
         on_delete = "Cascade"
     )]
-    Projects,
+    Frontiers,
     #[sea_orm(
         belongs_to = "super::tenants::Entity",
         from = "Column::Tenant",
@@ -45,9 +45,9 @@ pub enum Relation {
     Tenants,
 }
 
-impl Related<super::projects::Entity> for Entity {
+impl Related<super::frontiers::Entity> for Entity {
     fn to() -> RelationDef {
-        Relation::Projects.def()
+        Relation::Frontiers.def()
     }
 }
 
