@@ -1,33 +1,35 @@
 use std::sync::Arc;
 
+use crate::{
+    ctx::Context,
+    error::{Error, ErrorResponse},
+    model::{
+        empiricals::{self, ActiveModel, Entity, Model},
+        frontiers::{self, Entity as Frontiers},
+        page::Page,
+        prelude::*,
+        sea_orm_active_enums::EmpiricalType,
+    },
+    state::AppState,
+};
 use axum::{
     extract::{Path, State},
     http::StatusCode,
     response::IntoResponse,
     Json,
 };
-use sea_orm::{ActiveModelTrait, EntityTrait, ModelTrait, Set};
+use sea_orm::{
+    ActiveModelTrait, ColumnTrait, Condition, EntityTrait, ModelTrait, QueryFilter, Set,
+};
 use serde::Deserialize;
 use utoipa::ToSchema;
 use uuid::Uuid;
-
-use crate::{
-    ctx::Context,
-    error::{Error, ErrorResponse},
-    model::{
-        empiricals::{self, ActiveModel, Model},
-        page::Page,
-        prelude::{Empiricals, Projects},
-        sea_orm_active_enums::EmpiricalType,
-    },
-    state::AppState,
-};
 
 /// Search for a set of Empirical's Factor for a Project.
 #[utoipa::path(
     tag = "Empiricals",
     get,
-    path = "/api/projects/{id}/empiricals",
+    path = "/api/projects/{project}/frontiers/{frontier}/empiricals",
     responses(
         (status = OK, description = "Success", body = empiricals::Model),
         (status = UNAUTHORIZED, description = "User not authorized.", body = ErrorResponse),
@@ -35,25 +37,30 @@ use crate::{
         (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = ErrorResponse)
     ),
     params(
-        ("id" = Uuid, description = "Project Unique ID.")
+        ("project" = Uuid, description = "Project Unique ID."),
+        ("frontier" = Uuid, Path, description = "Frontier Unique ID."),
     ),
     security(("fpa-security" = []))
 )]
 pub async fn list(
-    Path(id): Path<Uuid>,
+    Path((project, frontier)): Path<(Uuid, Uuid)>,
     context: Option<Context>,
     state: State<Arc<AppState>>,
 ) -> Result<impl IntoResponse, Error> {
-    println!("==> {:<12} - /{id}/list", "EMPIRICALS");
+    println!("==> {:<12} - /{project}/{frontier}/list", "EMPIRICALS");
     let ctx = context.unwrap();
     let db = state.connection(ctx.tenant()).await?;
 
-    let project = match Projects::find_by_id(id).one(&db).await.unwrap() {
+    let mut conditions = Condition::all();
+    conditions = conditions.add(frontiers::Column::Frontier.eq(frontier));
+    conditions = conditions.add(frontiers::Column::Project.eq(project));
+
+    let frontier = match Frontiers::find().filter(conditions).one(&db).await.unwrap() {
         Some(v) => v,
         None => return Err(Error::NotFound),
     };
 
-    let items = project.find_related(Empiricals).all(&db).await?;
+    let items = frontier.find_related(Empiricals).all(&db).await?;
     let mut page: Page<Model> = Page::new();
     page.pages = 1;
     page.index = 1;
@@ -77,7 +84,7 @@ pub struct EmpiricalParam {
 #[utoipa::path(
     tag = "Empiricals",
     put,
-    path = "/api/projects/{id}/empiricals",
+    path = "/api/projects/{project}/frontiers/{frontier}/empiricals",
     responses(
         (status = OK, description = "Success", body = empiricals::Model),
         (status = UNAUTHORIZED, description = "User not authorized.", body = ErrorResponse),
@@ -85,18 +92,19 @@ pub struct EmpiricalParam {
         (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = ErrorResponse)
     ),
     params(
-        ("id" = Uuid, description = "Project Unique ID.")
+        ("project" = Uuid, description = "Project Unique ID."),
+        ("frontier" = Uuid, Path, description = "Frontier Unique ID."),
     ),
     security(("fpa-security" = []))
 )]
 pub async fn update(
-    Path(id): Path<Uuid>,
+    Path((project, frontier)): Path<(Uuid, Uuid)>,
     context: Option<Context>,
     state: State<Arc<AppState>>,
     Json(params): Json<EmpiricalParam>,
 ) -> Result<impl IntoResponse, Error> {
     println!(
-        "==> {:<12} - /{id}/update (Params: {:?})",
+        "==> {:<12} - /{project}/{frontier}/update (Params: {:?})",
         "EMPIRICALS", params
     );
 
@@ -113,7 +121,14 @@ pub async fn update(
     let ctx = context.unwrap();
     let db = state.connection(ctx.tenant()).await?;
 
-    let data = match Empiricals::find_by_id((id, params.empirical))
+    let mut conditions = Condition::all();
+    conditions = conditions.add(frontiers::Column::Project.eq(project));
+    conditions = conditions.add(empiricals::Column::Frontier.eq(frontier));
+    conditions = conditions.add(empiricals::Column::Empirical.eq(params.empirical));
+
+    let data = match Empiricals::find()
+        .inner_join(Frontiers)
+        .filter(conditions)
         .one(&db)
         .await
         .unwrap()

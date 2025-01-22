@@ -7,7 +7,7 @@ use utoipa::ToSchema;
 /// Project's Frontier.
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, ToSchema)]
 #[sea_orm(table_name = "frontiers")]
-#[schema(as=Module)]
+#[schema(as=Frontier)]
 #[serde(rename = "Frontier")]
 pub struct Model {
     /// Frontier Unique Identifier.
@@ -30,6 +30,8 @@ pub struct Model {
 pub enum Relation {
     #[sea_orm(has_many = "super::factors::Entity")]
     Factors, 
+    #[sea_orm(has_many = "super::empiricals::Entity")]
+    Empiricals,
     #[sea_orm(has_many = "super::functions::Entity")]
     Functions,
     #[sea_orm(has_many = "super::functions_datas::Entity")]
@@ -57,6 +59,12 @@ pub enum Relation {
 impl Related<super::factors::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::Factors.def()
+    }
+}
+
+impl Related<super::empiricals::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Empiricals.def()
     }
 }
 

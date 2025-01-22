@@ -154,11 +154,6 @@ pub async fn create(
         }
     };
 
-    match add_empiricals(&db, project.project.clone(), ctx.tenant().clone(), config).await {
-        Ok(_) => (),
-        Err(_) => return Err(Error::ProjectEmpiricalCreate),
-    };
-
     match db.commit().await {
         Ok(it) => it,
         Err(_) => return Err(Error::DatabaseTransaction),
@@ -181,55 +176,6 @@ pub async fn create(
     header.insert("Location", location);
 
     Ok((StatusCode::CREATED, header, Json(project)))
-}
-
-async fn add_empiricals(
-    db: &DatabaseTransaction,
-    project: Uuid,
-    tenant: Uuid,
-    config: &Configuration,
-) -> Result<(), DbErr> {
-    let coordination = empiricals::ActiveModel {
-        project: Set(project),
-        tenant: Set(tenant),
-        empirical: Set(EmpiricalType::Coordination),
-        value: Set(config.empiricals.coordination),
-    };
-    coordination.insert(db).await?;
-
-    let deployment = empiricals::ActiveModel {
-        project: Set(project),
-        tenant: Set(tenant),
-        empirical: Set(EmpiricalType::Deployment),
-        value: Set(config.empiricals.deployment),
-    };
-    deployment.insert(db).await?;
-
-    let planning = empiricals::ActiveModel {
-        project: Set(project),
-        tenant: Set(tenant),
-        empirical: Set(EmpiricalType::Planning),
-        value: Set(config.empiricals.planning),
-    };
-    planning.insert(db).await?;
-
-    let productivity = empiricals::ActiveModel {
-        project: Set(project),
-        tenant: Set(tenant),
-        empirical: Set(EmpiricalType::Productivity),
-        value: Set(config.empiricals.productivity),
-    };
-    productivity.insert(db).await?;
-
-    let testing = empiricals::ActiveModel {
-        project: Set(project),
-        tenant: Set(tenant),
-        empirical: Set(EmpiricalType::Testing),
-        value: Set(config.empiricals.testing),
-    };
-    testing.insert(db).await?;
-
-    Ok(())
 }
 
 /// Update a existing Project.
@@ -319,15 +265,6 @@ pub async fn remove(
         Some(v) => v,
         None => return Err(Error::NotFound),
     };
-
-    let empiricals = data
-        .find_related(model::prelude::Empiricals)
-        .all(&db)
-        .await?;
-    for empirical in empiricals {
-        let item: model::empiricals::ActiveModel = empirical.into();
-        item.delete(&db).await?;
-    }
 
     match data.delete(&db).await {
         Ok(v) => {

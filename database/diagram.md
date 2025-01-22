@@ -14,11 +14,11 @@ erDiagram
 
     users                   ||--o{ projects: fk_projects_user
 
-    projects                ||--o{ empiricals: fk_empiricals_project
     projects                ||--o{ frontiers: fk_frontiers_project
-
+    
     frontiers               ||--o{ functions: fk_functions_frontier
     frontiers               ||--o{ factors: fk_factors_frontier
+    frontiers               ||--o{ empiricals: fk_empiricals_frontier
 
     functions               ||--|| functions_datas: inherit
     functions               ||--|| functions_transactions: inherit
@@ -61,13 +61,6 @@ erDiagram
         version     integer
     }
 
-    empiricals {
-        project     id          PK
-        empirical   empirical   PK
-        tenant      id
-        value       integer
-    }
-
     frontiers {
         frontier    id          PK
         name        brief
@@ -81,6 +74,13 @@ erDiagram
         factor      factor      PK
         tenant      id
         influence   influence
+    }
+
+    empiricals {
+        frontier    id          PK
+        empirical   empirical   PK
+        tenant      id
+        value       integer
     }
 
     functions {

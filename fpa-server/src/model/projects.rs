@@ -30,8 +30,6 @@ pub struct Model {
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
-    #[sea_orm(has_many = "super::empiricals::Entity")]
-    Empiricals,
     #[sea_orm(has_many = "super::frontiers::Entity")]
     Frontiers,
     #[sea_orm(
@@ -50,12 +48,6 @@ pub enum Relation {
         on_delete = "NoAction"
     )]
     Users,
-}
-
-impl Related<super::empiricals::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::Empiricals.def()
-    }
 }
 
 impl Related<super::frontiers::Entity> for Entity {

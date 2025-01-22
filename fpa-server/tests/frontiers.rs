@@ -11,8 +11,8 @@ use shared::{
 };
 use uuid::Uuid;
 
-const FRONTIER_NAME: &str = "Module Test";
-const FRONTIER_DESCRIPTION: &str = "Descrição longa do novo módulo de teste.";
+const FRONTIER_NAME: &str = "Frontier Test";
+const FRONTIER_DESCRIPTION: &str = "Descrição longa da nova fronteira de teste.";
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Data {

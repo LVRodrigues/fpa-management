@@ -13,7 +13,7 @@ use serde::Deserialize;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
-use crate::model::{factors, prelude::Frontiers, sea_orm_active_enums::{FactorType, InfluenceType}};
+use crate::{configuration::Configuration, model::{self, factors, prelude::Frontiers, sea_orm_active_enums::{EmpiricalType, FactorType, InfluenceType}}};
 use crate::{
     ctx::Context,
     error::{Error, ErrorResponse},
@@ -24,7 +24,9 @@ use crate::{
     state::AppState,
 };
 
-/// Search for a set of Modules for a Project.
+use super::empiricals;
+
+/// Search for a set of Frontiers for a Project.
 #[utoipa::path(
     tag = "Frontiers",
     get,
@@ -72,7 +74,7 @@ pub async fn list(
     Ok(Json(page))
 }
 
-/// Search for a specific Module.
+/// Search for a specific Frontier.
 #[utoipa::path(
     tag = "Frontiers",
     get,
@@ -94,7 +96,7 @@ pub async fn by_id(
     context: Option<Context>,
     state: State<Arc<AppState>>,
 ) -> Result<impl IntoResponse, Error> {
-    println!("==> {:<12} - /{project}/by_id {frontier}", "MODULES");
+    println!("==> {:<12} - /{project}/by_id {frontier}", "FRONTIERS");
     let ctx = context.unwrap();
     let db = state.connection(ctx.tenant()).await?;
 
@@ -145,28 +147,33 @@ pub async fn create(
     let db = state.connection(ctx.tenant()).await?;
     let config = state.configuration();
 
-    let module = frontiers::ActiveModel {
+    let frontier = frontiers::ActiveModel {
         project: Set(project.clone()),
         tenant: Set(ctx.tenant().clone()),
         frontier: Set(Uuid::now_v7()),
         name: Set(params.name.to_owned()),
         description: Set(params.description.to_owned()),
     };
-    let module = match module.insert(&db).await {
+    let frontier = match frontier.insert(&db).await {
         Ok(v) => v,
         Err(e) => {
             match e.sql_err().unwrap() {
                 sea_orm::SqlErr::UniqueConstraintViolation(_) => {
-                    return Err(Error::ModuleNameDuplicated)
+                    return Err(Error::FrontierNameDuplicated)
                 }
-                _ => return Err(Error::ModuleCreate),
+                _ => return Err(Error::FrontierCreate),
             };
         }
     };
 
-    match add_factors(&db, module.frontier.clone(), ctx.tenant().clone()).await {
+    match add_factors(&db, frontier.frontier.clone(), ctx.tenant().clone()).await {
         Ok(_) => (),
         Err(_) => return Err(Error::ProjectFactorCreate),
+    };
+
+    match add_empiricals(&db, frontier.frontier.clone(), ctx.tenant().clone(), config).await {
+        Ok(_) => (),
+        Err(_) => return Err(Error::ProjectEmpiricalCreate),
     };
 
     match db.commit().await {
@@ -183,7 +190,7 @@ pub async fn create(
         ))
         .path_and_query(format!(
             "/api/projects/{}/frontiers/{}",
-            &module.project, module.frontier
+            &frontier.project, frontier.frontier
         ))
         .build()
         .unwrap()
@@ -193,7 +200,7 @@ pub async fn create(
     let mut header = HeaderMap::new();
     header.insert("Location", location);
 
-    Ok((StatusCode::CREATED, header, Json(module)))
+    Ok((StatusCode::CREATED, header, Json(frontier)))
 }
 
 async fn add_factors(db: &DatabaseTransaction, frontier: Uuid, tenant: Uuid) -> Result<(), DbErr> {
@@ -206,6 +213,55 @@ async fn add_factors(db: &DatabaseTransaction, frontier: Uuid, tenant: Uuid) -> 
         };
         factor.insert(db).await?;
     }
+    Ok(())
+}
+
+async fn add_empiricals(
+    db: &DatabaseTransaction,
+    frontier: Uuid,
+    tenant: Uuid,
+    config: &Configuration,
+) -> Result<(), DbErr> {
+    let coordination = model::empiricals::ActiveModel {
+        frontier: Set(frontier),
+        tenant: Set(tenant),
+        empirical: Set(EmpiricalType::Coordination),
+        value: Set(config.empiricals.coordination),
+    };
+    coordination.insert(db).await?;
+
+    let deployment = model::empiricals::ActiveModel {
+        frontier: Set(frontier),
+        tenant: Set(tenant),
+        empirical: Set(EmpiricalType::Deployment),
+        value: Set(config.empiricals.deployment),
+    };
+    deployment.insert(db).await?;
+
+    let planning = model::empiricals::ActiveModel {
+        frontier: Set(frontier),
+        tenant: Set(tenant),
+        empirical: Set(EmpiricalType::Planning),
+        value: Set(config.empiricals.planning),
+    };
+    planning.insert(db).await?;
+
+    let productivity = model::empiricals::ActiveModel {
+        frontier: Set(frontier),
+        tenant: Set(tenant),
+        empirical: Set(EmpiricalType::Productivity),
+        value: Set(config.empiricals.productivity),
+    };
+    productivity.insert(db).await?;
+
+    let testing = model::empiricals::ActiveModel {
+        frontier: Set(frontier),
+        tenant: Set(tenant),
+        empirical: Set(EmpiricalType::Testing),
+        value: Set(config.empiricals.testing),
+    };
+    testing.insert(db).await?;
+
     Ok(())
 }
 
@@ -235,7 +291,7 @@ pub async fn update(
 ) -> Result<impl IntoResponse, Error> {
     println!(
         "==> {:<12} - /{project}/update/{frontier} {:?}",
-        "MODULES", params
+        "FRONTIERS", params
     );
     let ctx = context.unwrap();
     let db = state.connection(ctx.tenant()).await?;
@@ -259,9 +315,9 @@ pub async fn update(
         Err(e) => {
             match e.sql_err().unwrap() {
                 sea_orm::SqlErr::UniqueConstraintViolation(_) => {
-                    return Err(Error::ModuleNameDuplicated)
+                    return Err(Error::FrontierNameDuplicated)
                 }
-                _ => return Err(Error::ModuleUpdate),
+                _ => return Err(Error::FrontierUpdate),
             };
         }
     };
@@ -292,7 +348,7 @@ pub async fn remove(
     context: Option<Context>,
     state: State<Arc<AppState>>,
 ) -> Result<impl IntoResponse, Error> {
-    println!("==> {:<12} - /{project}/remove/{frontier}", "MODULES");
+    println!("==> {:<12} - /{project}/remove/{frontier}", "FRONTIERS");
     let ctx = context.unwrap();
     let db = state.connection(ctx.tenant()).await?;
 
@@ -312,7 +368,7 @@ pub async fn remove(
                 return Err(Error::MultipleRowsAffected);
             }
         }
-        Err(_) => return Err(Error::ModuleConstraints),
+        Err(_) => return Err(Error::FrontierConstraints),
     };
     match db.commit().await {
         Ok(it) => it,

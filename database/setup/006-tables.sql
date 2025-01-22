@@ -149,48 +149,6 @@ CREATE UNIQUE INDEX uq_projects_tenant_name ON projects(tenant, name);
 
 COMMENT ON INDEX uq_projects_tenant_name IS 'Unique Project Name on a Tenant.';
 
-CREATE TABLE empiricals (
-    project     id,
-    empirical   empirical_type NOT NULL,
-    tenant      id,
-    value       INTEGER NOT NULL
-);
-
-COMMENT ON TABLE empiricals            IS 'Empirical Adjusts Factors for the Project.';
-COMMENT ON COLUMN empiricals.project   IS 'Project identifier.';
-COMMENT ON COLUMN empiricals.empirical IS 'Empirical`s Factor.';
-COMMENT ON COLUMN empiricals.tenant    IS 'Tenant owner of the Project.';
-COMMENT ON COLUMN empiricals.value     IS 'Percent of influence for the Empirical`s Factor.';
-
-ALTER TABLE empiricals ADD
-    CONSTRAINT pk_empiricals
-    PRIMARY KEY (project, empirical);
-
-COMMENT ON INDEX pk_empiricals IS 'Primary key for the Empirical`s Factors on a Project.';
-
-ALTER TABLE empiricals ADD
-    CONSTRAINT fk_empiricals_project
-    FOREIGN KEY (project)
-    REFERENCES projects (project)
-    ON DELETE CASCADE;
-
-CREATE INDEX ix_empiricals_project ON empiricals (project);
-
-COMMENT ON INDEX ix_empiricals_project IS 'Index to relate to Project.';
-
-CREATE INDEX ix_empiricals_empirical ON empiricals (empirical);
-
-COMMENT ON INDEX ix_empiricals_empirical IS 'Index to relate to Empirical`s Factors.';
-
-ALTER TABLE empiricals ADD
-    CONSTRAINT fk_empiricals_tenant
-    FOREIGN KEY (tenant)
-    REFERENCES tenants (tenant);
-
-CREATE INDEX ix_empiricals_tenant ON empiricals (tenant);
-
-COMMENT ON INDEX ix_empiricals_tenant IS 'Index to management access on tenant scope.';
-
 CREATE TABLE frontiers (
     frontier    id,
     project     id,
@@ -278,7 +236,49 @@ COMMENT ON INDEX ix_factors_tenant IS 'Index to management access on tenant scop
 
 CREATE INDEX ix_factors_influence ON factors (influence);
 
-COMMENT ON INDEX ix_factors_influence IS 'Influence value for the Factor`s Type on this Project.';
+COMMENT ON INDEX ix_factors_influence IS 'Influence value for the Factor`s Type on this Frontier.';
+
+CREATE TABLE empiricals (
+    frontier    id,
+    empirical   empirical_type NOT NULL,
+    tenant      id,
+    value       INTEGER NOT NULL
+);
+
+COMMENT ON TABLE empiricals            IS 'Empirical Adjusts Factors for the Frontier.';
+COMMENT ON COLUMN empiricals.frontier  IS 'Frontier identifier.';
+COMMENT ON COLUMN empiricals.empirical IS 'Empirical`s Factor.';
+COMMENT ON COLUMN empiricals.tenant    IS 'Tenant owner of the Empirical.';
+COMMENT ON COLUMN empiricals.value     IS 'Percent of influence for the Empirical`s Factor.';
+
+ALTER TABLE empiricals ADD
+    CONSTRAINT pk_empiricals
+    PRIMARY KEY (frontier, empirical);
+
+COMMENT ON INDEX pk_empiricals IS 'Primary key for the Empirical`s Factors on a Frontier.';
+
+ALTER TABLE empiricals ADD
+    CONSTRAINT fk_empiricals_frontier
+    FOREIGN KEY (frontier)
+    REFERENCES frontiers (frontier)
+    ON DELETE CASCADE;
+
+CREATE INDEX ix_empiricals_frontier ON empiricals (frontier);
+
+COMMENT ON INDEX ix_empiricals_frontier IS 'Index to relate to Frontier.';
+
+CREATE INDEX ix_empiricals_empirical ON empiricals (empirical);
+
+COMMENT ON INDEX ix_empiricals_empirical IS 'Index to relate to Empirical`s Factors.';
+
+ALTER TABLE empiricals ADD
+    CONSTRAINT fk_empiricals_tenant
+    FOREIGN KEY (tenant)
+    REFERENCES tenants (tenant);
+
+CREATE INDEX ix_empiricals_tenant ON empiricals (tenant);
+
+COMMENT ON INDEX ix_empiricals_tenant IS 'Index to management access on tenant scope.';
 
 CREATE TABLE functions (
     function    id,
