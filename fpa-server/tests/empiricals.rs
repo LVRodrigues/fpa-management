@@ -22,7 +22,10 @@ struct Data {
 
 async fn list(token: &String, project: &Uuid, frontier: &Uuid) -> Result<()> {
     let response = reqwest::Client::new()
-        .get(format!("{}/{}/frontiers/{}/empiricals", URL, project, frontier))
+        .get(format!(
+            "{}/{}/frontiers/{}/empiricals",
+            URL, project, frontier
+        ))
         .bearer_auth(&token)
         .send()
         .await?;
@@ -46,7 +49,10 @@ async fn update(token: &String, project: &Uuid, frontier: &Uuid) -> Result<()> {
         value: VALUE,
     };
     let response = reqwest::Client::new()
-        .put(format!("{}/{}/frontiers/{}/empiricals", URL, project, frontier))
+        .put(format!(
+            "{}/{}/frontiers/{}/empiricals",
+            URL, project, frontier
+        ))
         .bearer_auth(&token)
         .json(&body)
         .send()
@@ -67,7 +73,10 @@ async fn update_productivity_error(token: &String, project: &Uuid, frontier: &Uu
         value: VALUE,
     };
     let response = reqwest::Client::new()
-        .put(format!("{}/{}/frontiers/{}/empiricals", URL, project, frontier))
+        .put(format!(
+            "{}/{}/frontiers/{}/empiricals",
+            URL, project, frontier
+        ))
         .bearer_auth(&token)
         .json(&body)
         .send()
@@ -84,7 +93,10 @@ async fn update_deployment_error(token: &String, project: &Uuid, frontier: &Uuid
         value: VALUE,
     };
     let response = reqwest::Client::new()
-        .put(format!("{}/{}/frontiers/{}/empiricals", URL, project, frontier))
+        .put(format!(
+            "{}/{}/frontiers/{}/empiricals",
+            URL, project, frontier
+        ))
         .bearer_auth(&token)
         .json(&body)
         .send()

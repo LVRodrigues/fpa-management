@@ -113,15 +113,17 @@ impl IntoResponse for Error {
                     message: "Database in inconsistent state.",
                 },
             ),
-            Error::ProjectConstraints | Error::FrontierConstraints | Error::FunctionConstraints => (
-                StatusCode::PRECONDITION_FAILED,
-                ErrorResponse {
-                    id: Uuid::now_v7(),
-                    time: Utc::now(),
-                    error: "CONSTRAINT_ERROR",
-                    message: "Registry has related data.",
-                },
-            ),
+            Error::ProjectConstraints | Error::FrontierConstraints | Error::FunctionConstraints => {
+                (
+                    StatusCode::PRECONDITION_FAILED,
+                    ErrorResponse {
+                        id: Uuid::now_v7(),
+                        time: Utc::now(),
+                        error: "CONSTRAINT_ERROR",
+                        message: "Registry has related data.",
+                    },
+                )
+            }
             Error::JWKSNotFound | Error::DatabaseConnection | Error::DatabaseTransaction => (
                 StatusCode::SERVICE_UNAVAILABLE,
                 ErrorResponse {
