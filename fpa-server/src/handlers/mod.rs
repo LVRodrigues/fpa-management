@@ -53,35 +53,35 @@ pub async fn router(config: Configuration) -> Result<Router, Error> {
             .to_owned()
             .route("/projects", get(projects::list).post(projects::create))
             .route(
-                "/projects/:project",
+                "/projects/{project}",
                 get(projects::by_id)
                     .delete(projects::remove)
                     .put(projects::update),
             )
             .route(
-                "/projects/:project/frontiers",
+                "/projects/{project}/frontiers",
                 get(frontiers::list).post(frontiers::create),
             )
             .route(
-                "/projects/:project/frontiers/:frontier",
+                "/projects/{project}/frontiers/{frontier}",
                 get(frontiers::by_id)
                     .put(frontiers::update)
                     .delete(frontiers::remove),
             )
             .route(
-                "/projects/:project/frontiers/:frontier/factors",
+                "/projects/{project}/frontiers/{frontier}/factors",
                 get(factors::list).put(factors::update),
             )
             .route(
-                "/projects/:project/frontiers/:frontier/empiricals",
+                "/projects/{project}/frontiers/{frontier}/empiricals",
                 get(empiricals::list).put(empiricals::update),
             )
             .route(
-                "/projects/:project/frontiers/:frontier/functions",
+                "/projects/{project}/frontiers/{frontier}/functions",
                 get(functions::list).post(functions::create),
             )
             .route(
-                "/projects/:project/frontiers/:frontier/functions/:function",
+                "/projects/{project}/frontiers/{frontier}/functions/{function}",
                 get(functions::by_id)
                     .put(functions::update)
                     .delete(functions::remove),

@@ -1,4 +1,7 @@
-use axum::{async_trait, extract::FromRequestParts, http::request::Parts};
+use axum::{
+    extract::{FromRequestParts, OptionalFromRequestParts},
+    http::request::Parts,
+};
 use uuid::Uuid;
 
 use crate::error::Error;
@@ -38,7 +41,6 @@ impl Context {
     }
 }
 
-#[async_trait]
 impl<S: Send + Sync> FromRequestParts<S> for Context {
     type Rejection = Error;
 
@@ -53,5 +55,22 @@ impl<S: Send + Sync> FromRequestParts<S> for Context {
             .clone();
 
         Ok(context)
+    }
+}
+
+impl<S: Send + Sync> OptionalFromRequestParts<S> for Context {
+    type Rejection = Error;
+
+    async fn from_request_parts(
+        parts: &mut Parts,
+        _state: &S,
+    ) -> Result<Option<Self>, Self::Rejection> {
+        println!("==> {:<12} - Context", "EXTRACTOR");
+
+        let context = parts.extensions.get::<Context>();
+        match context {
+            Some(ctx) => Ok(Some(ctx.clone())),
+            None => Ok(None),
+        }
     }
 }
