@@ -7,13 +7,21 @@ use axum::{
     Json,
 };
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, Condition, DatabaseTransaction, DbErr, EntityTrait, Iterable, ModelTrait, PaginatorTrait, QueryFilter, Set
+    ActiveModelTrait, ColumnTrait, Condition, DatabaseTransaction, DbErr, EntityTrait, Iterable,
+    ModelTrait, PaginatorTrait, QueryFilter, Set,
 };
 use serde::Deserialize;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
-use crate::{configuration::Configuration, model::{self, factors, prelude::Frontiers, sea_orm_active_enums::{EmpiricalType, FactorType, InfluenceType}}};
+use crate::{
+    configuration::Configuration,
+    model::{
+        self, factors,
+        prelude::Frontiers,
+        sea_orm_active_enums::{EmpiricalType, FactorType, InfluenceType},
+    },
+};
 use crate::{
     ctx::Context,
     error::{Error, ErrorResponse},
@@ -23,8 +31,6 @@ use crate::{
     },
     state::AppState,
 };
-
-use super::empiricals;
 
 /// Search for a set of Frontiers for a Project.
 #[utoipa::path(
