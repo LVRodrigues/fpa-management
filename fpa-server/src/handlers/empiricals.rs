@@ -4,7 +4,7 @@ use crate::{
     ctx::Context,
     error::{Error, ErrorResponse},
     model::{
-        empiricals::{self, ActiveModel, Entity, Model},
+        empiricals::{self, ActiveModel, Model},
         frontiers::{self, Entity as Frontiers},
         page::Page,
         prelude::*,

@@ -8,6 +8,4 @@ pub use super::functions_datas::Entity as FunctionsDatas;
 pub use super::functions_transactions::Entity as FunctionsTransactions;
 pub use super::projects::Entity as Projects;
 pub use super::rlrs::Entity as Rlrs;
-pub use super::tenants::Entity as Tenants;
 pub use super::users::Entity as Users;
-pub use super::versions::Entity as Versions;

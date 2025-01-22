@@ -22,9 +22,9 @@ pub async fn start() -> Result<(), Box<dyn Error>> {
     let config = configuration::prepare();
 
     let router = Router::new()
-        // .merge(SwaggerUi::new("/doc/swagger").url("/doc/openapi.json", docs::ApiDoc::openapi()))
-        // //.merge(RapiDoc::new("/doc/openapi.json").path("/doc/rapidoc"))
-        // .merge(Redoc::with_url("/", docs::ApiDoc::openapi()))
+        .merge(SwaggerUi::new("/doc/swagger").url("/doc/openapi.json", docs::ApiDoc::openapi()))
+        //.merge(RapiDoc::new("/doc/openapi.json").path("/doc/rapidoc"))
+        .merge(Redoc::with_url("/", docs::ApiDoc::openapi()))
         .nest_service("/assets", get_service(ServeDir::new("./assets")))
         .merge(handlers::router(config.clone()).await.unwrap());
 

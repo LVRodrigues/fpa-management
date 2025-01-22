@@ -1,15 +1,12 @@
 use std::sync::Arc;
 
 use crate::{
-    configuration::Configuration,
     ctx::Context,
     error::{Error, ErrorResponse},
     model::{
-        self, empiricals, factors,
         page::{Page, PageParams},
-        prelude::Projects,
+        prelude::*,
         projects::{self, ActiveModel, Model},
-        sea_orm_active_enums::{EmpiricalType, FactorType, InfluenceType},
     },
     state::AppState,
 };
@@ -21,8 +18,8 @@ use axum::{
 };
 use chrono::Utc;
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, Condition, DatabaseTransaction, DbErr, EntityTrait, Iterable,
-    ModelTrait, PaginatorTrait, QueryFilter, Set,
+    ActiveModelTrait, ColumnTrait, Condition, EntityTrait, ModelTrait, PaginatorTrait, QueryFilter,
+    Set,
 };
 use serde_derive::Deserialize;
 use utoipa::ToSchema;

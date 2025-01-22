@@ -24,9 +24,9 @@ tower = "0.5.2"
 tower-http = { version = "0.6.2", features = ["fs"] }
 url = "2.5.4"
 utoipa = { version = "5.3.0", features = ["axum_extras", "uuid", "chrono", "openapi_extensions", "time"] }
-utoipa-rapidoc = { version = "5.0.0", features = ["axum"] }
-utoipa-redoc = { version = "5.0.0", features = ["axum"] }
-utoipa-swagger-ui = { version = "8.1.0", features = ["axum"] }
+utoipa-rapidoc = { version = "6.0.0", features = ["axum"] }
+utoipa-redoc = { version = "6.0.0", features = ["axum"] }
+utoipa-swagger-ui = { version = "9.0.0", features = ["axum"] }
 uuid = { version = "1.9.1", features = ["serde", "v4", "v7"] }
 
 [dev-dependencies]

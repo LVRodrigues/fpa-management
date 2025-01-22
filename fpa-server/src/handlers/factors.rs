@@ -17,9 +17,10 @@ use crate::{
     ctx::Context,
     error::{Error, ErrorResponse},
     model::{
-        factors::{self, ActiveModel, Entity as Factors, Model},
+        factors::{self, ActiveModel, Model},
         frontiers::{self, Entity as Frontiers},
         page::Page,
+        prelude::*,
         sea_orm_active_enums::{FactorType, InfluenceType},
     },
     state::AppState,
