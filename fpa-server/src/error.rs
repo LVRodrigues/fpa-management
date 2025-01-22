@@ -31,10 +31,10 @@ pub enum Error {
     ProjectConstraints,
     ProjectUpdate,
     EmpiricalInvalid,
-    ModuleCreate,
-    ModuleNameDuplicated,
-    ModuleUpdate,
-    ModuleConstraints,
+    FrontierCreate,
+    FrontierNameDuplicated,
+    FrontierUpdate,
+    FrontierConstraints,
     NotFunctionData,
     NotFunctionTransaction,
     FunctionCreate,
@@ -113,7 +113,7 @@ impl IntoResponse for Error {
                     message: "Database in inconsistent state.",
                 },
             ),
-            Error::ProjectConstraints | Error::ModuleConstraints | Error::FunctionConstraints => (
+            Error::ProjectConstraints | Error::FrontierConstraints | Error::FunctionConstraints => (
                 StatusCode::PRECONDITION_FAILED,
                 ErrorResponse {
                     id: Uuid::now_v7(),
@@ -150,7 +150,7 @@ impl IntoResponse for Error {
                 },
             ),
             Error::ProjectNameDuplicated
-            | Error::ModuleNameDuplicated
+            | Error::FrontierNameDuplicated
             | Error::FunctionNameDuplicated => (
                 StatusCode::CONFLICT,
                 ErrorResponse {

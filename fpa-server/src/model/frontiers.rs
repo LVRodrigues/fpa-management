@@ -7,7 +7,7 @@ use utoipa::ToSchema;
 /// Project's Frontier.
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, ToSchema)]
 #[sea_orm(table_name = "frontiers")]
-#[schema(as=Module)]
+#[schema(as=Frontier)]
 #[serde(rename = "Frontier")]
 pub struct Model {
     /// Frontier Unique Identifier.
