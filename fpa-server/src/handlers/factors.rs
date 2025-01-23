@@ -1,15 +1,15 @@
 use std::sync::Arc;
 
 use axum::{
-    extract::{Path, State},
-    response::IntoResponse,
-    Json,
+    extract::{Path, State}, response::IntoResponse, Json
 };
+use log::{debug, trace};
 use reqwest::StatusCode;
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, Condition, EntityTrait, ModelTrait, QueryFilter, Set,
 };
 use serde::Deserialize;
+use serde_json::json;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
@@ -48,7 +48,8 @@ pub async fn list(
     context: Option<Context>,
     state: State<Arc<AppState>>,
 ) -> Result<impl IntoResponse, Error> {
-    println!("==> {:<12} - /{project}/{frontier}/list", "FACTORS");
+    debug!("List all factors for a Frontier (project: {} - frontier: {})", project, frontier);
+
     let ctx = context.unwrap();
     let db = state.connection(ctx.tenant()).await?;
 
@@ -69,6 +70,7 @@ pub async fn list(
     page.records = items.len() as u64;
     page.items = items;
 
+    trace!("::: {:?}", json!(page));
     Ok(Json(page))
 }
 
@@ -104,10 +106,11 @@ pub async fn update(
     state: State<Arc<AppState>>,
     Json(params): Json<FactorParam>,
 ) -> Result<impl IntoResponse, Error> {
-    println!(
-        "==> {:<12} - /{project}/{frontier}/update (Params: {:?}",
-        "FACTORS", params
+    debug!(
+        "Update a adjustement Factor (project: {} - frontier: {} - params: {:?})",
+        project, frontier, params
     );
+
     let ctx = context.unwrap();
     let db = state.connection(ctx.tenant()).await?;
 
@@ -136,5 +139,6 @@ pub async fn update(
         Err(_) => return Err(Error::DatabaseTransaction),
     }
 
+    trace!("::: {:?}", json!(data));
     Ok((StatusCode::OK, Json(data)))
 }

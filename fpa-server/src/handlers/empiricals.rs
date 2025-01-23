@@ -18,10 +18,12 @@ use axum::{
     response::IntoResponse,
     Json,
 };
+use log::{debug, trace};
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, Condition, EntityTrait, ModelTrait, QueryFilter, Set,
 };
-use serde::Deserialize;
+use serde::{de, Deserialize};
+use serde_json::json;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
@@ -47,7 +49,8 @@ pub async fn list(
     context: Option<Context>,
     state: State<Arc<AppState>>,
 ) -> Result<impl IntoResponse, Error> {
-    println!("==> {:<12} - /{project}/{frontier}/list", "EMPIRICALS");
+    debug!("List all Empirical's Factor for a Frontier (project: {} - frontier: {})", project, frontier);
+
     let ctx = context.unwrap();
     let db = state.connection(ctx.tenant()).await?;
 
@@ -68,6 +71,7 @@ pub async fn list(
     page.records = items.len() as u64;
     page.items = items;
 
+    trace!("::: {:?}", json!(page));
     Ok(Json(page))
 }
 
@@ -103,9 +107,9 @@ pub async fn update(
     state: State<Arc<AppState>>,
     Json(params): Json<EmpiricalParam>,
 ) -> Result<impl IntoResponse, Error> {
-    println!(
-        "==> {:<12} - /{project}/{frontier}/update (Params: {:?})",
-        "EMPIRICALS", params
+    debug!(
+        "Update a Empirical Factor (project: {} - frontier: {} - params: {:?})",
+        project, frontier, params
     );
 
     if params.empirical == EmpiricalType::Productivity {
@@ -146,5 +150,6 @@ pub async fn update(
         Err(_) => return Err(Error::DatabaseTransaction),
     };
 
+    trace!("::: {:?}", json!(data));
     Ok((StatusCode::OK, Json(data)))
 }

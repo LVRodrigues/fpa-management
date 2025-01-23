@@ -96,9 +96,9 @@ pub async fn by_id(
     let ctx = context.unwrap();
     let db = state.connection(ctx.tenant()).await?;
 
-    let data = match Projects::find_by_id(project).one(&db).await {
-        Ok(v) => v,
-        Err(_) => return Err(Error::NotFound),
+    let data = match Projects::find_by_id(project).one(&db).await? {
+        Some(v) => v,
+        None => return Err(Error::NotFound),
     };
 
     trace!("::: {:?}", json!(data));

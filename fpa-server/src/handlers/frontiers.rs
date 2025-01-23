@@ -1,16 +1,14 @@
 use std::sync::Arc;
 
 use axum::{
-    extract::{Path, Query, State},
-    http::{HeaderMap, StatusCode, Uri},
-    response::IntoResponse,
-    Json,
+    extract::{Path, Query, State}, http::{HeaderMap, StatusCode, Uri}, response::IntoResponse, routing::trace, Json
 };
+use log::{debug, trace};
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, Condition, DatabaseTransaction, DbErr, EntityTrait, Iterable,
     ModelTrait, PaginatorTrait, QueryFilter, Set,
 };
-use serde::Deserialize;
+use serde::{de, Deserialize};
 use utoipa::ToSchema;
 use uuid::Uuid;
 
@@ -55,7 +53,7 @@ pub async fn list(
     context: Option<Context>,
     state: State<Arc<AppState>>,
 ) -> Result<impl IntoResponse, Error> {
-    println!("==> {:<12} - /{project}/list", "FRONTIERS");
+    debug!("List of set of Frontiers (project: {}).", project);
 
     let mut conditions = Condition::all();
     conditions = conditions.add(frontiers::Column::Project.eq(project));
@@ -77,10 +75,11 @@ pub async fn list(
     page.records = paginator.num_items().await?;
     page.items = items;
 
+    trace!("::: {:?}", page);
     Ok(Json(page))
 }
 
-/// Search for a specific Frontier.
+/// Select a specific Frontier
 #[utoipa::path(
     tag = "Frontiers",
     get,
@@ -102,6 +101,8 @@ pub async fn by_id(
     context: Option<Context>,
     state: State<Arc<AppState>>,
 ) -> Result<impl IntoResponse, Error> {
+    debug!("Select a specific Frontier (project: {} - frontier: {}).", project, frontier);
+
     println!("==> {:<12} - /{project}/by_id {frontier}", "FRONTIERS");
     let ctx = context.unwrap();
     let db = state.connection(ctx.tenant()).await?;
@@ -111,10 +112,13 @@ pub async fn by_id(
     conditions = conditions.add(frontiers::Column::Frontier.eq(frontier));
 
     let data = Frontiers::find().filter(conditions).one(&db).await?;
-    match data {
-        Some(v) => Ok((StatusCode::OK, Json(v))),
+    let data = match data {
+        Some(v) => Json(v),
         None => return Err(Error::NotFound),
-    }
+    };
+
+    trace!("::: {:?}", data);
+    Ok(data)
 }
 
 /// Frontier's properties.
@@ -148,7 +152,8 @@ pub async fn create(
     state: State<Arc<AppState>>,
     Json(params): Json<FrontierParam>,
 ) -> Result<impl IntoResponse, Error> {
-    println!("==> {:<12} - /{project}/create {:?}", "FRONTIERS", params);
+    debug!("Create a new Frontier (project: {} - params: {:?}).", project, params);
+
     let ctx = context.unwrap();
     let db = state.connection(ctx.tenant()).await?;
     let config = state.configuration();
@@ -172,11 +177,13 @@ pub async fn create(
         }
     };
 
+    trace!("Adding factors to the new Frontier.");
     match add_factors(&db, frontier.frontier.clone(), ctx.tenant().clone()).await {
         Ok(_) => (),
         Err(_) => return Err(Error::ProjectFactorCreate),
     };
 
+    trace!("Adding empiricals to the new Frontier.");
     match add_empiricals(&db, frontier.frontier.clone(), ctx.tenant().clone(), config).await {
         Ok(_) => (),
         Err(_) => return Err(Error::ProjectEmpiricalCreate),
@@ -203,9 +210,12 @@ pub async fn create(
         .to_string()
         .parse()
         .unwrap();
+    trace!("::: {:?}", location);
+
     let mut header = HeaderMap::new();
     header.insert("Location", location);
 
+    trace!("::: {:?}", frontier);
     Ok((StatusCode::CREATED, header, Json(frontier)))
 }
 
@@ -295,10 +305,11 @@ pub async fn update(
     state: State<Arc<AppState>>,
     Json(params): Json<FrontierParam>,
 ) -> Result<impl IntoResponse, Error> {
-    println!(
-        "==> {:<12} - /{project}/update/{frontier} {:?}",
-        "FRONTIERS", params
+    debug!(
+        "Update a existing Frontier (project: {} - frontier: {} - params: {:?}).",
+        project, frontier, params
     );
+
     let ctx = context.unwrap();
     let db = state.connection(ctx.tenant()).await?;
 
@@ -328,6 +339,7 @@ pub async fn update(
         }
     };
 
+    trace!("::: {:?}", data);
     Ok((StatusCode::OK, Json(data)))
 }
 
@@ -354,7 +366,11 @@ pub async fn remove(
     context: Option<Context>,
     state: State<Arc<AppState>>,
 ) -> Result<impl IntoResponse, Error> {
-    println!("==> {:<12} - /{project}/remove/{frontier}", "FRONTIERS");
+    debug!(
+        "Remove a existing Frontier (project: {} - frontier: {}).",
+        project, frontier
+    );
+
     let ctx = context.unwrap();
     let db = state.connection(ctx.tenant()).await?;
 
@@ -381,5 +397,6 @@ pub async fn remove(
         Err(_) => return Err(Error::DatabaseTransaction),
     }
 
+    trace!("::: Frontier {} removed.", frontier);
     Ok(StatusCode::NO_CONTENT)
 }
