@@ -9,6 +9,7 @@ use std::{sync::Arc, time::Duration};
 use axum::{
     extract::State, http::StatusCode, middleware, response::IntoResponse, routing::get, Router,
 };
+use log::trace;
 use sea_orm::{ConnectOptions, Database, DatabaseConnection};
 
 use crate::{
@@ -44,9 +45,11 @@ async fn prepare_connection(config: &Configuration) -> Result<DatabaseConnection
 }
 
 pub async fn router(config: Configuration) -> Result<Router, Error> {
+    trace!("Preparing database connection...");
     let connection = prepare_connection(&config).await?;
+    trace!("Preparing application state...");
     let state = Arc::new(AppState::new(config, connection));
-
+    trace!("Creating router...");
     Ok(Router::new().nest(
         "/api",
         Router::new()
@@ -110,7 +113,7 @@ pub async fn router(config: Configuration) -> Result<Router, Error> {
     security(("fpa-security" = []))
 )]
 pub async fn health(context: Option<Context>, state: State<Arc<AppState>>) -> impl IntoResponse {
-    println!("==> {:<12} - /health", "HANDLER");
+    trace!("Verifying system health...");
     let _ = match state.connection(context.unwrap().tenant()).await {
         Ok(_) => return StatusCode::NO_CONTENT,
         Err(_) => return StatusCode::SERVICE_UNAVAILABLE,

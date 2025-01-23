@@ -22,7 +22,10 @@ struct Data {
 
 async fn list(token: &String, project: &Uuid, frontier: &Uuid) -> Result<()> {
     let response = reqwest::Client::new()
-        .get(format!("{}/{}/frontiers/{}/factors", URL, project, frontier))
+        .get(format!(
+            "{}/{}/frontiers/{}/factors",
+            URL, project, frontier
+        ))
         .bearer_auth(&token)
         .send()
         .await?;
@@ -45,7 +48,10 @@ async fn update(token: &String, project: &Uuid, frontier: &Uuid) -> Result<()> {
         influence: String::from(INFLUENCE),
     };
     let response = reqwest::Client::new()
-        .put(format!("{}/{}/frontiers/{}/factors", URL, project, frontier))
+        .put(format!(
+            "{}/{}/frontiers/{}/factors",
+            URL, project, frontier
+        ))
         .bearer_auth(&token)
         .json(&body)
         .send()

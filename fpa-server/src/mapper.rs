@@ -1,3 +1,4 @@
+use ::log::trace;
 use axum::{
     http::{Method, Uri},
     response::Response,
@@ -12,10 +13,9 @@ pub async fn response_mapper(
     method: Method,
     response: Response,
 ) -> Response {
-    println!("==> {:<12} - response_mapper", "MAPPER ");
+    trace!("Registering the request.");
 
     log::log_request(Uuid::now_v7(), method, uri, context).await;
 
-    println!();
     response
 }

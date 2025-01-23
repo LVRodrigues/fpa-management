@@ -1,3 +1,4 @@
+use log::trace;
 use sea_orm::{ConnectionTrait, DatabaseConnection, DatabaseTransaction, TransactionTrait};
 use uuid::Uuid;
 
@@ -18,7 +19,7 @@ impl AppState {
     }
 
     pub async fn connection(&self, tenant: &Uuid) -> Result<DatabaseTransaction, Error> {
-        println!("==> {:<12} - connection", "DATABASE");
+        trace!("New database connection.");
         let db = &self.connection;
         if db.ping().await.is_err() {
             return Err(Error::DatabaseConnection);

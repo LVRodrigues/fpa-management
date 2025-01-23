@@ -1,0 +1,32 @@
+refresh_rate: 30 seconds
+
+appenders:
+  stdout:
+    kind: console
+    encoder:
+      pattern: "{d(%Y-%m-%d %H:%M:%S)}|{l:5}|{t:30.30} -> {m}{n}"      
+
+  # file:
+  #   kind: file
+  #   path: "logs/fpa-server.log"
+  #   encoder:
+  #     pattern: "{d(%Y-%m-%d %H:%M:%S)} {l} {t} - {m}{n}"
+
+root:
+  level: info
+  appenders:
+    - stdout
+    # - file
+
+loggers:
+  sqlx:
+    level: error
+
+  axum:
+    level: error
+
+  sea_orm:
+    level: error
+
+  tracing:
+    level: off

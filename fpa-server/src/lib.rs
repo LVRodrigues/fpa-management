@@ -1,3 +1,4 @@
+use ::log::info;
 use axum::{routing::get_service, Router};
 use std::{error::Error, net::SocketAddr};
 use tokio::{net::TcpListener, signal};
@@ -29,7 +30,8 @@ pub async fn start() -> Result<(), Box<dyn Error>> {
         .merge(handlers::router(config.clone()).await.unwrap());
 
     let address = SocketAddr::from(([0, 0, 0, 0], config.port));
-    println!("APF Server listening on {}", address);
+    info!("APF Server listening on {}", address);
+
     let listener = TcpListener::bind(address).await.unwrap();
     axum::serve(listener, router.into_make_service())
         .with_graceful_shutdown(shutdown_signal())
@@ -62,5 +64,5 @@ async fn shutdown_signal() {
         _ = terminate => {},
     }
 
-    println!("Finishing service...");
+    info!("Finishing service...");
 }

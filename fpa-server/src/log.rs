@@ -1,5 +1,6 @@
 use axum::http::{Method, Uri};
 use chrono::{DateTime, Utc};
+use log::info;
 use serde::Serialize;
 
 use serde_json::json;
@@ -28,6 +29,5 @@ pub async fn log_request(uuid: Uuid, method: Method, uri: Uri, context: Option<C
         request_path: uri.to_string(),
         request_method: method.to_string(),
     };
-
-    println!("--->>> log_request: \n{}", json!(line));
+    info!("{}", json!(line));
 }

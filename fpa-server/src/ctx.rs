@@ -2,6 +2,7 @@ use axum::{
     extract::{FromRequestParts, OptionalFromRequestParts},
     http::request::Parts,
 };
+use log::trace;
 use uuid::Uuid;
 
 use crate::error::Error;
@@ -45,7 +46,7 @@ impl<S: Send + Sync> FromRequestParts<S> for Context {
     type Rejection = Error;
 
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Error> {
-        println!("==> {:<12} - Context", "EXTRACTOR");
+        trace!("Extracting the Context.");
 
         let context = parts
             .extensions
@@ -65,7 +66,7 @@ impl<S: Send + Sync> OptionalFromRequestParts<S> for Context {
         parts: &mut Parts,
         _state: &S,
     ) -> Result<Option<Self>, Self::Rejection> {
-        println!("==> {:<12} - Context", "EXTRACTOR");
+        trace!("Extracting the optional Context.");
 
         let context = parts.extensions.get::<Context>();
         match context {

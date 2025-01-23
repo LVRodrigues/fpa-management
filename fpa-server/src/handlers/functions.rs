@@ -6,12 +6,14 @@ use axum::{
     response::IntoResponse,
     Json,
 };
+use log::{debug, trace};
 use reqwest::StatusCode;
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, Condition, DatabaseTransaction, EntityTrait, ModelTrait,
     PaginatorTrait, QueryFilter, Set,
 };
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use utoipa::{IntoParams, ToSchema};
 use uuid::Uuid;
 
@@ -290,7 +292,10 @@ pub async fn list(
     context: Option<Context>,
     state: State<Arc<AppState>>,
 ) -> Result<impl IntoResponse, Error> {
-    println!("==> {:<12} - /list (Params: {:?})", "FUNCTIONS", params);
+    debug!(
+        "List a set of functions (project: {} - frontier: {} - params: {:?})",
+        project, frontier, params
+    );
 
     let mut conditions = Condition::all();
     conditions = conditions.add(frontiers::Column::Project.eq(project));
@@ -319,6 +324,7 @@ pub async fn list(
         page.items.push(translate(item, &db).await?);
     }
 
+    trace!("::: {:?}", json!(page));
     Ok(Json(page))
 }
 
@@ -345,7 +351,10 @@ pub async fn by_id(
     context: Option<Context>,
     state: State<Arc<AppState>>,
 ) -> Result<impl IntoResponse, Error> {
-    println!("==> {:<12} - /by_id", "FUNCTIONS");
+    debug!(
+        "Select a specific function (project: {} - frontier: {} - function: {})",
+        project, frontier, function
+    );
 
     let mut conditions = Condition::all();
     conditions = conditions.add(frontiers::Column::Project.eq(project));
@@ -354,19 +363,25 @@ pub async fn by_id(
 
     let ctx = context.unwrap();
     let db = state.connection(ctx.tenant()).await?;
-    let data = Functions::find()
+    let data = match Functions::find()
         .inner_join(frontiers::Entity)
         .filter(conditions)
         .one(&db)
-        .await?;
-
-    match data {
-        Some(v) => Ok((StatusCode::OK, Json(translate(v, &db).await?))),
+        .await
+        .unwrap()
+    {
+        Some(v) => v,
         None => return Err(Error::NotFound),
-    }
+    };
+
+    let data = Json(translate(data, &db).await?);
+
+    trace!("::: {:?}", data);
+    Ok(data)
 }
 
 async fn translate(func: Model, db: &DatabaseTransaction) -> Result<Function, Error> {
+    trace!("Translate Function: {:?}", func);
     let result = match func.r#type {
         FunctionType::ALI => Function::ALI(FunctionALI {
             id: func.function,
@@ -404,6 +419,7 @@ async fn translate(func: Model, db: &DatabaseTransaction) -> Result<Function, Er
 }
 
 async fn load_arls(function: Uuid, db: &DatabaseTransaction) -> Result<Vec<FunctionData>, Error> {
+    trace!("Load ARLS for Function: {:?}", function);
     let mut result = Vec::<FunctionData>::new();
 
     let alrs: Vec<functions_datas::Model> = FunctionsDatas::find()
@@ -436,6 +452,7 @@ async fn load_arls(function: Uuid, db: &DatabaseTransaction) -> Result<Vec<Funct
 }
 
 async fn load_rlrs(function: Uuid, db: &DatabaseTransaction) -> Result<Vec<RLR>, Error> {
+    trace!("Load RLRS for Function: {:?}", function);
     let mut result = Vec::<RLR>::new();
 
     let rlrs = Rlrs::find()
@@ -492,9 +509,12 @@ pub async fn create(
     Path((project, frontier)): Path<(Uuid, Uuid)>,
     context: Option<Context>,
     state: State<Arc<AppState>>,
-    Json(data): Json<FunctionParam>,
+    Json(params): Json<FunctionParam>,
 ) -> Result<impl IntoResponse, Error> {
-    println!("==> {:<12} - /create (Data: {:?})", "FUNCTIONS", data);
+    debug!(
+        "Create a new function (project: {} - frontier: {} - params: {:?})",
+        project, frontier, params
+    );
 
     let ctx = context.unwrap();
     let db = state.connection(ctx.tenant()).await?;
@@ -514,12 +534,12 @@ pub async fn create(
         Err(_) => return Err(Error::NotFound),
     };
 
-    let (id, function) = match data {
+    let (id, function) = match params {
         FunctionParam::ALI(_) | FunctionParam::AIE(_) => {
-            insert_function_data(data, frontier, &db, &ctx).await?
+            insert_function_data(params, frontier, &db, &ctx).await?
         }
         FunctionParam::EE(_) | FunctionParam::CE(_) | FunctionParam::SE(_) => {
-            insert_function_transaction(data, frontier, &db, &ctx).await?
+            insert_function_transaction(params, frontier, &db, &ctx).await?
         }
     };
 
@@ -544,9 +564,12 @@ pub async fn create(
         .to_string()
         .parse()
         .unwrap();
+    trace!("::: {:?}", location);
+
     let mut header = HeaderMap::new();
     header.insert("Location", location);
 
+    trace!("::: {:?}", json!(function));
     Ok((StatusCode::CREATED, header, Json(function)))
 }
 
@@ -556,6 +579,8 @@ async fn insert_function_transaction(
     db: &DatabaseTransaction,
     ctx: &Context,
 ) -> Result<(Uuid, Function), Error> {
+    trace!("Insert Function Transaction: {:?}", data);
+
     let mut function = functions_transactions::ActiveModel {
         function: Set(Uuid::now_v7()),
         frontier: Set(frontier),
@@ -627,6 +652,8 @@ async fn insert_function_data(
     db: &DatabaseTransaction,
     ctx: &Context,
 ) -> Result<(Uuid, Function), Error> {
+    trace!("Insert Function Data: {:?}", data);
+
     let mut function = functions_datas::ActiveModel {
         function: Set(Uuid::now_v7()),
         frontier: Set(frontier),
@@ -718,9 +745,9 @@ pub async fn update(
     state: State<Arc<AppState>>,
     Json(params): Json<FunctionParam>,
 ) -> Result<impl IntoResponse, Error> {
-    println!(
-        "==> {:<12} - /{project}/update/{frontier}/functions/{function} {:?}",
-        "FUNCTIONS", params
+    debug!(
+        "Update a existing function (project: {} - frontier: {} - function: {} - params: {:?})",
+        project, frontier, function, params
     );
 
     let mut conditions = Condition::all();
@@ -781,6 +808,7 @@ pub async fn update(
         Err(_) => return Err(Error::DatabaseTransaction),
     };
 
+    trace!("::: {:?}", json!(data));
     Ok(Json(data))
 }
 
@@ -791,6 +819,8 @@ async fn update_function_data(
     rlrs: Vec<RLR>,
     db: &DatabaseTransaction,
 ) -> Result<Function, Error> {
+    trace!("Update Function Data: {:?}", function);
+
     let data = FunctionsDatas::find()
         .filter(functions_datas::Column::Function.eq(function))
         .one(db)
@@ -855,6 +885,8 @@ async fn update_function_transaction(
     alrs: Vec<ALR>,
     db: &DatabaseTransaction,
 ) -> Result<Function, Error> {
+    trace!("Update Function Transaction: {:?}", function);
+
     let data: functions_transactions::Model = FunctionsTransactions::find()
         .filter(functions_transactions::Column::Function.eq(function))
         .one(db)
@@ -924,9 +956,9 @@ pub async fn remove(
     context: Option<Context>,
     state: State<Arc<AppState>>,
 ) -> Result<impl IntoResponse, Error> {
-    println!(
-        "==> {:<12} - /{project}/remove/{frontier}/functions/{function}",
-        "FUNCTIONS"
+    debug!(
+        "Remove a existing function (project: {} - frontier: {} - function: {})",
+        project, frontier, function
     );
 
     let mut conditions = Condition::all();
@@ -953,7 +985,6 @@ pub async fn remove(
             }
         }
         Err(e) => {
-            println!("Error: {:?}", e.sql_err().unwrap());
             return Err(Error::FunctionConstraints);
         }
     };
@@ -962,5 +993,6 @@ pub async fn remove(
         Err(_) => return Err(Error::DatabaseTransaction),
     }
 
+    trace!("::: Function {} removed.", function);
     Ok(StatusCode::NO_CONTENT)
 }

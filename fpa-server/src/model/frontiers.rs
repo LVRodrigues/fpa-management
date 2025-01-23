@@ -29,7 +29,7 @@ pub struct Model {
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
     #[sea_orm(has_many = "super::factors::Entity")]
-    Factors, 
+    Factors,
     #[sea_orm(has_many = "super::empiricals::Entity")]
     Empiricals,
     #[sea_orm(has_many = "super::functions::Entity")]
