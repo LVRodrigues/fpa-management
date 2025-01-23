@@ -2,6 +2,7 @@ use std::{path::Path, str::FromStr};
 
 use axum::http::uri::Scheme;
 use config::{Config, File};
+use log::info;
 
 #[derive(Debug, Clone)]
 pub struct ConfigurationDatabase {
@@ -39,7 +40,7 @@ pub struct Configuration {
 }
 
 pub fn prepare() -> Configuration {
-    println!("==> {:<12} - prepare", "CONFIG");
+    info!("Configuring fpa-server...");
     let settings = Config::builder()
         .add_source(File::from(Path::new("config.yaml")))
         .build()
