@@ -109,7 +109,6 @@ pub async fn by_id(
         project, frontier
     );
 
-    println!("==> {:<12} - /{project}/by_id {frontier}", "FRONTIERS");
     let ctx = context.unwrap();
     let db = state.connection(ctx.tenant()).await?;
 

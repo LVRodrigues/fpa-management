@@ -985,7 +985,6 @@ pub async fn remove(
             }
         }
         Err(e) => {
-            println!("Error: {:?}", e.sql_err().unwrap());
             return Err(Error::FunctionConstraints);
         }
     };
