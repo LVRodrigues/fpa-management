@@ -1,8 +1,8 @@
+use ::log::trace;
 use axum::{
     http::{Method, Uri},
     response::Response,
 };
-use ::log::trace;
 use uuid::Uuid;
 
 use crate::{ctx::Context, log};

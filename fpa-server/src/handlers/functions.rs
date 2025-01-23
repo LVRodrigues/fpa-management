@@ -511,7 +511,10 @@ pub async fn create(
     state: State<Arc<AppState>>,
     Json(params): Json<FunctionParam>,
 ) -> Result<impl IntoResponse, Error> {
-    debug!("Create a new function (project: {} - frontier: {} - params: {:?})", project, frontier, params);
+    debug!(
+        "Create a new function (project: {} - frontier: {} - params: {:?})",
+        project, frontier, params
+    );
 
     let ctx = context.unwrap();
     let db = state.connection(ctx.tenant()).await?;

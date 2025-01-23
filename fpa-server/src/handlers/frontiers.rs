@@ -1,7 +1,10 @@
 use std::sync::Arc;
 
 use axum::{
-    extract::{Path, Query, State}, http::{HeaderMap, StatusCode, Uri}, response::IntoResponse, Json
+    extract::{Path, Query, State},
+    http::{HeaderMap, StatusCode, Uri},
+    response::IntoResponse,
+    Json,
 };
 use log::{debug, trace};
 use sea_orm::{
@@ -101,7 +104,10 @@ pub async fn by_id(
     context: Option<Context>,
     state: State<Arc<AppState>>,
 ) -> Result<impl IntoResponse, Error> {
-    debug!("Select a specific Frontier (project: {} - frontier: {}).", project, frontier);
+    debug!(
+        "Select a specific Frontier (project: {} - frontier: {}).",
+        project, frontier
+    );
 
     println!("==> {:<12} - /{project}/by_id {frontier}", "FRONTIERS");
     let ctx = context.unwrap();
@@ -152,7 +158,10 @@ pub async fn create(
     state: State<Arc<AppState>>,
     Json(params): Json<FrontierParam>,
 ) -> Result<impl IntoResponse, Error> {
-    debug!("Create a new Frontier (project: {} - params: {:?}).", project, params);
+    debug!(
+        "Create a new Frontier (project: {} - params: {:?}).",
+        project, params
+    );
 
     let ctx = context.unwrap();
     let db = state.connection(ctx.tenant()).await?;

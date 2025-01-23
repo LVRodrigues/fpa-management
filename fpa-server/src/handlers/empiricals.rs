@@ -49,7 +49,10 @@ pub async fn list(
     context: Option<Context>,
     state: State<Arc<AppState>>,
 ) -> Result<impl IntoResponse, Error> {
-    debug!("List all Empirical's Factor for a Frontier (project: {} - frontier: {})", project, frontier);
+    debug!(
+        "List all Empirical's Factor for a Frontier (project: {} - frontier: {})",
+        project, frontier
+    );
 
     let ctx = context.unwrap();
     let db = state.connection(ctx.tenant()).await?;

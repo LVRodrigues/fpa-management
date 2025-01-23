@@ -1,5 +1,5 @@
-use axum::{routing::get_service, Router};
 use ::log::info;
+use axum::{routing::get_service, Router};
 use std::{error::Error, net::SocketAddr};
 use tokio::{net::TcpListener, signal};
 use tower_http::services::ServeDir;
@@ -31,7 +31,7 @@ pub async fn start() -> Result<(), Box<dyn Error>> {
 
     let address = SocketAddr::from(([0, 0, 0, 0], config.port));
     info!("APF Server listening on {}", address);
-    
+
     let listener = TcpListener::bind(address).await.unwrap();
     axum::serve(listener, router.into_make_service())
         .with_graceful_shutdown(shutdown_signal())
