@@ -13,7 +13,20 @@ appenders:
   #     pattern: "{d(%Y-%m-%d %H:%M:%S)} {l} {t} - {m}{n}"
 
 root:
-  level: debug
+  level: info
   appenders:
     - stdout
     # - file
+
+loggers:
+  sqlx:
+    level: error
+
+  axum:
+    level: error
+
+  sea_orm:
+    level: error
+
+  tracing:
+    level: off
