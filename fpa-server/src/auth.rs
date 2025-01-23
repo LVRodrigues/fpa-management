@@ -17,6 +17,7 @@ use axum::{
 };
 use chrono::Utc;
 use jsonwebtoken::{decode, decode_header, DecodingKey, Validation};
+use log::{debug, info};
 use sea_orm::{ActiveModelTrait, EntityTrait, Set};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -51,7 +52,7 @@ pub async fn require(
     mut request: Request<Body>,
     next: Next,
 ) -> Result<Response, Error> {
-    println!("==> {:<12} - require", "AUTH");
+    debug!("Validating the user token.");
 
     if !jwks::is_prepared() {
         let config = state.configuration();
@@ -94,7 +95,7 @@ pub async fn user_register(
     request: Request<Body>,
     next: Next,
 ) -> Result<Response, Error> {
-    println!("==> {:<12} - user_register", "AUTH");
+    debug!("Registering the new user.");
 
     let ctx = context.unwrap();
 
@@ -112,7 +113,7 @@ pub async fn user_register(
             email: Set(ctx.email().to_string()),
         };
         let _ = match u.insert(&db).await {
-            Ok(v) => println!(" -> New User: {:?}", v),
+            Ok(v) => info!("New User: {:?}", v),
             Err(_) => return Err(Error::RegisterUser),
         };
         match db.commit().await {

@@ -13,10 +13,10 @@ use utoipa::{
     tags(
         [name = "Status", description = "Check service health."],
         [name = "Projects", description = "FPA Projects management."],
+        [name = "Frontiers", description = "Analysis frontier."],
         [name = "Empiricals", description = "Empiricals Adjustments Factors."],
         [name = "Factors", description = "Adjustments Factors."],
-        [name = "Frontiers", description = "Analysis frontier."],
-        [name = "Functions", description = "Function management for analysis."]
+        [name = "Functions", description = "Function management for analysis."],
     ),
     paths(
         crate::handlers::health,

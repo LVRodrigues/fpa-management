@@ -17,11 +17,13 @@ use axum::{
     Json,
 };
 use chrono::Utc;
+use log::{debug, trace};
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, Condition, EntityTrait, ModelTrait, PaginatorTrait, QueryFilter,
     Set,
 };
 use serde_derive::Deserialize;
+use serde_json::json;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
@@ -43,7 +45,7 @@ pub async fn list(
     context: Option<Context>,
     state: State<Arc<AppState>>,
 ) -> Result<impl IntoResponse, Error> {
-    println!("==> {:<12} - /list (Params: {:?})", "PROJECTS", params);
+    debug!("List all projects (params: {:?})", params);
 
     let mut conditions = Condition::all();
     if let Some(name) = params.name() {
@@ -64,6 +66,7 @@ pub async fn list(
     page.records = paginator.num_items().await?;
     page.items = items;
 
+    trace!("::: {:?}", json!(page));
     Ok(Json(page))
 }
 
@@ -71,7 +74,7 @@ pub async fn list(
 #[utoipa::path(
     tag = "Projects",
     get,
-    path = "/api/projects/{id}",
+    path = "/api/projects/{project}",
     responses(
         (status = OK, description = "Success.", body = projects::Model),
         (status = UNAUTHORIZED, description = "User not authorized.", body = ErrorResponse),
@@ -79,24 +82,27 @@ pub async fn list(
         (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = ErrorResponse)
     ),
     params(
-        ("id" = Uuid, Path, description = "Project Unique ID.")
+        ("project" = Uuid, Path, description = "Project Unique ID.")
     ),
     security(("fpa-security" = []))
 )]
 pub async fn by_id(
-    Path(id): Path<Uuid>,
+    Path(project): Path<Uuid>,
     context: Option<Context>,
     state: State<Arc<AppState>>,
 ) -> Result<impl IntoResponse, Error> {
-    println!("==> {:<12} - /byId (id: {:?})", "PROJECTS", id);
+    debug!("Select a specific project (project: {:?})", project);
+
     let ctx = context.unwrap();
     let db = state.connection(ctx.tenant()).await?;
 
-    let project: Option<projects::Model> = Projects::find_by_id(id).one(&db).await?;
-    match project {
-        Some(v) => Ok((StatusCode::OK, Json(v))),
-        None => return Err(Error::NotFound),
-    }
+    let data = match Projects::find_by_id(project).one(&db).await {
+        Ok(v) => v,
+        Err(_) => return Err(Error::NotFound),
+    };
+
+    trace!("::: {:?}", json!(data));
+    Ok(Json(data))
 }
 
 /// Project's properties.
@@ -126,7 +132,8 @@ pub async fn create(
     state: State<Arc<AppState>>,
     Json(params): Json<ProjectParam>,
 ) -> Result<impl IntoResponse, Error> {
-    println!("==> {:<12} - /create (Name: {:?})", "PROJECTS", params);
+    debug!("Create a new project ({:?})", params);
+
     let ctx = context.unwrap();
     let db = state.connection(ctx.tenant()).await?;
     let config = state.configuration();
@@ -169,9 +176,12 @@ pub async fn create(
         .to_string()
         .parse()
         .unwrap();
+    trace!("::: {:?}", location);
+
     let mut header = HeaderMap::new();
     header.insert("Location", location);
 
+    trace!("::: {:?}", json!(project));
     Ok((StatusCode::CREATED, header, Json(project)))
 }
 
@@ -179,7 +189,7 @@ pub async fn create(
 #[utoipa::path(
     tag = "Projects",
     put,
-    path = "/api/projects/{id}",
+    path = "/api/projects/{project}",
     responses(
         (status = OK, description = "Success.", body = projects::Model),
         (status = UNAUTHORIZED, description = "User not authorized.", body = ErrorResponse),
@@ -188,21 +198,25 @@ pub async fn create(
         (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = ErrorResponse)
     ),
     params(
-        ("id" = Uuid, Path, description = "Project Unique ID.")
+        ("project" = Uuid, Path, description = "Project Unique ID.")
     ),
     security(("fpa-security" = []))
 )]
 pub async fn update(
-    Path(id): Path<Uuid>,
+    Path(project): Path<Uuid>,
     context: Option<Context>,
     state: State<Arc<AppState>>,
     Json(params): Json<ProjectParam>,
 ) -> Result<impl IntoResponse, Error> {
-    println!("==> {:<12} - /update ({:?})", "PROJECTS", params);
+    debug!(
+        "Update a existing project (project: {:?} - params: {:?})",
+        project, params
+    );
+
     let ctx = context.unwrap();
     let db = state.connection(ctx.tenant()).await?;
 
-    let data: Option<Model> = Projects::find_by_id(id).one(&db).await?;
+    let data: Option<Model> = Projects::find_by_id(project).one(&db).await?;
     let data = match data {
         Some(v) => v,
         None => return Err(Error::NotFound),
@@ -228,6 +242,7 @@ pub async fn update(
         Err(_) => return Err(Error::DatabaseTransaction),
     };
 
+    trace!("::: {:?}", json!(data));
     Ok((StatusCode::OK, Json(data)))
 }
 
@@ -235,7 +250,7 @@ pub async fn update(
 #[utoipa::path(
     tag = "Projects",
     delete,
-    path = "/api/projects/{id}",
+    path = "/api/projects/{project}",
     responses(
         (status = NO_CONTENT, description = "Success."),
         (status = UNAUTHORIZED, description = "User not authorized.", body = ErrorResponse),
@@ -244,20 +259,21 @@ pub async fn update(
         (status = SERVICE_UNAVAILABLE, description = "FPA Management service unavailable.", body = ErrorResponse),
     ),
     params(
-        ("id" = Uuid, Path, description = "Project Unique ID.")
+        ("project" = Uuid, Path, description = "Project Unique ID.")
     ),
     security(("fpa-security" = []))
 )]
 pub async fn remove(
-    Path(id): Path<Uuid>,
+    Path(project): Path<Uuid>,
     context: Option<Context>,
     state: State<Arc<AppState>>,
 ) -> Result<impl IntoResponse, Error> {
-    println!("==> {:<12} - /remove (id: {:?})", "PROJECTS", id);
+    debug!("Remove a existing project (project: {:?})", project);
+
     let ctx = context.unwrap();
     let db = state.connection(ctx.tenant()).await?;
 
-    let data: Option<Model> = Projects::find_by_id(id).one(&db).await?;
+    let data: Option<Model> = Projects::find_by_id(project).one(&db).await?;
     let data = match data {
         Some(v) => v,
         None => return Err(Error::NotFound),
@@ -276,5 +292,6 @@ pub async fn remove(
         Err(_) => return Err(Error::DatabaseTransaction),
     };
 
+    trace!("::: Project {} removed.", project);
     Ok(StatusCode::NO_CONTENT)
 }

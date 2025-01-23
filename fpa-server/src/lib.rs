@@ -64,5 +64,5 @@ async fn shutdown_signal() {
         _ = terminate => {},
     }
 
-    println!("Finishing service...");
+    info!("Finishing service...");
 }

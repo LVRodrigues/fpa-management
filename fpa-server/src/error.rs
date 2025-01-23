@@ -4,6 +4,7 @@ use axum::{
     Json,
 };
 use chrono::{DateTime, Utc};
+use log::{debug, error};
 use serde::Serialize;
 use serde_json::json;
 use utoipa::ToSchema;
@@ -69,7 +70,7 @@ pub struct ErrorResponse<'a> {
 
 impl IntoResponse for Error {
     fn into_response(self) -> Response {
-        println!("==> {:<12} - {self:?}", "ERROR");
+        debug!("{}", self);
 
         let (code, message) = match self {
             Error::TokenInvalid
@@ -184,28 +185,28 @@ impl IntoResponse for Error {
             ),
         };
 
-        println!("--->>> error: {}", json!(message));
+        error!("{}", json!(message));
         (code, Json(json!(message))).into_response()
     }
 }
 
 impl From<reqwest::Error> for Error {
     fn from(value: reqwest::Error) -> Self {
-        println!("==> {:<12} - {value:?}", "ERROR");
+        error!("{}", value);
         Error::JWKSNotFound
     }
 }
 
 impl From<jsonwebtoken::errors::Error> for Error {
     fn from(value: jsonwebtoken::errors::Error) -> Self {
-        println!("==> {:<12} - {value:?}", "ERROR");
+        error!("{}", value);
         Error::TokenInvalid
     }
 }
 
 impl From<sea_orm::DbErr> for Error {
     fn from(value: sea_orm::DbErr) -> Self {
-        println!("==> {:<12} - {value:?}", "ERROR");
+        error!("{}", value);
         Error::DatabaseTransaction
     }
 }
