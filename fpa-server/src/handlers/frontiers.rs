@@ -1,14 +1,14 @@
 use std::sync::Arc;
 
 use axum::{
-    extract::{Path, Query, State}, http::{HeaderMap, StatusCode, Uri}, response::IntoResponse, routing::trace, Json
+    extract::{Path, Query, State}, http::{HeaderMap, StatusCode, Uri}, response::IntoResponse, Json
 };
 use log::{debug, trace};
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, Condition, DatabaseTransaction, DbErr, EntityTrait, Iterable,
     ModelTrait, PaginatorTrait, QueryFilter, Set,
 };
-use serde::{de, Deserialize};
+use serde::Deserialize;
 use utoipa::ToSchema;
 use uuid::Uuid;
 

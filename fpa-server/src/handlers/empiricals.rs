@@ -22,7 +22,7 @@ use log::{debug, trace};
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, Condition, EntityTrait, ModelTrait, QueryFilter, Set,
 };
-use serde::{de, Deserialize};
+use serde::Deserialize;
 use serde_json::json;
 use utoipa::ToSchema;
 use uuid::Uuid;
