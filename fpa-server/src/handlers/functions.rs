@@ -984,7 +984,7 @@ pub async fn remove(
                 return Err(Error::MultipleRowsAffected);
             }
         }
-        Err(e) => {
+        Err(_) => {
             return Err(Error::FunctionConstraints);
         }
     };
