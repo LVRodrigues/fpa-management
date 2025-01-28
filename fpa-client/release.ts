@@ -1,7 +1,7 @@
-const replace   = require('replace-in-file');
-const moment    = require('moment-timezone');
+import {replaceInFileSync} from 'replace-in-file'
+import moment from 'moment-timezone';
 
-var stamp = moment().tz('America/Sao_Paulo').format();
+const stamp: string = moment.tz('America/Sao_Paulo').format();
 const options = {
     files: [
         'src/environments/environment.ts',
@@ -13,9 +13,9 @@ const options = {
 };
 
 try {
-    let files = replace.sync(options);
-    if (files == 0) {
-        throw (
+    const files = replaceInFileSync(options);
+    if (files.length === 0) {
+        throw new Error(
             'Tenha certeza que o arquivo "' +
             options.files +
             '" possua a propriedade "releaseStamp: "'

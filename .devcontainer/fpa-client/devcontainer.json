@@ -30,7 +30,8 @@
 				"bpruitt-goddard.mermaid-markdown-syntax-highlighting",
 				"mtxr.sqltools",
 				"mtxr.sqltools-driver-pg",
-				"angular.ng-template"
+				"angular.ng-template",
+				"cyrilletuzi.angular-schematics"
 			]
 		}
 	},
