@@ -12,3 +12,7 @@ services:
     build: ./fpa-server
     ports: 
       - 5000:5000
+  fpa-client:
+    build: ./fpa-client
+    ports:
+      - 80:80

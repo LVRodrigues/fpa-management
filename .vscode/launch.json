@@ -13,10 +13,17 @@
             "cwd": "${workspaceFolder}/fpa-server",
             "env": {
                 "RUST_BACKTRACE": "1",
-                "RUST_LOG":"debug",
-                "axum::rejection":"trace"
+                "RUST_LOG": "debug",
+                "axum::rejection": "trace"
             }
-        }
-
+        },
+        {
+            "name": "FPA Client",
+            "type": "chrome",
+            "request": "launch",
+            "preLaunchTask": "fpa-client start",
+            "url": "http://localhost:4200/",
+            "cwd": "${workspaceFolder}/fpa-client"
+        },
     ]
 }
