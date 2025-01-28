@@ -1,4 +1,4 @@
-FROM quay.io/keycloak/keycloak:26.0.0
+FROM quay.io/keycloak/keycloak:26.1.0
 
 ENV KEYCLOAK_ADMIN=admin
 ENV KEYCLOAK_ADMIN_PASSWORD=admin

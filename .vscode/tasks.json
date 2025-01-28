@@ -35,12 +35,56 @@
                 "cwd": "${workspaceFolder}/fpa-server"
             },
             "isBackground": true,
-            "problemMatcher": [ 
+            "problemMatcher": [
                 "$eslint-stylish"
             ],
             "group": {
                 "kind": "build",
                 "isDefault": true
+            }
+        },
+        {
+            "label": "fpa-client start",
+            "type": "npm",
+            "script": "start",
+            "isBackground": true,
+            "options": {
+                "cwd": "${workspaceFolder}/fpa-client"
+            },
+            "problemMatcher": {
+                "owner": "typescript",
+                "pattern": "$tsc",
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": {
+                        "regexp": "(.*?)"
+                    },
+                    "endsPattern": {
+                        "regexp": "bundle generation complete"
+                    }
+                }
+            }
+        },
+        {
+            "label": "fpa-client test",
+            "type": "npm",
+            "script": "test",
+            "isBackground": true,
+            "options": {
+                "cwd": "${workspaceFolder}/fpa-client"
+            },
+            "problemMatcher": {
+                "owner": "typescript",
+                "pattern": "$tsc",
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": {
+                        "regexp": "(.*?)"
+                    },
+                    "endsPattern": {
+                        "regexp": "bundle generation complete"
+                    }
+                }
             }
         }
     ]
