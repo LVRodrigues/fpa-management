@@ -1,59 +1,25 @@
-# FpaClient
+# FPA Client
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.1.4.
+Design effort calculator using Function Point Analysis, based on information from the [International Function Point Users Group](https://ifpug.org).
 
-## Development server
+## Uses
 
-To start a local development server, run:
+![GitHub](https://img.shields.io/github/license/LVRodrigues/fpa-management)
 
-```bash
-ng serve
-```
+![Static Badge](https://img.shields.io/badge/angular-19-blue?logo=angular) 
+![Static Badge](https://img.shields.io/badge/SAAS-yellow)
+![Static Badge](https://img.shields.io/badge/NGXecharts-yellow)
+![Static Badge](https://img.shields.io/badge/RSA-yellow)
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+## Publicar Nova Versão
 
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+Using the [GitFlow](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow) workflow, run the commands:
 
 ```bash
-ng generate --help
+git flow release start <id>
+npm run release-patch
+git commit -a -m "Versão ???"
+git flow release finish
 ```
 
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+The version is reported by three fields: [major, minor, patch]. The above command increments only the last field. To increment the minor field, use **npm run release**.
