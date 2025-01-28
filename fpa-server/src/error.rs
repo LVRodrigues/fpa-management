@@ -1,6 +1,10 @@
-
-use axum::{http::StatusCode, response::{IntoResponse, Response}, Json};
+use axum::{
+    http::StatusCode,
+    response::{IntoResponse, Response},
+    Json,
+};
 use chrono::{DateTime, Utc};
+use log::{debug, error};
 use serde::Serialize;
 use serde_json::json;
 use utoipa::ToSchema;
@@ -21,6 +25,24 @@ pub enum Error {
     DatabaseTransaction,
     RegisterUser,
     ProjectCreate,
+    ProjectNameDuplicated,
+    ProjectFactorCreate,
+    ProjectEmpiricalCreate,
+    ProductivityInvalid,
+    ProjectConstraints,
+    ProjectUpdate,
+    EmpiricalInvalid,
+    FrontierCreate,
+    FrontierNameDuplicated,
+    FrontierUpdate,
+    FrontierConstraints,
+    NotFunctionData,
+    NotFunctionTransaction,
+    FunctionCreate,
+    FunctionTypeUpdateError,
+    FunctionNameDuplicated,
+    FunctionUpdate,
+    FunctionConstraints,
 }
 
 impl core::fmt::Display for Error {
@@ -34,7 +56,7 @@ impl std::error::Error for Error {}
 /// Information about the error that occurred.
 #[derive(Serialize, ToSchema)]
 #[schema(as=Error)]
-#[serde(rename = "Error")] 
+#[serde(rename = "Error")]
 pub struct ErrorResponse<'a> {
     /// Error Unique Identifier
     id: Uuid,
@@ -47,103 +69,144 @@ pub struct ErrorResponse<'a> {
 }
 
 impl IntoResponse for Error {
-	fn into_response(self) -> Response {
-		println!("==> {:<12} - {self:?}", "ERROR");
+    fn into_response(self) -> Response {
+        debug!("{}", self);
 
         let (code, message) = match self {
-            Error::TokenInvalid |
-            Error::ContextInvalid |
-            Error::KeyNotFound |
-            Error::Unauthorized => {
-                (   
-                    StatusCode::UNAUTHORIZED, 
-                    ErrorResponse {
-                        id: Uuid::new_v4(),
-                        time: Utc::now(),
-                        error: "AUTHENTICATION",
-                        message: "Authentication error. Request a new Access Token."
-                    }
-                )
-            }
+            Error::TokenInvalid
+            | Error::ContextInvalid
+            | Error::KeyNotFound
+            | Error::Unauthorized => (
+                StatusCode::UNAUTHORIZED,
+                ErrorResponse {
+                    id: Uuid::now_v7(),
+                    time: Utc::now(),
+                    error: "AUTHENTICATION",
+                    message: "Authentication error. Request a new Access Token.",
+                },
+            ),
             // Error::Forbidden => {
             //     (
             //         StatusCode::FORBIDDEN,
             //             ErrorResponse {
-            //             id: Uuid::new_v4(),
+            //             id: Uuid::now_v7(),
             //             time: Utc::now(),
             //             error: "AUTHORIZATION",
             //             message: "Não autorizado para esta operação."
             //         }
             //     )
             // }
-            Error::NotFound => {
+            Error::NotFound => (
+                StatusCode::NOT_FOUND,
+                ErrorResponse {
+                    id: Uuid::now_v7(),
+                    time: Utc::now(),
+                    error: "NOT_FOUND",
+                    message: "Resource not found with the specified parameters.",
+                },
+            ),
+            Error::MultipleRowsAffected => (
+                StatusCode::CONFLICT,
+                ErrorResponse {
+                    id: Uuid::now_v7(),
+                    time: Utc::now(),
+                    error: "DATABASE_ERROR",
+                    message: "Database in inconsistent state.",
+                },
+            ),
+            Error::ProjectConstraints | Error::FrontierConstraints | Error::FunctionConstraints => {
                 (
-                    StatusCode::NOT_FOUND,
+                    StatusCode::PRECONDITION_FAILED,
                     ErrorResponse {
-                        id: Uuid::new_v4(),
+                        id: Uuid::now_v7(),
                         time: Utc::now(),
-                        error: "NOT_FOUND",
-                        message: "Resource not found with the specified parameters."
-                    }
+                        error: "CONSTRAINT_ERROR",
+                        message: "Registry has related data.",
+                    },
                 )
             }
-            Error::MultipleRowsAffected => {
-                (
-                    StatusCode::CONFLICT,
-                    ErrorResponse {
-                        id: Uuid::new_v4(),
-                        time: Utc::now(),
-                        error: "DATABASE_ERROR",
-                        message: "Database in inconsistent state."
-                    }
-                )
-            }
-            Error::JWKSNotFound |
-            Error::DatabaseConnection | 
-            Error::DatabaseTransaction => {
-                (
-                    StatusCode::SERVICE_UNAVAILABLE,
-                    ErrorResponse {
-                        id: Uuid::new_v4(),
-                        time: Utc::now(),
-                        error: "SERVICE_ERROR",
-                        message: "Service temporarily unavailable."
-                    }
-                )
-            }
+            Error::JWKSNotFound | Error::DatabaseConnection | Error::DatabaseTransaction => (
+                StatusCode::SERVICE_UNAVAILABLE,
+                ErrorResponse {
+                    id: Uuid::now_v7(),
+                    time: Utc::now(),
+                    error: "SERVICE_ERROR",
+                    message: "Service temporarily unavailable.",
+                },
+            ),
+            Error::ProductivityInvalid => (
+                StatusCode::NOT_ACCEPTABLE,
+                ErrorResponse {
+                    id: Uuid::now_v7(),
+                    time: Utc::now(),
+                    error: "NOT_ACCEPTABLE",
+                    message: "Productivity must have a value between 1 and 50.",
+                },
+            ),
+            Error::EmpiricalInvalid => (
+                StatusCode::NOT_ACCEPTABLE,
+                ErrorResponse {
+                    id: Uuid::now_v7(),
+                    time: Utc::now(),
+                    error: "NOT_ACCEPTABLE",
+                    message: "Empirical adjustment factors must have a value between 0 and 100.",
+                },
+            ),
+            Error::ProjectNameDuplicated
+            | Error::FrontierNameDuplicated
+            | Error::FunctionNameDuplicated => (
+                StatusCode::CONFLICT,
+                ErrorResponse {
+                    id: Uuid::now_v7(),
+                    time: Utc::now(),
+                    error: "NAME_DUPLICATED",
+                    message: "The name must be unique for this scope.",
+                },
+            ),
+            Error::NotFunctionData
+            | Error::NotFunctionTransaction
+            | Error::FunctionTypeUpdateError => (
+                StatusCode::NOT_ACCEPTABLE,
+                ErrorResponse {
+                    id: Uuid::now_v7(),
+                    time: Utc::now(),
+                    error: "NOT_ACCEPTABLE",
+                    message: "The Function Type is not valid for this scope.",
+                },
+            ),
             _ => (
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    ErrorResponse {
-                        id: Uuid::new_v4(),
-                        time: Utc::now(),
-                        error: "SERVICE_ERROR",
-                        message: "Internal service error."
-                    }
-                )
+                StatusCode::INTERNAL_SERVER_ERROR,
+                ErrorResponse {
+                    id: Uuid::now_v7(),
+                    time: Utc::now(),
+                    error: "SERVICE_ERROR",
+                    message: "Internal service error.",
+                },
+            ),
         };
 
-        println!("--->>> error: {}", json!(message));
+        error!("{}", json!(message));
         (code, Json(json!(message))).into_response()
-	}
+    }
 }
 
 impl From<reqwest::Error> for Error {
     fn from(value: reqwest::Error) -> Self {
-        println!("==> {:<12} - {value:?}", "ERROR");
+        error!("{}", value);
         Error::JWKSNotFound
     }
 }
 
 impl From<jsonwebtoken::errors::Error> for Error {
     fn from(value: jsonwebtoken::errors::Error) -> Self {
-        println!("==> {:<12} - {value:?}", "ERROR");
+        error!("{}", value);
         Error::TokenInvalid
     }
 }
 
 impl From<sea_orm::DbErr> for Error {
     fn from(value: sea_orm::DbErr) -> Self {
-        println!("==> {:<12} - {value:?}", "ERROR");
+        error!("{}", value);
         Error::DatabaseTransaction
     }
 }

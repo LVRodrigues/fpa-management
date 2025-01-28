@@ -4,17 +4,23 @@ use sea_orm::entity::prelude::*;
 use serde_derive::Serialize;
 use utoipa::ToSchema;
 
+/// Authenticated User who performed the operation.
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, ToSchema)]
 #[sea_orm(table_name = "users")]
 #[schema(as=User)]
-#[serde(rename = "User")] 
+#[serde(rename = "User")]
 pub struct Model {
+    /// User unique identifier.
     #[sea_orm(primary_key, auto_increment = false)]
     pub user: Uuid,
+    /// Tenant owner of the User.
     #[serde(skip)]
     pub tenant: Uuid,
+    /// User name.
     pub name: String,
+    /// User e-mail.
     pub email: String,
+    /// User creation date and time.
     #[schema(value_type = String, format = DateTime)]
     pub time: DateTimeWithTimeZone,
 }

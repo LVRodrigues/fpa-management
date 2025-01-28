@@ -4,17 +4,24 @@ use sea_orm::entity::prelude::*;
 use serde_derive::Serialize;
 use utoipa::ToSchema;
 
+/// Versions for the system's modules.
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, ToSchema)]
 #[sea_orm(table_name = "versions")]
 #[schema(as=Version)]
-#[serde(rename = "Version")] 
+#[serde(rename = "Version")]
 pub struct Model {
+    /// Version unique identifier.
     #[sea_orm(primary_key, auto_increment = false)]
     pub version: Uuid,
+    /// Module name.
     pub name: String,
+    /// Major version number.
     pub major: i32,
+    /// Minor version number.
     pub minor: i32,
+    /// Construction version number.
     pub build: i32,
+    /// Version update date and time.
     #[schema(value_type = String, format = DateTime)]
     pub time: DateTimeWithTimeZone,
 }

@@ -1,22 +1,23 @@
+use ::log::info;
 use axum::{routing::get_service, Router};
+use std::{error::Error, net::SocketAddr};
 use tokio::{net::TcpListener, signal};
 use tower_http::services::ServeDir;
+use utoipa::OpenApi;
 use utoipa_redoc::{Redoc, Servable};
 use utoipa_swagger_ui::SwaggerUi;
-use std::{error::Error, net::SocketAddr};
-use utoipa::OpenApi;
 
-mod docs;
-mod configuration;
-mod error;
-mod jwks;
 mod auth;
+mod configuration;
 mod ctx;
-mod state;
+mod docs;
+mod error;
 mod handlers;
-mod model;
-mod mapper;
+mod jwks;
 mod log;
+mod mapper;
+mod model;
+mod state;
 
 pub async fn start() -> Result<(), Box<dyn Error>> {
     let config = configuration::prepare();
@@ -27,12 +28,11 @@ pub async fn start() -> Result<(), Box<dyn Error>> {
         .merge(Redoc::with_url("/", docs::ApiDoc::openapi()))
         .nest_service("/assets", get_service(ServeDir::new("./assets")))
         .merge(handlers::router(config.clone()).await.unwrap());
-    
+
     let address = SocketAddr::from(([0, 0, 0, 0], config.port));
-    println!("APF Server listening on {}", address);
-    let listener = TcpListener::bind(address)
-        .await
-        .unwrap();
+    info!("APF Server listening on {}", address);
+
+    let listener = TcpListener::bind(address).await.unwrap();
     axum::serve(listener, router.into_make_service())
         .with_graceful_shutdown(shutdown_signal())
         .await
@@ -64,5 +64,5 @@ async fn shutdown_signal() {
         _ = terminate => {},
     }
 
-    println!("Finishing service...");
+    info!("Finishing service...");
 }

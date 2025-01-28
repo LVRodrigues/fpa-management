@@ -4,31 +4,34 @@ use sea_orm::entity::prelude::*;
 use serde_derive::Serialize;
 use utoipa::{schema, ToSchema};
 
+/// Project for analysis.
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, ToSchema)]
 #[sea_orm(table_name = "projects")]
 #[schema(as=Project)]
-#[serde(rename = "Project")] 
+#[serde(rename = "Project")]
 pub struct Model {
+    /// Project unique identifier.
     #[sea_orm(primary_key, auto_increment = false)]
     pub project: Uuid,
+    /// Tenant owner of the Project.
     #[serde(skip)]
     pub tenant: Uuid,
+    /// Project name.
     pub name: String,
+    /// Project description.
     #[sea_orm(column_type = "Text", nullable)]
     pub description: Option<String>,
+    /// Project creation date and time.
     #[schema(value_type = String, format = DateTime)]
     pub time: DateTimeWithTimeZone,
+    /// User owner of the Project.
     pub user: Uuid,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
-    #[sea_orm(has_many = "super::modules::Entity")]
-    Modules,
-    #[sea_orm(has_many = "super::projects_empiricals::Entity")]
-    ProjectsEmpiricals,
-    #[sea_orm(has_many = "super::projects_factors::Entity")]
-    ProjectsFactors,
+    #[sea_orm(has_many = "super::frontiers::Entity")]
+    Frontiers,
     #[sea_orm(
         belongs_to = "super::tenants::Entity",
         from = "Column::Tenant",
@@ -47,21 +50,9 @@ pub enum Relation {
     Users,
 }
 
-impl Related<super::modules::Entity> for Entity {
+impl Related<super::frontiers::Entity> for Entity {
     fn to() -> RelationDef {
-        Relation::Modules.def()
-    }
-}
-
-impl Related<super::projects_empiricals::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::ProjectsEmpiricals.def()
-    }
-}
-
-impl Related<super::projects_factors::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::ProjectsFactors.def()
+        Relation::Frontiers.def()
     }
 }
 

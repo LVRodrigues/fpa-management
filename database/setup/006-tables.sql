@@ -37,42 +37,12 @@ COMMENT ON INDEX uq_versions IS 'Unique index to register a Version, consisting 
 -- Controle de Inquilinos (Multi Tenant)
 --==============================================================================
 
-CREATE TABLE tenants_status (
-    status      INTEGER     NOT NULL,
-    description brief
-);
-
-COMMENT ON TABLE tenants_status                 IS 'Tenant status in the system.';
-COMMENT ON COLUMN tenants_status.status         IS 'Tenant status identifier.';
-COMMENT ON COLUMN tenants_status.description    IS 'Description of the Tenant status.';
-
-ALTER TABLE tenants_status ADD  
-    CONSTRAINT pk_tentants_status
-    PRIMARY KEY (status);
-
-COMMENT ON INDEX pk_tentants_status IS 'Primary key of the Tenant status.';
-
-CREATE TABLE tenants_tier (
-    tier        INTEGER     NOT NULL,
-    description brief
-);
-
-COMMENT ON TABLE tenants_tier               IS 'Tenant access level on the system.';
-COMMENT ON COLUMN tenants_tier.tier         IS 'Tenant access level identifier.';
-COMMENT ON COLUMN tenants_tier.description  IS 'Description of the Tenant access level.';
-
-ALTER TABLE tenants_tier ADD
-    CONSTRAINT pk_tenants_tier
-    PRIMARY KEY (tier);
-
-COMMENT ON INDEX pk_tenants_tier IS 'Primary key of the Tenant access level.';
-
 CREATE TABLE tenants (
     tenant  id,
     name    brief,
-    time    datetime    NOT NULL,
-    status  INTEGER     NOT NULL,
-    tier    INTEGER     NOT NULL
+    time    datetime        NOT NULL,
+    status  tenant_status   NOT NULL,
+    tier    tenant_tier     NOT NULL
 );
 
 COMMENT ON TABLE tenants            IS 'Tenant of the system.';
@@ -88,19 +58,9 @@ ALTER TABLE tenants ADD
 
 COMMENT ON INDEX pk_tenants IS 'Primary key of the Tenant.';
 
-ALTER TABLE tenants ADD
-    CONSTRAINT fk_tenant_status
-    FOREIGN KEY (status)
-    REFERENCES tenants_status (status);
-
 CREATE INDEX ix_tenants_status ON tenants (status);
 
 COMMENT ON INDEX ix_tenants_status IS 'Index to select the status of tenants.';
-
-ALTER TABLE tenants ADD
-    CONSTRAINT fk_tenants_tier
-    FOREIGN KEY (tier)
-    REFERENCES tenants_tier (tier);
 
 CREATE INDEX ix_tenants_tier ON tenants (tier);
 
@@ -143,51 +103,6 @@ COMMENT ON INDEX ix_users_tenant IS 'Index to management access on tenant scope.
 --==============================================================================
 -- Projetos de Análise por Pontos de Função (Multi Tenant)
 --==============================================================================
-
-CREATE TABLE influences (
-    influence   INTEGER     NOT NULL,
-    description brief
-);
-
-COMMENT ON TABLE influences                 IS 'Influence value of the factor on the project.';
-COMMENT ON COLUMN influences.influence      IS 'Unique Influence identifier.';
-COMMENT ON COLUMN influences.description    IS 'Description of the Influence.';
-
-ALTER TABLE influences ADD 
-    CONSTRAINT pk_influences
-    PRIMARY KEY (influence);
-
-COMMENT ON INDEX pk_influences IS 'Primary key of the Influences.';
-
-CREATE TABLE factors (
-    factor      INTEGER     NOT NULL,
-    description brief
-);
-
-COMMENT ON TABLE factors                IS 'Set of possible Factor`s Types.';
-COMMENT ON COLUMN factors.factor        IS 'Factor`s Type.';
-COMMENT ON COLUMN factors.description   IS 'Description for the Factor`s Type.';
-
-ALTER TABLE factors ADD
-    CONSTRAINT pk_factors
-    PRIMARY KEY (factor);
-
-COMMENT ON INDEX pk_factors IS 'Primary key for the Factors`s Types.';
-
-CREATE TABLE empiricals (
-    empirical   INTEGER     NOT NULL,
-    description brief
-);
-
-COMMENT ON TABLE empiricals                 IS 'Set of possible Empirical`s Factors.';
-COMMENT ON COLUMN empiricals.empirical      IS 'Empirical`s Factor.';
-COMMENT ON COLUMN empiricals.description    IS 'Description for the Empirical`s factors.';
-
-ALTER TABLE empiricals ADD
-    CONSTRAINT pk_empiricals
-    PRIMARY KEY (empirical);
-
-COMMENT ON INDEX pk_empiricals IS 'Primary key for the Empirical`s Factors.';
 
 CREATE TABLE projects (
     project     id,
@@ -234,174 +149,150 @@ CREATE UNIQUE INDEX uq_projects_tenant_name ON projects(tenant, name);
 
 COMMENT ON INDEX uq_projects_tenant_name IS 'Unique Project Name on a Tenant.';
 
-CREATE TABLE projects_factors (
+CREATE TABLE frontiers (
+    frontier    id,
     project     id,
-    factor      INTEGER NOT NULL,
     tenant      id,
-    influence   INTEGER NOT NULL
+    name        brief,
+    description description
 );
 
-COMMENT ON TABLE projects_factors               IS 'Adjusts Factors for the Project.';
-COMMENT ON COLUMN projects_factors.project      IS 'Project identifier.';
-COMMENT ON COLUMN projects_factors.factor       IS 'Fator`s Type for the Project.';
-COMMENT ON COLUMN projects_factors.tenant       IS 'Tenant owner of the Project.';
-COMMENT ON COLUMN projects_factors.influence    IS 'Influence value for the factor on this project.';
+COMMENT ON TABLE frontiers                IS 'Frontier for group Functions on a Project.';
+COMMENT ON COLUMN frontiers.frontier      IS 'Unique identifier for Frontier.';
+COMMENT ON COLUMN frontiers.project       IS 'Project Identifier.';
+COMMENT ON COLUMN frontiers.tenant        IS 'Tenant owner of the Frontier.';
+COMMENT ON COLUMN frontiers.name          IS 'Frontier`s Name.';
+COMMENT ON COLUMN frontiers.description   IS 'Frontier`s Description';
 
-ALTER TABLE projects_factors ADD
-    CONSTRAINT pk_projects_factors
-    PRIMARY KEY (project, factor);
+ALTER TABLE frontiers ADD 
+    CONSTRAINT pk_frontiers
+    PRIMARY KEY (frontier);
 
-COMMENT ON INDEX pk_projects_factors IS 'Primary key for the Factor`s Types on a Project.';
+COMMENT ON INDEX pk_frontiers IS 'Primary key for Frontiers.';
 
-ALTER TABLE projects_factors ADD
-    CONSTRAINT fk_projects_factors_project
+ALTER TABLE frontiers ADD
+    CONSTRAINT fk_frontiers_project
     FOREIGN KEY (project)
     REFERENCES projects (project);
 
-CREATE INDEX ix_projects_factors_project ON projects_factors (project);
+CREATE INDEX ix_frontiers_project ON frontiers (project);
 
-COMMENT ON INDEX ix_projects_factors_project IS 'Index to relate to Project.';
+COMMENT ON INDEX ix_frontiers_project IS 'Index to relate Frontiers and Projects.';
 
-ALTER TABLE projects_factors ADD
-    CONSTRAINT fk_projects_factors_factor
-    FOREIGN KEY (factor)
-    REFERENCES factors (factor);
-
-CREATE INDEX ix_projects_factors_factor ON projects_factors (factor);
-
-COMMENT ON INDEX ix_projects_factors_factor IS 'Index to relate to Fator`s Types.';
-
-ALTER TABLE projects_factors ADD
-    CONSTRAINT fk_projects_factors_tenant
+ALTER TABLE frontiers ADD
+    CONSTRAINT fk_frontiers_tenant
     FOREIGN KEY (tenant)
     REFERENCES tenants (tenant);
 
-CREATE INDEX ix_projects_factors_tenant ON projects_factors (tenant);
+CREATE INDEX ix_frontiers_tenant ON frontiers (tenant);
 
-COMMENT ON INDEX ix_projects_factors_tenant IS 'Index to management access on tenant scope.';
+COMMENT ON INDEX ix_frontiers_tenant IS 'Index to management access on tenant scope.';
 
-ALTER TABLE projects_factors ADD
-    CONSTRAINT fk_projects_factors_influence
-    FOREIGN KEY (influence)
-    REFERENCES influences (influence);
+CREATE UNIQUE INDEX uq_frontiers_project_name ON frontiers (project, name);
 
-CREATE INDEX ix_projects_factors_influence ON projects_factors (influence);
+COMMENT ON INDEX uq_frontiers_project_name IS 'Unique index for exclusive frontiers`s name on a Project.';
 
-COMMENT ON INDEX ix_projects_factors_influence IS 'Influence value for the Factor`s Type on this Project.';
+CREATE TABLE factors (
+    frontier    id,
+    factor      factor_type NOT NULL,
+    tenant      id,
+    influence   influence_type NOT NULL
+);
 
-CREATE TABLE projects_empiricals (
-    project     id,
-    empirical   INTEGER NOT NULL,
+COMMENT ON TABLE factors            IS 'Adjustments Factors for the Frontire.';
+COMMENT ON COLUMN factors.factor    IS 'Adjustment Fator for the Frontier.';
+COMMENT ON COLUMN factors.tenant    IS 'Tenant owner of the Frontier.';
+COMMENT ON COLUMN factors.frontier  IS 'Frontier identifier.';
+COMMENT ON COLUMN factors.influence	IS 'Influence value for the factor on this Frontier.';
+
+ALTER TABLE factors ADD
+    CONSTRAINT pk_factors
+    PRIMARY KEY (frontier, factor);
+
+COMMENT ON INDEX pk_factors IS 'Primary key for the Factor`s Types on a Frontier.';
+
+ALTER TABLE factors ADD
+    CONSTRAINT fk_factors_frontier
+    FOREIGN KEY (frontier)
+    REFERENCES frontiers (frontier)
+    ON DELETE CASCADE;
+
+CREATE INDEX ix_factors_frontier ON factors (frontier);
+
+COMMENT ON INDEX ix_factors_frontier IS 'Index to relate to Frontier.';
+
+CREATE INDEX ix_factors_factor ON factors (factor);
+
+COMMENT ON INDEX ix_factors_factor IS 'Index to relate to Fator`s Types.';
+
+ALTER TABLE factors ADD
+    CONSTRAINT fk_factors_tenant
+    FOREIGN KEY (tenant)
+    REFERENCES tenants (tenant);
+
+CREATE INDEX ix_factors_tenant ON factors (tenant);
+
+COMMENT ON INDEX ix_factors_tenant IS 'Index to management access on tenant scope.';
+
+CREATE INDEX ix_factors_influence ON factors (influence);
+
+COMMENT ON INDEX ix_factors_influence IS 'Influence value for the Factor`s Type on this Frontier.';
+
+CREATE TABLE empiricals (
+    frontier    id,
+    empirical   empirical_type NOT NULL,
     tenant      id,
     value       INTEGER NOT NULL
 );
 
-COMMENT ON TABLE projects_empiricals            IS 'Empirical Adjusts Factors for the Project.';
-COMMENT ON COLUMN projects_empiricals.project   IS 'Project identifier.';
-COMMENT ON COLUMN projects_empiricals.empirical IS 'Empirical`s Factor.';
-COMMENT ON COLUMN projects_empiricals.tenant    IS 'Tenant owner of the Project.';
-COMMENT ON COLUMN projects_empiricals.value     IS 'Percent of influence for the Empirical`s Factor..';
+COMMENT ON TABLE empiricals            IS 'Empirical Adjusts Factors for the Frontier.';
+COMMENT ON COLUMN empiricals.frontier  IS 'Frontier identifier.';
+COMMENT ON COLUMN empiricals.empirical IS 'Empirical`s Factor.';
+COMMENT ON COLUMN empiricals.tenant    IS 'Tenant owner of the Empirical.';
+COMMENT ON COLUMN empiricals.value     IS 'Percent of influence for the Empirical`s Factor.';
 
-ALTER TABLE projects_empiricals ADD
-    CONSTRAINT pk_projects_empiricals
-    PRIMARY KEY (project, empirical);
+ALTER TABLE empiricals ADD
+    CONSTRAINT pk_empiricals
+    PRIMARY KEY (frontier, empirical);
 
-COMMENT ON INDEX pk_projects_empiricals IS 'Primary key for the Empirical`s Factors on a Project.';
+COMMENT ON INDEX pk_empiricals IS 'Primary key for the Empirical`s Factors on a Frontier.';
 
-ALTER TABLE projects_empiricals ADD
-    CONSTRAINT fk_projects_empiricals_project
-    FOREIGN KEY (project)
-    REFERENCES projects (project);
+ALTER TABLE empiricals ADD
+    CONSTRAINT fk_empiricals_frontier
+    FOREIGN KEY (frontier)
+    REFERENCES frontiers (frontier)
+    ON DELETE CASCADE;
 
-CREATE INDEX ix_projects_empiricals_project ON projects_empiricals (project);
+CREATE INDEX ix_empiricals_frontier ON empiricals (frontier);
 
-COMMENT ON INDEX ix_projects_factors_project IS 'Index to relate to Project.';
+COMMENT ON INDEX ix_empiricals_frontier IS 'Index to relate to Frontier.';
 
-ALTER TABLE projects_empiricals ADD
-    CONSTRAINT fk_projects_empiricals_empirical
-    FOREIGN KEY (empirical)
-    REFERENCES empiricals (empirical);
+CREATE INDEX ix_empiricals_empirical ON empiricals (empirical);
 
-CREATE INDEX ix_projects_empiricals_empirical ON projects_empiricals (empirical);
+COMMENT ON INDEX ix_empiricals_empirical IS 'Index to relate to Empirical`s Factors.';
 
-COMMENT ON INDEX ix_projects_factors_factor IS 'Index to relate to Empirical`s Factors.';
-
-ALTER TABLE projects_empiricals ADD
-    CONSTRAINT fk_projects_empiricals_tenant
+ALTER TABLE empiricals ADD
+    CONSTRAINT fk_empiricals_tenant
     FOREIGN KEY (tenant)
     REFERENCES tenants (tenant);
 
-CREATE INDEX ix_projects_empiricals_tenant ON projects_empiricals (tenant);
+CREATE INDEX ix_empiricals_tenant ON empiricals (tenant);
 
-COMMENT ON INDEX ix_projects_factors_tenant IS 'Index to management access on tenant scope.';
-
-CREATE TABLE modules (
-    module      id,
-    project     id,
-    tenant      id,
-    name        brief,
-    description description
-);
-
-COMMENT ON TABLE modules                IS 'Module for group Functions on a Project.';
-COMMENT ON COLUMN modules.module        IS 'Unique identifier for Module.';
-COMMENT ON COLUMN modules.project       IS 'Project Identifier.';
-COMMENT ON COLUMN modules.tenant        IS 'Tenant owner of the Module.';
-COMMENT ON COLUMN modules.name          IS 'Module`s Name.';
-COMMENT ON COLUMN modules.description   IS 'Module`s Description';
-
-ALTER TABLE modules ADD 
-    CONSTRAINT pk_modules
-    PRIMARY KEY (module);
-
-COMMENT ON INDEX pk_modules IS 'Primary key for Modules.';
-
-ALTER TABLE modules ADD
-    CONSTRAINT fk_modules_project
-    FOREIGN KEY (project)
-    REFERENCES projects (project);
-
-CREATE INDEX ix_modules_project ON modules (project);
-
-COMMENT ON INDEX ix_modules_project IS 'Index to relate Modules and Projects.';
-
-ALTER TABLE modules ADD
-    CONSTRAINT fk_modules_tenant
-    FOREIGN KEY (tenant)
-    REFERENCES tenants (tenant);
-
-CREATE INDEX ix_modules_tenant ON modules (tenant);
-
-COMMENT ON INDEX ix_modules_tenant IS 'Index to management access on tenant scope.';
-
-CREATE TABLE functions_types (
-    type        INTEGER  NOT NULL,
-    description brief
-);
-
-COMMENT ON TABLE functions_types                IS 'Set of possible Functions`s Types.';
-COMMENT ON COLUMN functions_types.type          IS 'Type of the Function.';
-COMMENT ON COLUMN functions_types.description   IS 'Description for the Function`s type.';
-
-ALTER TABLE functions_types ADD
-    CONSTRAINT pk_functions_types 
-    PRIMARY KEY (type);
-
-COMMENT ON INDEX pk_functions_types IS 'Primary key for Functions`s Types.';
+COMMENT ON INDEX ix_empiricals_tenant IS 'Index to management access on tenant scope.';
 
 CREATE TABLE functions (
     function    id,
-    module      id,
+    frontier    id,
     tenant      id,
-    type        INTEGER NOT NULL,
+    type        function_type NOT NULL,
     name        brief,
     description description
 
 );
 
-COMMENT ON TABLE functions              IS 'Set of All Functions for the Module.';
+COMMENT ON TABLE functions              IS 'Set of All Functions for the Frontier.';
 COMMENT ON COLUMN functions.function    IS 'Unique identifier for Function.';
-COMMENT ON COLUMN functions.module      IS 'Identifier of the module that owns the function.';
+COMMENT ON COLUMN functions.frontier    IS 'Identifier of the Frontier that owns the Function.';
 COMMENT ON COLUMN functions.tenant      IS 'Tenant owner of the Function';
 COMMENT ON COLUMN functions.type        IS 'Functions`s type.';
 COMMENT ON COLUMN functions.name        IS 'Name of the Function.';
@@ -414,13 +305,13 @@ ALTER TABLE functions ADD
 COMMENT ON INDEX pk_functions IS 'Primary key for Functions.';
 
 ALTER TABLE functions ADD
-    CONSTRAINT fk_functions_module
-    FOREIGN KEY (module)
-    REFERENCES modules (module);
+    CONSTRAINT fk_functions_frontier
+    FOREIGN KEY (frontier)
+    REFERENCES frontiers (frontier);
 
-CREATE INDEX ix_functions_module ON functions (module);
+CREATE INDEX ix_functions_frontier ON functions (frontier);
 
-COMMENT ON INDEX ix_functions_module IS 'Reference index to the function`s owning module.';
+COMMENT ON INDEX ix_functions_frontier IS 'Reference index to the function`s owning frontier.';
 
 ALTER TABLE functions ADD
     CONSTRAINT fk_functions_tenant
@@ -431,20 +322,15 @@ CREATE INDEX ix_functions_tenant ON functions (tenant);
 
 COMMENT ON INDEX ix_functions_tenant IS 'Index to management access on tenant scope.';
 
-ALTER TABLE functions ADD
-    CONSTRAINT fk_functions_type
-    FOREIGN KEY (type)
-    REFERENCES functions_types (type);
-
 CREATE INDEX ix_functions_type ON functions (type);
 
 COMMENT ON INDEX ix_functions_type IS 'Reference index to the functions`s type.';
 
 CREATE TABLE functions_datas () INHERITS (functions);
 
-COMMENT ON TABLE functions_datas                IS 'Set of Functions of type Data (ALI, AIE) for the Module.';
+COMMENT ON TABLE functions_datas                IS 'Set of Functions of type Data (ALI, AIE) for the Frontier.';
 COMMENT ON COLUMN functions_datas.function      IS 'Unique identifier for Function.';
-COMMENT ON COLUMN functions_datas.module        IS 'Identifier of the module that owns the function.';
+COMMENT ON COLUMN functions_datas.frontier      IS 'Identifier of the Frontier that owns the Function.';
 COMMENT ON COLUMN functions_datas.tenant        IS 'Tenant owner of the Function';
 COMMENT ON COLUMN functions_datas.type          IS 'Functions`s type. Only for Data on type 1 and 2.';
 COMMENT ON COLUMN functions_datas.name          IS 'Name of the Function.';
@@ -457,13 +343,13 @@ ALTER TABLE functions_datas ADD
 COMMENT ON INDEX pk_functions_datas IS 'Primary key for Functions of type Data.';
 
 ALTER TABLE functions_datas ADD
-    CONSTRAINT fk_functions_datas_module
-    FOREIGN KEY (module)
-    REFERENCES modules (module);
+    CONSTRAINT fk_functions_datas_frontier
+    FOREIGN KEY (frontier)
+    REFERENCES frontiers (frontier);
 
-CREATE INDEX ix_functions_datas_module ON functions (module);
+CREATE INDEX ix_functions_datas_frontier ON functions (frontier);
 
-COMMENT ON INDEX ix_functions_datas_module IS 'Reference index to the function`s owning module.';
+COMMENT ON INDEX ix_functions_datas_frontier IS 'Reference index to the Functions`s owning Frontier.';
 
 ALTER TABLE functions_datas ADD
     CONSTRAINT fk_functions_datas_tenant
@@ -474,24 +360,19 @@ CREATE INDEX ix_functions_datas_tenant ON functions (tenant);
 
 COMMENT ON INDEX ix_functions_datas_tenant IS 'Index to management access on tenant scope.';
 
-ALTER TABLE functions_datas ADD
-    CONSTRAINT fk_functions_datas_type
-    FOREIGN KEY (type)
-    REFERENCES functions_types (type);
-
 CREATE INDEX ix_functions_datas_type ON functions (type);
 
 COMMENT ON INDEX ix_functions_datas_type IS 'Reference index to the functions`s type.';
 
 ALTER TABLE functions_datas ADD 
     CONSTRAINT check_functions_datas_type
-    CHECK (type IN (1, 2));
+    CHECK (type IN ('ALI', 'AIE'));
 
 CREATE TABLE functions_transactions () INHERITS (functions);
 
-COMMENT ON TABLE functions_transactions                 IS 'Set of Functions of type Transaction (EE, CE, SE) for the Module.';
+COMMENT ON TABLE functions_transactions                 IS 'Set of Functions of type Transaction (EE, CE, SE) for the Frontier.';
 COMMENT ON COLUMN functions_transactions.function       IS 'Unique identifier for Function.';
-COMMENT ON COLUMN functions_transactions.module         IS 'Identifier of the module that owns the function.';
+COMMENT ON COLUMN functions_transactions.frontier       IS 'Identifier of the Frontier that owns the Function.';
 COMMENT ON COLUMN functions_transactions.tenant         IS 'Tenant owner of the Function.';
 COMMENT ON COLUMN functions_transactions.type           IS 'Functions`s type. Only for Transactions on type 3, 4 and 5.';
 COMMENT ON COLUMN functions_transactions.name           IS 'Name of the Function.';
@@ -504,13 +385,13 @@ ALTER TABLE functions_transactions ADD
 COMMENT ON INDEX pk_functions_transactions IS 'Primary key for Functions of type Transaction.';
 
 ALTER TABLE functions_transactions ADD
-    CONSTRAINT fk_functions_transactions_module
-    FOREIGN KEY (module)
-    REFERENCES modules (module);
+    CONSTRAINT fk_functions_transactions_frontier
+    FOREIGN KEY (frontier)
+    REFERENCES frontiers (frontier);
 
-CREATE INDEX ix_functions_transactions_module ON functions (module);
+CREATE INDEX ix_functions_transactions_frontier ON functions (frontier);
 
-COMMENT ON INDEX ix_functions_transactions_module IS 'Reference index to the function`s owning module.';
+COMMENT ON INDEX ix_functions_transactions_frontier IS 'Reference index to the Function`s owning Frontier.';
 
 ALTER TABLE functions_transactions ADD
     CONSTRAINT fk_functions_transactions_tenant
@@ -521,18 +402,13 @@ CREATE INDEX ix_functions_transactions_tenant ON functions (tenant);
 
 COMMENT ON INDEX ix_functions_transactions_tenant IS 'Index to management access on tenant scope.';
 
-ALTER TABLE functions_transactions ADD
-    CONSTRAINT fk_functions_transactions_type
-    FOREIGN KEY (type)
-    REFERENCES functions_types (type);
-
 CREATE INDEX ix_functions_transactions_type ON functions (type);
 
 COMMENT ON INDEX ix_functions_transactions_type IS 'Reference index to the functions`s type.';
 
 ALTER TABLE functions_transactions ADD 
     CONSTRAINT check_functions_transactions_type
-    CHECK (type IN (3, 4, 5));
+    CHECK (type IN ('CE', 'EE', 'SE'));
 
 CREATE TABLE alrs (
     function    id,
@@ -554,7 +430,8 @@ COMMENT ON INDEX pk_alrs IS 'Index for association between Transaction and Data 
 ALTER TABLE alrs ADD 
     CONSTRAINT fk_alrs_function
     FOREIGN KEY (function)
-    REFERENCES functions_transactions (function);
+    REFERENCES functions_transactions (function)
+    ON DELETE CASCADE;
 
 CREATE INDEX ix_alrs_function ON alrs (function);
 
@@ -563,7 +440,8 @@ COMMENT ON INDEX ix_alrs_function IS 'Reference index to the functions of type T
 ALTER TABLE alrs ADD
     CONSTRAINT fk_alrs_alr
     FOREIGN KEY (alr)
-    REFERENCES functions_datas (function);
+    REFERENCES functions_datas (function)
+    ON DELETE CASCADE;
 
 CREATE INDEX ix_alrs_alr ON alrs (alr);
 
@@ -579,30 +457,29 @@ CREATE INDEX ix_alrs_tenant ON alrs (tenant);
 COMMENT ON INDEX ix_alrs_tenant IS 'Index to management access on tenant scope.';
 
 CREATE TABLE rlrs (
-    rlr         id,
     function    id,
-    tenant      id,
     name        brief,
-    description description
+    description description,
+    tenant      id
 );
 
 COMMENT ON TABLE rlrs               IS 'Referenced Logical Records.';
-COMMENT ON COLUMN rlrs.rlr          IS 'Unique identifier for a Reference Logical Record.';
-COMMENT ON COLUMN rlrs.function     IS 'unique identifier for a Function.';
-COMMENT ON COLUMN rlrs.tenant       IS 'Tenant owner of the Function.';
+COMMENT ON COLUMN rlrs.function     IS 'Unique identifier for a Function.';
 COMMENT ON COLUMN rlrs.name         IS 'Name of the Referenced Logical Record.';
+COMMENT ON COLUMN rlrs.tenant       IS 'Tenant owner of the Function.';
 COMMENT ON COLUMN rlrs.description  IS 'Description for the Referenced Logical Record.';
 
 ALTER TABLE rlrs ADD
     CONSTRAINT pk_rlrs
-    PRIMARY KEY (rlr);
+    PRIMARY KEY (function, name);
 
 COMMENT ON INDEX pk_rlrs IS 'Primary key for Referenced Logial Records.';
 
 ALTER TABLE rlrs ADD 
-    CONSTRAINT fk_rlrs_function
+    CONSTRAINT fk_rlrs_functions_datas
     FOREIGN KEY (function)
-    REFERENCES functions (function);
+    REFERENCES functions_datas (function)
+    ON DELETE CASCADE;
 
 CREATE INDEX ix_rlrs_function ON rlrs (function);
 
@@ -616,3 +493,42 @@ ALTER TABLE rlrs ADD
 CREATE INDEX ix_rlrs_tenant ON alrs (tenant);
 
 COMMENT ON INDEX ix_rlrs_tenant IS 'Index to management access on tenant scope.';
+
+CREATE TABLE ders (
+    function    id,
+    rlr         brief,
+    name        brief,
+    description description,
+    tenant      id
+);
+
+COMMENT ON TABLE ders               IS 'Referenced Elementary Data.';
+COMMENT ON COLUMN ders.function     IS 'Unique identifier for a Referenced Elementary Data.';
+COMMENT ON COLUMN ders.rlr          IS 'Identifier for a Referenced Logical Record.';
+COMMENT ON COLUMN ders.name         IS 'Name of the Referenced Elementary Data.';
+COMMENT ON COLUMN ders.description  IS 'Description for the Referenced Elementary Data.';
+COMMENT ON COLUMN ders.tenant       IS 'Tenant owner of the Referenced Elementary Data.';
+
+ALTER TABLE ders ADD
+    CONSTRAINT pk_ders
+    PRIMARY KEY (function, rlr, name);
+
+COMMENT ON INDEX pk_ders IS 'Primary key for Referenced Rlementary Data.';
+
+ALTER TABLE ders ADD
+    CONSTRAINT fk_ders_rlrs
+    FOREIGN KEY (function, rlr)
+    REFERENCES rlrs (function, name)
+    ON DELETE CASCADE;
+
+CREATE INDEX ix_ders_rlr ON ders (function, rlr);
+
+COMMENT ON INDEX ix_ders_rlr IS 'Reference index to the Referenced Logical Records.';
+
+ALTER TABLE ders ADD
+    CONSTRAINT fk_ders_tenant
+    FOREIGN KEY (tenant)
+    REFERENCES tenants (tenant);
+
+CREATE INDEX ix_ders_tenant ON alrs (tenant);
+COMMENT ON INDEX ix_ders_tenant IS 'Index to management access on tenant scope.';

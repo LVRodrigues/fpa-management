@@ -2,54 +2,36 @@
 
 ```mermaid
 erDiagram
-    tenants_status          ||--o{ tenants: fk_tenants_status
-    tenants_tier            ||--o{ tenants: fk_tenants_tier
+    functions_datas         ||--o{ rlrs: fk_rlrs_functions_datas
+
     tenants                 ||--o{ users: fk_users_tenant
     tenants                 ||--o{ projects: fk_projects_tenant
-    tenants                 ||--o{ projects_factors: fk_projects_factor_tenant
-    tenants                 ||--o{ projects_empiricals: fk_projects_empiricals_tenant
-    tenants                 ||--o{ modules: fk_modules_tenant
+    tenants                 ||--o{ frontiers: fk_frontiers_tenant
     tenants                 ||--o{ functions: fk_functions_tenant
-    tenants                 ||--o{ ders: fk_ders_tenant
     tenants                 ||--o{ rlrs: fk_rlrs_tenant
     tenants                 ||--o{ alrs: fk_alrs_tenant
+    tenants                 ||--o{ ders: fk_ders_tenant
 
     users                   ||--o{ projects: fk_projects_user
 
-    influences              ||--o{ projects_factors: fk_projects_factors_influence
-    factors                 ||--o{ projects_factors: fk_projecs_factors_factor
-    projects                ||--o{ projects_factors: fk_projects_factors_project
+    projects                ||--o{ frontiers: fk_frontiers_project
+    
+    frontiers               ||--o{ functions: fk_functions_frontier
+    frontiers               ||--o{ factors: fk_factors_frontier
+    frontiers               ||--o{ empiricals: fk_empiricals_frontier
 
-    empiricals              ||--o{ projects_empiricals: fk_projects_empiricals_empirical
-    projects                ||--o{ projects_empiricals: fk_projects_empiricals_project
-
-    projects                ||--o{ modules: fk_modules_project
-    modules                 ||--o{ functions: fk_functions_module
-
-    functions_types         ||--o{ functions: fk_functions_type
     functions               ||--|| functions_datas: inherit
     functions               ||--|| functions_transactions: inherit
-    functions               ||--o{ ders: fk_ders_functions
-    functions_datas         ||--o{ rlrs: fk_rlrs_function
-    functions_datas         ||--o{ alrs: fk_functions_transactions_alr
-    functions_transactions  ||--o{ alrs: fk_functions_transactions_function
+    functions_datas         ||--o{ alrs: fk_alrs_functions_datas
+    rlrs                    ||--o{ ders: fl_ders_rlrs
+    functions_transactions  ||--o{ alrs: fk_alrs_functions_transactions
         
-    tenants_status {
-        status      integer     PK
-        description brief
-    }
-
-    tenants_tier {
-        tier        integer     PK
-        description brief
-    }
-
     tenants {
         tenant      id          PK
         name        brief
         time        datetime
-        status      integer
-        tier        integer
+        status      tenant_status
+        tier        tenant_tier
     }
 
     users {
@@ -69,21 +51,6 @@ erDiagram
         time        datetime
     }
 
-    influences {
-        influence   integer     PK
-        description brief        
-    }    
-
-    factors {
-        factor      integer     PK
-        description brief
-    }
-
-    empiricals {
-        empirical   integer     PK
-        description brief
-    } 
-
     projects {
         project     id          PK
         tenant      id
@@ -94,39 +61,34 @@ erDiagram
         version     integer
     }
 
-    projects_factors {
-        project     id          PK
-        factor      integer     PK
-        tenant      id
-        influence   integer
-    }
-
-    projects_empiricals {
-        project     id          PK
-        empirical   integer     PK
-        tenant      id
-        value       integer
-    }
-
-    modules {
-        module      id          PK
+    frontiers {
+        frontier    id          PK
         name        brief
         description description
         project     id
         tenant      id
     }
 
-    functions_types {
-        type        integer     PK
-        description brief
+    factors {
+        frontier    id          PK
+        factor      factor      PK
+        tenant      id
+        influence   influence
+    }
+
+    empiricals {
+        frontier    id          PK
+        empirical   empirical   PK
+        tenant      id
+        value       integer
     }
 
     functions {
         function    id          PK
         name        brief
         description description
-        type        integer
-        module      id
+        type        function_type
+        frontier    id
         tenant      id
     }
 
@@ -136,19 +98,18 @@ erDiagram
     functions_transactions {
     }
 
-    ders {
-        der         id          PK
-        name        brief
+    rlrs {
+        function    id          PK
+        name        brief       PK
         description description
-        function    id
         tenant      id
     }
 
-    rlrs {
-        rlr         id          PK
-        name        brief
+    ders {
+        function    id          PK
+        rlr         brief       PK
+        name        brief       PK
         description description
-        function    id
         tenant      id
     }
 
@@ -156,5 +117,6 @@ erDiagram
         function    id          PK
         alr         id          PK
         tenant      id
-    }
+    }    
+
 ```

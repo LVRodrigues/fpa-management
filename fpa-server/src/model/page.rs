@@ -1,26 +1,10 @@
-
 use serde::Serialize;
 use serde_derive::Deserialize;
 use utoipa::{IntoParams, ToResponse, ToSchema};
 
-/* Previous declaration of structure that will be fed by the model fields */
-#[derive(Debug, Serialize)]
-pub struct Project;
-
-#[derive(Debug, Serialize)]
-pub struct User;
-
-#[derive(Debug, Serialize)]
-pub struct Version;
-
 /// Page selected.
 #[derive(Debug, Clone, Serialize, ToSchema, ToResponse)]
-#[aliases(
-    Projects = Page<Project>,
-    Users = Page<User>,
-    Versions = Page<Version>,
-)]
-pub struct Page<T> {
+pub struct Page<T: ToSchema> {
     /// Total of pages.
     pub pages: u64,
     /// Index of this page.
@@ -33,9 +17,15 @@ pub struct Page<T> {
     pub items: Vec<T>,
 }
 
-impl<T> Page<T> {
+impl<T: ToSchema> Page<T> {
     pub fn new() -> Self {
-        Self { pages: 0, index: 0, size: 0, records: 0, items: Vec::<T>::new() }
+        Self {
+            pages: 0,
+            index: 0,
+            size: 0,
+            records: 0,
+            items: Vec::<T>::new(),
+        }
     }
 }
 
@@ -56,7 +46,11 @@ pub struct PageParams {
 
 impl Default for PageParams {
     fn default() -> Self {
-        Self { page: Some(1), size: Some(10), name: Some(String::new()) }
+        Self {
+            page: Some(1),
+            size: Some(10),
+            name: Some(String::new()),
+        }
     }
 }
 

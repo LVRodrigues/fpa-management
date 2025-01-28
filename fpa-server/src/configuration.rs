@@ -2,6 +2,7 @@ use std::{path::Path, str::FromStr};
 
 use axum::http::uri::Scheme;
 use config::{Config, File};
+use log::info;
 
 #[derive(Debug, Clone)]
 pub struct ConfigurationDatabase {
@@ -20,16 +21,26 @@ pub struct ConfigurationDatabase {
 }
 
 #[derive(Debug, Clone)]
+pub struct Empiricals {
+    pub productivity: i32,
+    pub coordination: i32,
+    pub deployment: i32,
+    pub planning: i32,
+    pub testing: i32,
+}
+
+#[derive(Debug, Clone)]
 pub struct Configuration {
     pub scheme: Scheme,
     pub authority: String,
     pub port: u16,
     pub jwks: Vec<String>,
     pub database: ConfigurationDatabase,
+    pub empiricals: Empiricals,
 }
 
 pub fn prepare() -> Configuration {
-    println!("==> {:<12} - prepare", "CONFIG");
+    info!("Configuring fpa-server...");
     let settings = Config::builder()
         .add_source(File::from(Path::new("config.yaml")))
         .build()
@@ -54,6 +65,13 @@ pub fn prepare() -> Configuration {
             timeout_acquire: settings.get("database.timeout_acquire").unwrap(),
             timeout_idle: settings.get("database.timeout_idle").unwrap(),
             lifetime: settings.get("database.lifetime").unwrap(),
+        },
+        empiricals: Empiricals {
+            productivity: settings.get("empiricals.productivity").unwrap(),
+            coordination: settings.get("empiricals.coordination").unwrap(),
+            deployment: settings.get("empiricals.deployment").unwrap(),
+            planning: settings.get("empiricals.planning").unwrap(),
+            testing: settings.get("empiricals.testing").unwrap(),
         },
     }
 }

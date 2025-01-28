@@ -1,9 +1,9 @@
-FROM postgres:17
+FROM postgres:17.2
 
-ENV POSTGRES_PASSWORD 'postgres'
-ENV POSTGRES_DB 'fpa-management'
-ENV POSTGRES_USER 'fpa-admin'
-ENV POSTGRES_PASSWORD 'fpa-pass'
+#ENV POSTGRES_PASSWORD='postgres'
+ENV POSTGRES_DB='fpa-management'
+ENV POSTGRES_USER='fpa-admin'
+ENV POSTGRES_PASSWORD='fpa-pass'
 
 COPY \
     setup/001-users-docker.sql \

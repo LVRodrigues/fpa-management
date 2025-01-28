@@ -1,4 +1,8 @@
-use axum::{async_trait, extract::FromRequestParts, http::request::Parts};
+use axum::{
+    extract::{FromRequestParts, OptionalFromRequestParts},
+    http::request::Parts,
+};
+use log::trace;
 use uuid::Uuid;
 
 use crate::error::Error;
@@ -8,12 +12,17 @@ pub struct Context {
     id: Uuid,
     tenant: Uuid,
     name: String,
-    email: String
+    email: String,
 }
 
 impl Context {
     pub fn new(id: Uuid, tenant: Uuid, name: String, email: String) -> Self {
-        Self { id, tenant, name, email }
+        Self {
+            id,
+            tenant,
+            name,
+            email,
+        }
     }
 
     pub fn id(&self) -> &Uuid {
@@ -33,20 +42,36 @@ impl Context {
     }
 }
 
-#[async_trait]
 impl<S: Send + Sync> FromRequestParts<S> for Context {
-	type Rejection = Error;
+    type Rejection = Error;
 
-	async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Error> {
-		println!("==> {:<12} - Context", "EXTRACTOR");
+    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Error> {
+        trace!("Extracting the Context.");
 
-		let context = parts
-			.extensions
-			.get::<Context>()
+        let context = parts
+            .extensions
+            .get::<Context>()
             .ok_or(Error::ContextInvalid)
             .unwrap()
             .clone();
 
         Ok(context)
-	}
+    }
+}
+
+impl<S: Send + Sync> OptionalFromRequestParts<S> for Context {
+    type Rejection = Error;
+
+    async fn from_request_parts(
+        parts: &mut Parts,
+        _state: &S,
+    ) -> Result<Option<Self>, Self::Rejection> {
+        trace!("Extracting the optional Context.");
+
+        let context = parts.extensions.get::<Context>();
+        match context {
+            Some(ctx) => Ok(Some(ctx.clone())),
+            None => Ok(None),
+        }
+    }
 }
