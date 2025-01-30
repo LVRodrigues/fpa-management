@@ -19,10 +19,10 @@
 
     #codesolver-name {
         height: calc(var(--logo-size)/4);
-        margin-left: 5px;
+        margin-left: var(--space-between);
     }
 
     #version {
-        font-size: 0.5em;
+        font-size: var(--version-size);
     }
 }

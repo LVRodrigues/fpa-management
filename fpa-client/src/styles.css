@@ -19,6 +19,8 @@
 
     --logo-size: 70px;
     --title-size: 2em;
+    --space-between: 5px;
+    --version-size: 0.5em;
 }
 
 html,
