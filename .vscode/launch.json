@@ -16,14 +16,16 @@
                 "RUST_LOG": "debug",
                 "axum::rejection": "trace"
             }
-        },
+        },  
         {
             "name": "FPA Client",
-            "type": "chrome",
+            "type": "firefox",
             "request": "launch",
-            "preLaunchTask": "fpa-client start",
+            "reAttach": true,
             "url": "http://localhost:4200/",
-            "cwd": "${workspaceFolder}/fpa-client"
-        },
+            "profile": "default",
+            "keepProfileChanges": true,
+            "firefoxArgs": ["-devtools"],
+          },
     ]
 }

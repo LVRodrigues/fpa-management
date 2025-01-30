@@ -31,7 +31,8 @@
 				"mtxr.sqltools",
 				"mtxr.sqltools-driver-pg",
 				"angular.ng-template",
-				"cyrilletuzi.angular-schematics"
+				"cyrilletuzi.angular-schematics",
+				"firefox-devtools.vscode-firefox-debug"
 			]
 		}
 	},

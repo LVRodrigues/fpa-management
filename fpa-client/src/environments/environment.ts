@@ -1,5 +1,7 @@
+import packageJson from '../../package.json';
+
 export const environment = {
-    appVersion: require('../../package.json').version,
+    version: packageJson.version,
     production: true,
-    releaseStamp: '2025-01-28T08:47:33-03:00',
+    release: '2025-01-28T08:47:33-03:00',
 };
