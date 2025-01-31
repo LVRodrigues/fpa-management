@@ -8,7 +8,8 @@
         "build": "ng build --configuration production",
         "test": "ng test",
         "release-patch": "npm --no-git-tag-version version patch && node --experimental-strip-types release.ts",
-        "release": "npm --no-git-tag-version version minor && node --experimental-strip-types release.ts"
+        "release": "npm --no-git-tag-version version minor && node --experimental-strip-types release.ts",
+        "pt": "ng serve --configuration=pt --host=0.0.0.0"
     },
     "private": true,
     "dependencies": {
