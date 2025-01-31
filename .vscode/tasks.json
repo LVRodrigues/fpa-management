@@ -38,10 +38,7 @@
             "problemMatcher": [
                 "$eslint-stylish"
             ],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
+            "group": "build"
         },
         {
             "label": "fpa-client start",
@@ -85,6 +82,18 @@
                         "regexp": "bundle generation complete"
                     }
                 }
+            }
+        },
+        {
+            "type": "npm",
+            "script": "start",
+            "path": "fpa-client",
+            "problemMatcher": [],
+            "label": "npm: start - fpa-client",
+            "detail": "ng serve --configuration development --host=0.0.0.0",
+            "group": {
+                "kind": "build",
+                "isDefault": true
             }
         }
     ]

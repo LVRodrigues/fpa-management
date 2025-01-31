@@ -1,0 +1,28 @@
+:host {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--alternative-color);
+    color: var(--alternative-text);
+    padding: var(--vertical-padding) var(--horizontal-padding);
+
+    section {
+        flex: 0 0 auto;
+        text-align: right;
+    }
+
+    #codesolver-logo {
+        width: calc(var(--logo-size)/2);
+    }
+
+    #codesolver-name {
+        height: calc(var(--logo-size)/4);
+        margin-left: var(--space-between);
+    }
+
+    #version {
+        font-size: var(--version-size);
+    }
+}

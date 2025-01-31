@@ -1,6 +1,6 @@
 [package]
 name = "fpa-server"
-version = "0.4.0"
+version = "0.5.0"
 edition = "2021"
 description = "Project Management using Function Points Analysis."
 authors = ["Luciano Vieira Rodrigues <lvrodrigues@gmail.com>"]
