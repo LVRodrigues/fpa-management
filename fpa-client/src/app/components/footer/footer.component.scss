@@ -1,3 +1,35 @@
+@use '@angular/material' as mat;
+
 :host {
-    flex: 0 0 auto;
+	flex: 0 0 auto;
+	width: 100%;
+
+	footer {
+		display: flex;
+		flex-wrap: wrap;
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+		padding: 5px 10px;
+
+		background-color: var(--mat-sys-primary);
+		color: var(--mat-sys-on-primary);
+	}
+
+	section {
+		flex: 0 0 auto;
+	}
+
+    #codesolver-logo {
+        height: calc(var(--logo-size) * 0.7);
+    }
+
+    #codesolver-name {
+        height: calc(var(--logo-size) * 0.3);
+    }
+
+    #version {
+        font-size: 0.6em;
+        text-align: right;
+    }
 }

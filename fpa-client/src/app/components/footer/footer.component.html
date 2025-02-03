@@ -1,3 +1,15 @@
-<mat-toolbar>
-    
-</mat-toolbar>
+<footer>
+    <section class="container">
+        <img id="codesolver-logo" src="./logotipo.svg" alt="Code Solver Logo"/>
+        <img id="codesolver-name" src="./codesolver.svg" alt="Code Solver"/>
+    </section>
+
+    <section>
+        <p id="version">
+            {{ version }}
+            <br>
+            {{ release | date: 'medium' }}
+        </p>
+        
+    </section>
+</footer>
