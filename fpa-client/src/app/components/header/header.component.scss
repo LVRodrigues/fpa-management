@@ -1,0 +1,31 @@
+@use '@angular/material' as mat;
+
+:host {
+	flex: 0 0 auto;
+	width: 100%;
+
+	header {
+		display: flex;
+		flex-wrap: wrap;
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+		padding: 5px 10px;
+
+		background-color: var(--mat-sys-primary);
+		color: var(--mat-sys-on-primary);
+	}
+
+	section {
+		flex: 0 0 auto;
+	}
+}
+
+#app-logo {
+	width: var(--logo-size);
+	height: var(--logo-size);
+}
+
+#app-title {
+	font-size: var(--title-size);
+}

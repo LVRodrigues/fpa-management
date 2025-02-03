@@ -5,6 +5,12 @@
 	"projects": {
 		"fpa-client": {
 			"projectType": "application",
+			"i18n": {
+				"sourceLocale": "en",
+				"locales": {
+					"pt": "src/locale/messages.pt.xlf"
+				}
+			},
 			"schematics": {
 				"@schematics/angular:component": {
 					"style": "scss",
@@ -39,11 +45,13 @@
 				"build": {
 					"builder": "@angular-devkit/build-angular:application",
 					"options": {
+						"localize": true,
 						"outputPath": "dist/fpa-client",
 						"index": "src/index.html",
 						"browser": "src/main.ts",
 						"polyfills": [
-							"zone.js"
+							"zone.js",
+							"@angular/localize/init"
 						],
 						"tsConfig": "tsconfig.app.json",
 						"inlineStyleLanguage": "scss",
@@ -54,7 +62,6 @@
 							}
 						],
 						"styles": [
-							"@angular/material/prebuilt-themes/azure-blue.css",
 							"src/styles.scss"
 						],
 						"scripts": []
@@ -79,6 +86,11 @@
 							"optimization": false,
 							"extractLicenses": false,
 							"sourceMap": true
+						},
+						"pt": {
+							"localize": [
+								"pt"
+							]
 						}
 					},
 					"defaultConfiguration": "production"
@@ -91,6 +103,9 @@
 						},
 						"development": {
 							"buildTarget": "fpa-client:build:development"
+						},
+						"pt": {
+							"buildTarget": "fpa-client:build:pt"
 						}
 					},
 					"defaultConfiguration": "development"
@@ -103,7 +118,8 @@
 					"options": {
 						"polyfills": [
 							"zone.js",
-							"zone.js/testing"
+							"zone.js/testing",
+							"@angular/localize/init"
 						],
 						"tsConfig": "tsconfig.spec.json",
 						"inlineStyleLanguage": "scss",
