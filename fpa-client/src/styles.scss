@@ -7,9 +7,11 @@
 
 html {
     color-scheme: light dark;
-    @include mat.theme((color: mat.$azure-palette,
-            typography: Roboto,
-            density: 0));
+    @include mat.theme((
+        color: mat.$azure-palette,
+        typography: Roboto,
+        density: 0
+    ));
 }
 
 html,
@@ -30,4 +32,12 @@ body {
     justify-content: center;
     flex-wrap: wrap;
     gap: 5px;
+}
+
+.full-width {
+    width: 100%;
+}
+
+.mat-mdc-card-content {
+    margin-top: 10px;
 }
