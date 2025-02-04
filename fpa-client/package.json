@@ -23,6 +23,7 @@
 		"@angular/platform-browser": "^19.1.0",
 		"@angular/platform-browser-dynamic": "^19.1.0",
 		"@angular/router": "^19.1.0",
+		"@auth0/angular-jwt": "^5.2.0",
 		"moment-timezone": "^0.5.47",
 		"replace-in-file": "^8.3.0",
 		"rxjs": "~7.8.0",

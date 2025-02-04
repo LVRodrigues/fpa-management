@@ -16,7 +16,7 @@
                 "RUST_LOG": "debug",
                 "axum::rejection": "trace"
             }
-        },  
+        },
         {
             "name": "FPA Client",
             "type": "firefox",
@@ -25,7 +25,15 @@
             "url": "http://localhost:4200/",
             "profile": "default",
             "keepProfileChanges": true,
-            "firefoxArgs": ["-devtools"],
-          },
+            "firefoxArgs": [
+                "-devtools"
+            ],
+            "pathMappings": [
+                {
+                    "url": "http://localhost:4200/src",
+                    "path": "${workspaceFolder}/fpa-client/src"
+                }
+            ]
+        }
     ]
 }

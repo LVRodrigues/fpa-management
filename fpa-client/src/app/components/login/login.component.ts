@@ -6,6 +6,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
+import { AuthService } from '../../services/auth.service';
+import { Router } from '@angular/router';
 
 @Component({
 	selector: 'app-login',
@@ -22,8 +24,24 @@ export class LoginComponent {
 		password: new FormControl('', Validators.required)
 	});
 
+	constructor (
+		private auths: AuthService,
+		private router: Router
+	) {}
+
 	submit() {
-		console.log(this.form.value);
+		this.auths.logout();
+		this.auths.login(this.form.value).subscribe({
+			next: (v) => {},
+			error: (e) => {
+				console.error(e);
+				// TODO Notificar falha de login.
+				window.alert('Não foi possível autenticar o usuário.');
+			},
+			complete: () => {
+				this.router.navigate(['/home']).then(_ => console.info("Usuário autenticado"));
+			}
+		})
 	}
 
 	google() {
