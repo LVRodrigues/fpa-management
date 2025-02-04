@@ -15,7 +15,6 @@ import { MatDividerModule } from '@angular/material/divider';
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LoginComponent {
-
 	hide: boolean = true;
 
 	form = new FormGroup({
@@ -25,5 +24,13 @@ export class LoginComponent {
 
 	submit() {
 		console.log(this.form.value);
+	}
+
+	google() {
+		throw new Error('Method not implemented.');
+	}
+	
+	signup() {
+		throw new Error('Method not implemented.');
 	}
 }
