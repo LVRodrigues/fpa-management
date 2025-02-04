@@ -3,13 +3,16 @@
 :root {
     --logo-size: 50px;
     --title-size: 1.5rem;
+    --spacing-between: 5px;
 }
 
 html {
     color-scheme: light dark;
-    @include mat.theme((color: mat.$azure-palette,
-            typography: Roboto,
-            density: 0));
+    @include mat.theme((
+        color: mat.$spring-green-palette,
+        typography: Roboto,
+        density: 0
+    ));
 }
 
 html,
@@ -29,5 +32,29 @@ body {
     align-items: center;
     justify-content: center;
     flex-wrap: wrap;
-    gap: 5px;
+    gap:  var(--spacing-between);
+}
+
+.full-width {
+    width: 100%;
+}
+
+.mat-mdc-card-header {
+    margin: 0px;
+    min-height: 40px;
+    padding: 5px 20px !important;
+    align-items: center; 
+    font-weight: bolder;
+    border-top-right-radius: var(--mat-sys-corner-medium);
+    border-top-left-radius: var(--mat-sys-corner-medium);
+    background-color: var(--mat-sys-primary);
+    color: var(--mat-sys-on-primary);
+}
+
+.mat-mdc-card-content {
+    margin-top: calc(var(--mat-sys-body-small-line-height) * 2);
+}
+
+.mat-mdc-card-actions {
+    gap: var(--spacing-between);
 }
