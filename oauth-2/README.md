@@ -85,13 +85,13 @@ Start the container and execute:
 
 ```bash
 curl -X POST \
-  'http://localhost:8080/realms/<reaml>/protocol/openid-connect/token' \
+  'http://localhost:8080/realms/default/protocol/openid-connect/token' \
   --header 'Content-Type: application/x-www-form-urlencoded' \
   --data-urlencode 'grant_type=password' \
   --data-urlencode 'client_id=fpa-management' \
-  --data-urlencode 'client_secret=******' \
-  --data-urlencode 'username=******' \
-  --data-urlencode 'password=******' 
+  --data-urlencode 'client_secret=ogIzFgW9nY8kbptdREn5cw2rrn0Cihpv' \
+  --data-urlencode 'username=user' \
+  --data-urlencode 'password=fpa-pass' 
 ```
 
 ### Decompose de Token
@@ -100,13 +100,13 @@ Using de tools **jq**, **tr** and **jwt-cli**.
 
 ```bash
 curl -X POST \
-  'http://localhost:8080/realms/<realm>/protocol/openid-connect/token' \
+  'http://localhost:8080/realms/default/protocol/openid-connect/token' \
   --header 'Content-Type: application/x-www-form-urlencoded' \
   --data-urlencode 'grant_type=password' \
   --data-urlencode 'client_id=fpa-management' \
-  --data-urlencode 'client_secret=******' \
-  --data-urlencode 'username=******' \
-  --data-urlencode 'password=******' \
+  --data-urlencode 'client_secret=ogIzFgW9nY8kbptdREn5cw2rrn0Cihpv' \
+  --data-urlencode 'username=user' \
+  --data-urlencode 'password=fpa-pass' \
   | jq ".access_token" \
   | tr -d '"' \
   | jwt decode -

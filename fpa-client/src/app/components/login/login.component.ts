@@ -17,6 +17,7 @@ import { Router } from '@angular/router';
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LoginComponent {
+
 	hide: boolean = true;
 
 	form = new FormGroup({
@@ -24,15 +25,15 @@ export class LoginComponent {
 		password: new FormControl('', Validators.required)
 	});
 
-	constructor (
+	constructor(
 		private auths: AuthService,
 		private router: Router
-	) {}
+	) { }
 
 	submit() {
 		this.auths.logout();
 		this.auths.login(this.form.value).subscribe({
-			next: (v) => {},
+			next: (v) => { },
 			error: (e) => {
 				console.error(e);
 				// TODO Notificar falha de login.
@@ -47,7 +48,11 @@ export class LoginComponent {
 	google() {
 		throw new Error('Method not implemented.');
 	}
-	
+
+	linkedin() {
+		throw new Error('Method not implemented.');
+	}
+
 	signup() {
 		throw new Error('Method not implemented.');
 	}
