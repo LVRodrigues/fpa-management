@@ -11,21 +11,21 @@ The **Dockerfile** file configures the keycloak for use in the
 To create the Docker image for the project, run:
 
 ```bash
-docker build -f Dockerfile -t fpa-management/oauth2 .
+docker build -f Dockerfile -t fpa-management/oauth-2 .
 ```
 
 To run the image with a volatile database:
 
 ```bash
-docker run --rm -p 8080:8080/tcp -p 8443:8443/tcp fpa-management/oauth2
+docker run --rm -p 8080:8080/tcp -p 8443:8443/tcp fpa-management/oauth-2
 ```
 
 To run the image with a persistent database:
 
 ```bash
-docker run --name fpa-management-oauth2 -p 8080:8080 -p 8443:8443 fpa-management/oauth2
-docker start fpa-management-oauth2
-docker stop fpa-management-oauth2
+docker run --name fpa-management-oauth-2 -p 8080:8080 -p 8443:8443 fpa-management/oauth-2
+docker start fpa-management-oauth-2
+docker stop fpa-management-oauth-2
 ```
 
 ## Access the administration console
@@ -51,20 +51,26 @@ export the file to rebuild the container.
 To perform the backup, run:
 
 ```bash
-docker exec -it fpa-management-oauth2 /bin/bash
+docker exec -it fpa-management-oauth-2 /bin/bash
 ```
 Run the command to export the domain data:
 
 ```bash
-/opt/keycloak/bin/kc.sh export --dir /opt/keycloak/data/export --users realm_file
+cp -rp /opt/keycloak/data/h2 /tmp
+
+/opt/keycloak/bin/kc.sh export \
+  --dir /opt/keycloak/data/export \
+  --users realm_file \
+  --db dev-file \
+  --db-url 'jdbc:h2:file:/tmp/h2/keycloakdb;NON_KEYWORDS=VALUE'
 ```
 
 After the backup, the **fpa-management-realm.json** file must be extracted.
 
 ```bash
-docker cp fpa-management-oauth2:/opt/keycloak/data/export/default-realm.json   .
-docker cp fpa-management-oauth2:/opt/keycloak/data/export/tenant-01-realm.json .
-docker cp fpa-management-oauth2:/opt/keycloak/data/export/tenant-02-realm.json .
+docker cp fpa-management-oauth-2:/opt/keycloak/data/export/default-realm.json   .
+docker cp fpa-management-oauth-2:/opt/keycloak/data/export/tenant-01-realm.json .
+docker cp fpa-management-oauth-2:/opt/keycloak/data/export/tenant-02-realm.json .
 ```
 
 Rerun the container rebuild to persist the changes.
