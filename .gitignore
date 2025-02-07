@@ -21,3 +21,8 @@ Cargo.lock
 node_modules/
 dist/
 .angular/
+
+# Secrets
+.gitsecret/keys/random_seed
+!*.secret
+oauth-2/default-realm.json
