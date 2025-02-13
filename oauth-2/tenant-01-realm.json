@@ -1,8 +1,8 @@
 {
   "id" : "7b876820-5edc-4840-a942-112768515657",
   "realm" : "tenant-01",
-  "displayName" : "FPA Management - Tenant 01",
-  "displayNameHtml" : "<h1>FPA Management - Tenant 01</h1>",
+  "displayName" : "FPA Calculator",
+  "displayNameHtml" : "<h1>FPA Calculator - Tenant 01</h1>",
   "notBefore" : 0,
   "defaultSignatureAlgorithm" : "RS256",
   "revokeRefreshToken" : false,
@@ -104,6 +104,7 @@
       "attributes" : { }
     } ],
     "client" : {
+      "fpa-client" : [ ],
       "realm-management" : [ {
         "id" : "c64f5068-4b85-4213-af36-df788f1ab7a8",
         "name" : "view-clients",
@@ -272,9 +273,9 @@
         "containerId" : "27185db8-4d2f-4ce5-83d8-684ea892b8d6",
         "attributes" : { }
       } ],
-      "fpa-management" : [ ],
       "security-admin-console" : [ ],
       "admin-cli" : [ ],
+      "fpa-server" : [ ],
       "account-console" : [ ],
       "broker" : [ {
         "id" : "5e97f205-e0ef-4e75-bf58-2397a32ae9ea",
@@ -608,20 +609,58 @@
     "defaultClientScopes" : [ "web-origins", "acr", "profile", "roles", "email" ],
     "optionalClientScopes" : [ "address", "phone", "offline_access", "microprofile-jwt" ]
   }, {
-    "id" : "041dbec6-52dd-49da-adcf-3ac693474d77",
-    "clientId" : "fpa-management",
-    "name" : "Tenant 01",
-    "description" : "",
-    "rootUrl" : "http://localhost",
-    "adminUrl" : "http://localhost:5000",
+    "id" : "4692c40f-eada-43c8-b5dc-2d73fc44be39",
+    "clientId" : "fpa-client",
+    "name" : "FPA Calculator Client",
+    "description" : "FPA Calculator client for Tenant 01",
+    "rootUrl" : "http://localhost:4200",
+    "adminUrl" : "http://localhost:4200",
     "baseUrl" : "http://localhost:4200",
+    "surrogateAuthRequired" : false,
+    "enabled" : true,
+    "alwaysDisplayInConsole" : false,
+    "clientAuthenticatorType" : "client-secret",
+    "redirectUris" : [ "http://localhost:4200/*" ],
+    "webOrigins" : [ "http://localhost:4200" ],
+    "notBefore" : 0,
+    "bearerOnly" : false,
+    "consentRequired" : false,
+    "standardFlowEnabled" : true,
+    "implicitFlowEnabled" : false,
+    "directAccessGrantsEnabled" : true,
+    "serviceAccountsEnabled" : false,
+    "publicClient" : true,
+    "frontchannelLogout" : true,
+    "protocol" : "openid-connect",
+    "attributes" : {
+      "realm_client" : "false",
+      "oidc.ciba.grant.enabled" : "false",
+      "backchannel.logout.session.required" : "true",
+      "frontchannel.logout.session.required" : "true",
+      "oauth2.device.authorization.grant.enabled" : "false",
+      "display.on.consent.screen" : "false",
+      "backchannel.logout.revoke.offline.tokens" : "false"
+    },
+    "authenticationFlowBindingOverrides" : { },
+    "fullScopeAllowed" : true,
+    "nodeReRegistrationTimeout" : -1,
+    "defaultClientScopes" : [ "web-origins", "acr", "profile", "roles", "basic", "email", "tenant" ],
+    "optionalClientScopes" : [ "address", "phone", "offline_access", "microprofile-jwt" ]
+  }, {
+    "id" : "041dbec6-52dd-49da-adcf-3ac693474d77",
+    "clientId" : "fpa-server",
+    "name" : "FPA Calculator Server",
+    "description" : "",
+    "rootUrl" : "http://localhost:5000",
+    "adminUrl" : "http://localhost:5000",
+    "baseUrl" : "http://localhost:5000",
     "surrogateAuthRequired" : false,
     "enabled" : true,
     "alwaysDisplayInConsole" : true,
     "clientAuthenticatorType" : "client-secret",
     "secret" : "jKQO0Pxb1gFrSz64iUgqlgsoANs86d31",
-    "redirectUris" : [ "http://localhost:4200/*", "http://localhost:5000/*" ],
-    "webOrigins" : [ "http://localhost:5000", "http://localhost:4200" ],
+    "redirectUris" : [ "http://localhost:5000/*" ],
+    "webOrigins" : [ "http://localhost:5000" ],
     "notBefore" : 0,
     "bearerOnly" : false,
     "consentRequired" : false,
@@ -1363,7 +1402,7 @@
       "subType" : "anonymous",
       "subComponents" : { },
       "config" : {
-        "allowed-protocol-mapper-types" : [ "saml-user-property-mapper", "oidc-address-mapper", "oidc-usermodel-property-mapper", "saml-role-list-mapper", "saml-user-attribute-mapper", "oidc-usermodel-attribute-mapper", "oidc-sha256-pairwise-sub-mapper", "oidc-full-name-mapper" ]
+        "allowed-protocol-mapper-types" : [ "saml-user-attribute-mapper", "oidc-address-mapper", "oidc-usermodel-property-mapper", "saml-user-property-mapper", "oidc-sha256-pairwise-sub-mapper", "saml-role-list-mapper", "oidc-full-name-mapper", "oidc-usermodel-attribute-mapper" ]
       }
     }, {
       "id" : "8251d090-d3d1-4269-a952-951532e4ca06",
@@ -1372,7 +1411,7 @@
       "subType" : "authenticated",
       "subComponents" : { },
       "config" : {
-        "allowed-protocol-mapper-types" : [ "oidc-usermodel-property-mapper", "saml-role-list-mapper", "oidc-full-name-mapper", "oidc-usermodel-attribute-mapper", "saml-user-property-mapper", "saml-user-attribute-mapper", "oidc-address-mapper", "oidc-sha256-pairwise-sub-mapper" ]
+        "allowed-protocol-mapper-types" : [ "oidc-usermodel-attribute-mapper", "saml-user-property-mapper", "oidc-sha256-pairwise-sub-mapper", "oidc-full-name-mapper", "saml-user-attribute-mapper", "saml-role-list-mapper", "oidc-address-mapper", "oidc-usermodel-property-mapper" ]
       }
     }, {
       "id" : "08b79adb-e7b0-49c4-aba8-ae2c91f08c31",

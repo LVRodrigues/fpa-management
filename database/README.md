@@ -6,26 +6,26 @@ PostgreSQL database for the **FPA Management** application.
 
 ## Docker
 
-The **Dockerfile** file configures a database for use in the **FPA Management** system.
+The **Dockerfile** file configures a database for use in the **FPA** system.
 
 To create the Docker image for the project, run:
 
 ```bash
-docker build -f Dockerfile -t fpa-management/database .
+docker build -f Dockerfile -t fpa/database .
 ```
 
 To run the image with a volatile database:
 
 ```bash
-docker run --rm -p 5432:5432/tcp fpa-management/database
+docker run --rm -p 5432:5432/tcp fpa/database
 ```
 
 To run the image with a persistent database:
 
 ```bash
-docker run --name fpa-management-database -p 5432:5432 fpa-management/database
-docker start fpa-management-database
-docker stop fpa-management-database
+docker run --name fpa-database -p 5432:5432 fpa/database
+docker start fpa-database
+docker stop fpa-database
 ```
 
 ## Access the Database
@@ -37,7 +37,7 @@ Two users are created:
 
 In both cases, the password is **fpa-pass**.
 
-The database is named **fpa-management** and is accessible via the address **localhost**, on port **5432**.
+The database is named **fpa** and is accessible via the address **localhost**, on port **5432**.
 
 As the user **fpa-admin** is the owner of the objects, he has full access to the database.
 

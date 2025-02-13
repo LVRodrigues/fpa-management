@@ -4,16 +4,16 @@
 -- Should not be embedded in Docker.
 --==============================================================================
 
-CREATE TABLESPACE "fpa-management"
+CREATE TABLESPACE "fpa"
     OWNER "fpa-admin"
-    LOCATION '/var/lib/postgresql/fpa-management';
-COMMENT ON TABLESPACE "fpa-managemen"
+    LOCATION '/var/lib/postgresql/fpa';
+COMMENT ON TABLESPACE "fpa"
     IS 'Data Area for the FPA Management application.';
 
-CREATE DATABASE "fpa-management"
+CREATE DATABASE "fpa"
     WITH OWNER = "fpa-admin"
         ENCODING = 'UTF8'
-        TABLESPACE = "fpa-management"
+        TABLESPACE = "fpa"
         CONNECTION LIMIT = -1;
-COMMENT ON DATABASE "fpa-management"
+COMMENT ON DATABASE "fpa"
     IS 'FPA Management application database.';

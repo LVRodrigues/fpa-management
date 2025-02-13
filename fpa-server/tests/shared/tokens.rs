@@ -38,7 +38,7 @@ pub async fn request_token(user: &str, password: &str, tenant: Tenant) -> Result
     };
     let mut params = HashMap::new();
     params.insert("grant_type", "password");
-    params.insert("client_id", "fpa-management");
+    params.insert("client_id", "fpa-server");
     params.insert("client_secret", secret);
     params.insert("username", user);
     params.insert("password", password);

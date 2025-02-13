@@ -9,7 +9,7 @@ database:
   port: 5432
   username: fpa-user
   password: fpa-pass
-  name: fpa-management
+  name: fpa
   connections_max: 100
   connections_min: 5
   timeout_connect: 10
