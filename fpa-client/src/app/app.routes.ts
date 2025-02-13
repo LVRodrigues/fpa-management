@@ -1,11 +1,11 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './guards/auth.guard';
-import { LoginComponent } from './components/login/login.component';
 import { HomeComponent } from './components/home/home.component';
+import { ForbiddenComponent } from './components/forbidden/forbidden.component';
+import { canActivateAuthRole } from './guards/auth-role.guard';
 
 export const routes: Routes = [
     { path: '', redirectTo: 'home', pathMatch: 'full' },
-    { path: 'home', canActivate: [ authGuard ], component: HomeComponent },
-    { path: 'login', component: LoginComponent },
+    { path: 'home', canActivate: [ canActivateAuthRole ], component: HomeComponent, data: {role: 'user'} },
+    { path: 'forbidden', component: ForbiddenComponent },
     { path: '**', redirectTo: 'home'}
 ];
