@@ -4,7 +4,12 @@
         <span id="app-title">{{ title }}</span>
     </section>
 
-    <section>
-        <p>User´s information</p>
+    <section id="user-info" class="container">
+        <span>{{ username }}</span>
+        <mat-divider [vertical]="true"></mat-divider>
+        <button mat-flat-button (click)="signout()">
+            <mat-icon>logout</mat-icon>
+            Sign out
+        </button>
     </section>
 </header>

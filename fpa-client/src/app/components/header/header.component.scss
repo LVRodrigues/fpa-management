@@ -29,3 +29,10 @@
 #app-title {
 	font-size: var(--title-size);
 }
+
+#user-info {
+	@include mat.button-overrides((
+		filled-container-color: var(--mat-sys-secondary-container),
+		filled-label-text-color: var(--mat-sys-on-secondary-container),
+	));
+}
