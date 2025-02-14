@@ -5,11 +5,11 @@
     </section>
 
     <section id="user-info" class="container">
-        <span>{{ username }}</span>
+        <span i18n="Welcome user mesage">Welcome {{ username }}</span>
         <mat-divider [vertical]="true"></mat-divider>
-        <button mat-flat-button (click)="signout()">
+        <button mat-raised-button (click)="signout()">
             <mat-icon>logout</mat-icon>
-            Sign out
+            <span i18n="Sign out Button">Sign out</span>
         </button>
     </section>
 </header>
