@@ -9,7 +9,8 @@
 		"test": "ng test",
 		"release-patch": "npm --no-git-tag-version version patch && node --experimental-strip-types release.ts",
 		"release": "npm --no-git-tag-version version minor && node --experimental-strip-types release.ts",
-		"pt": "ng serve --configuration pt --host=0.0.0.0 --disable-host-check"
+		"pt": "ng serve --configuration pt --host=0.0.0.0 --disable-host-check",
+		"i18n": "ng extract-i18n --output-path src/locale"
 	},
 	"private": true,
 	"dependencies": {
